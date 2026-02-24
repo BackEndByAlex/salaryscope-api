@@ -1,0 +1,34 @@
+{
+  "name": "jobs-salary-api",
+  "version": "1.0.0",
+  "description": "GraphQL API over a tech jobs and salary dataset.",
+  "type": "module",
+  "main": "src/server.js",
+  "repository": {
+    "type": "git",
+    "url": "git@gitlab.lnu.se:1dv027/student/aa227wr/assignment-api-design.git"
+  },
+  "license": "ISC",
+  "author": "Alexandru Antonescu",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "@apollo/server": "^4.11.0",
+    "@as-integrations/express": "^2.0.1",
+    "@prisma/client": "^5.22.0",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.3",
+    "cors": "^2.8.5",
+    "csv-parse": "^5.5.6",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "graphql": "^16.9.0",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0",
+    "nodemon": "^2.0.22"
+  }
+}
