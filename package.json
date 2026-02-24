@@ -8,27 +8,28 @@
     "type": "git",
     "url": "git@gitlab.lnu.se:1dv027/student/aa227wr/assignment-api-design.git"
   },
-  "license": "ISC",
+  "license": "MIT",
   "author": "Alexandru Antonescu",
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js"
   },
   "dependencies": {
-    "@apollo/server": "^4.11.0",
-    "@as-integrations/express": "^2.0.1",
-    "@prisma/client": "^5.22.0",
-    "bcryptjs": "^2.4.3",
-    "body-parser": "^1.20.3",
-    "cors": "^2.8.5",
-    "csv-parse": "^5.5.6",
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2",
-    "graphql": "^16.9.0",
-    "jsonwebtoken": "^9.0.2"
+    "@apollo/server": "^5.4.0",
+    "@as-integrations/express5": "^1.1.2",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "csv-parse": "^6.1.0",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "graphql": "^16.13.0",
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
-    "prisma": "^5.22.0",
-    "nodemon": "^2.0.22"
+    "@prisma/client": "^6.19.2",
+    "install": "^0.13.0",
+    "nodemon": "^3.1.14",
+    "npm": "^11.10.1",
+    "prisma": "^6.19.2"
   }
 }

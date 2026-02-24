@@ -5,7 +5,7 @@ services:
     environment:
       POSTGRES_DB: jobs_salary
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # never hardcode credentials in a committed file
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # credentials are set via .env file and not hardcoded for security reasons
     ports:
       - "5432:5432"
     volumes:
