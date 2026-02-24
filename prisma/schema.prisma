@@ -1,0 +1,58 @@
+// After any schema change, run: npx prisma generate
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Source data: jobs_in_data.csv + jobs_in_data_2024.csv (~23,000 rows total).
+model SalaryRecord {
+  id                Int      @id @default(autoincrement())
+
+  workYear          Int
+  jobTitle          String
+  jobCategory       String
+  salaryCurrency    String
+
+  // Decimal chosen over Float to avoid floating-point rounding errors with monetary values.
+  salary            Decimal  @db.Decimal(12, 2)
+  salaryInUsd       Decimal  @db.Decimal(12, 2)
+
+  employeeResidence String
+
+  // EN = Entry-level, MI = Mid-level, SE = Senior, EX = Executive
+  experienceLevel   String
+
+  // FT = Full-time, PT = Part-time, CT = Contract, FL = Freelance
+  employmentType    String
+
+  // Remote, Hybrid, In-person
+  workSetting       String
+
+  companyLocation   String
+  // S = Small, M = Medium, L = Large
+  companySize       String
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Indexes on the most commonly filtered fields — without them, every query scans all 23,000 rows.
+  @@index([jobCategory])
+  @@index([employeeResidence])
+  @@index([workYear])
+}
+
+// Only authenticated users can create, update, or delete salary records.
+model User {
+  id           Int      @id @default(autoincrement())
+
+  email        String   @unique
+
+  // bcrypt hash — if the database leaks, the hashes cannot be used directly as passwords.
+  passwordHash String
+
+  createdAt    DateTime @default(now())
+}

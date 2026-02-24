@@ -1,0 +1,36 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped # "always" would restart even after a deliberate manual stop
+    environment:
+      POSTGRES_DB: jobs_salary
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # never hardcode credentials in a committed file
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # named volume persists data across container restarts and recreations
+    healthcheck: # without this, the api can start before Postgres is ready to accept connections
+      test: ["CMD-SHELL", "pg_isready -U admin -d jobs_salary"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  api:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      NODE_ENV: development
+      PORT: 4000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: sh -c "npx prisma migrate deploy && node src/server.js" # ensures schema is in sync before the app starts
+
+volumes:
+  postgres_data:
