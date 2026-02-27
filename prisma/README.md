@@ -6,11 +6,11 @@ Everything related to the database structure, migrations, and data seeding.
 
 ## Files
 
-| File / Folder | Purpose |
-|---|---|
-| `schema.prisma` | Blueprint of the database — models, relations, indexes. Change this to change the DB structure. |
-| `migrations/` | Auto-generated SQL files. Prisma applies these to build or update the DB. **Never delete.** |
-| `seed.js` | Reads all four CSV files from `data/` and inserts ~68,000 rows across Country, Job, Company, and SalaryRecord tables. |
+| File / Folder       | Purpose                                                                                                                                   |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `schema.prisma`     | Blueprint of the database — models, relations, indexes. Change this to change the DB structure.                                           |
+| `migrations/`       | Auto-generated SQL files. Prisma applies these to build or update the DB. **Never delete.**                                               |
+| `seed.js`           | Reads all four CSV files from `data/` and inserts ~68,000 rows across Country, Job, Company, and SalaryRecord tables.                     |
 | `prisma.config.mjs` | Lives at project root. Owns the database URL, migrations path, and seed command. Prisma 7 reads this instead of `.env` or `package.json`. |
 
 ---
@@ -81,6 +81,7 @@ npx prisma migrate deploy
 ```
 
 The `docker-compose.yml` api service runs this automatically on every startup:
+
 ```
 command: sh -c "npx prisma migrate deploy && node src/server.js"
 ```
@@ -91,12 +92,12 @@ command: sh -c "npx prisma migrate deploy && node src/server.js"
 
 The `data/` folder is **not committed to git**. Download the CSV files and place them there before seeding.
 
-| File | Source | Rows |
-|---|---|---|
-| `jobs_in_data.csv` | [Jobs in Data 2020–2023 — Kaggle](https://www.kaggle.com/datasets/hummaamqaasim/jobs-in-data) | ~9,355 |
-| `jobs_in_data_2024.csv` | [Jobs and Salaries in Data 2024 — Kaggle](https://www.kaggle.com/datasets/murilozangari/jobs-and-salaries-in-data-field-2024) | ~14,199 |
-| `Salary_Dataset_with_Extra_Features.csv` | Kaggle — company salaries with ratings | ~22,770 |
-| `Software_Professional_Salaries.csv` | Kaggle — software company salaries | ~22,774 |
+| File                                     | Source                                                                                                                        | Rows    |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `jobs_in_data.csv`                       | [Jobs in Data 2020–2023 — Kaggle](https://www.kaggle.com/datasets/hummaamqaasim/jobs-in-data)                                 | ~9,355  |
+| `jobs_in_data_2024.csv`                  | [Jobs and Salaries in Data 2024 — Kaggle](https://www.kaggle.com/datasets/murilozangari/jobs-and-salaries-in-data-field-2024) | ~14,199 |
+| `Salary_Dataset_with_Extra_Features.csv` | Kaggle — company salaries with ratings                                                                                        | ~22,770 |
+| `Software_Professional_Salaries.csv`     | Kaggle — software company salaries                                                                                            | ~22,774 |
 
 ---
 
@@ -122,6 +123,7 @@ User
 ```
 
 `source` on `SalaryRecord` tells you which CSV the row came from:
+
 - `"jobs_in_data"` — global tech salaries (CSV A)
 - `"salary_extra"` — company salaries with ratings (CSV B)
 - `"software_pro"` — software professional salaries (CSV C)

@@ -46,7 +46,7 @@ async function seedCountries(aRows, bRows, cRows) {
   console.log(`Upserting ${names.size} countries...`)
 
   const entries = await runInChunks([...names], (name) =>
-    prisma.country.upsert({ where: { name }, update: {}, create: { name } })
+    prisma.country.upsert({ where: { name }, update: {}, create: { name } }),
   )
 
   return new Map(entries.map((c) => [c.name, c.id]))
@@ -61,7 +61,11 @@ async function seedCategories(aRows) {
   console.log(`Upserting ${names.size} job categories...`)
 
   const entries = await runInChunks([...names], (name) =>
-    prisma.jobCategory.upsert({ where: { name }, update: {}, create: { name } })
+    prisma.jobCategory.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    }),
   )
 
   return new Map(entries.map((c) => [c.name, c.id]))
@@ -95,10 +99,14 @@ async function seedJobs(aRows, bRows, cRows, categoryMap) {
   const entries = await runInChunks(
     [...jobMap.entries()],
     async ([key, { title, categoryId, roles }]) => {
-      const existing = await prisma.job.findFirst({ where: { title, categoryId } })
-      const job = existing ?? (await prisma.job.create({ data: { title, categoryId, roles } }))
+      const existing = await prisma.job.findFirst({
+        where: { title, categoryId },
+      })
+      const job =
+        existing ??
+        (await prisma.job.create({ data: { title, categoryId, roles } }))
       return [key, job.id]
-    }
+    },
   )
 
   return new Map(entries)
@@ -125,8 +133,12 @@ async function seedCompanies(bRows, cRows, countryMap) {
     [...companyByName.entries()],
     ([name, { rating, countryId }]) =>
       prisma.company
-        .upsert({ where: { name }, update: {}, create: { name, rating, countryId } })
-        .then((company) => [name, company.id])
+        .upsert({
+          where: { name },
+          update: {},
+          create: { name, rating, countryId },
+        })
+        .then((company) => [name, company.id]),
   )
 
   return new Map(entries)
@@ -149,7 +161,8 @@ function mapDatasetARecord(row, countryMap, jobMap) {
 
   return {
     salary,
-    salaryInUsd: salaryInUsd && !isNaN(Number(salaryInUsd)) ? salaryInUsd : null,
+    salaryInUsd:
+      salaryInUsd && !isNaN(Number(salaryInUsd)) ? salaryInUsd : null,
     salaryCurrency: row.salary_currency || null,
     workYear: parseInt(row.work_year, 10) || null,
     experienceLevel: row.experience_level || null,
@@ -178,7 +191,8 @@ function mapDatasetBCRecord(row, countryMap, jobMap, companyMap, source) {
   return {
     salary,
     salariesReported: isNaN(salariesReported) ? null : salariesReported,
-    employmentStatus: source === "salary_extra" ? row["Employment Status"] || null : null,
+    employmentStatus:
+      source === "salary_extra" ? row["Employment Status"] || null : null,
     source,
     jobId,
     employeeCountryId: countryMap.get(row.Location?.trim()) ?? null,
@@ -194,14 +208,19 @@ async function insertAllBatches(records) {
   const totalBatches = Math.ceil(validRecords.length / BATCH_SIZE)
 
   console.log(
-    `Inserting ${validRecords.length} records in ${totalBatches} batches of ${BATCH_SIZE}...`
+    `Inserting ${validRecords.length} records in ${totalBatches} batches of ${BATCH_SIZE}...`,
   )
 
   let totalInserted = 0
   for (let i = 0; i < totalBatches; i++) {
     const batch = validRecords.slice(i * BATCH_SIZE, (i + 1) * BATCH_SIZE)
-    const result = await prisma.salaryRecord.createMany({ data: batch, skipDuplicates: true })
-    console.log(`Batch ${i + 1}/${totalBatches}: inserted ${result.count} records.`)
+    const result = await prisma.salaryRecord.createMany({
+      data: batch,
+      skipDuplicates: true,
+    })
+    console.log(
+      `Batch ${i + 1}/${totalBatches}: inserted ${result.count} records.`,
+    )
     totalInserted += result.count
   }
 
@@ -218,7 +237,9 @@ async function main() {
   ]
   const bRows = loadAndParseCsv("Salary_Dataset_with_Extra_Features.csv")
   const cRows = loadAndParseCsv("Software_Professional_Salaries.csv")
-  console.log(`Loaded: ${aRows.length} (A) + ${bRows.length} (B) + ${cRows.length} (C) rows.`)
+  console.log(
+    `Loaded: ${aRows.length} (A) + ${bRows.length} (B) + ${cRows.length} (C) rows.`,
+  )
 
   const countryMap = await seedCountries(aRows, bRows, cRows)
   const categoryMap = await seedCategories(aRows)
@@ -227,23 +248,42 @@ async function main() {
 
   const aRecords = aRows.map((row) => {
     const record = mapDatasetARecord(row, countryMap, jobMap)
-    if (!record) console.warn(`Skipping invalid Dataset A row: ${JSON.stringify(row)}`)
+    if (!record)
+      console.warn(`Skipping invalid Dataset A row: ${JSON.stringify(row)}`)
     return record
   })
 
   const bRecords = bRows.map((row) => {
-    const record = mapDatasetBCRecord(row, countryMap, jobMap, companyMap, "salary_extra")
-    if (!record) console.warn(`Skipping invalid Dataset B row: ${JSON.stringify(row)}`)
+    const record = mapDatasetBCRecord(
+      row,
+      countryMap,
+      jobMap,
+      companyMap,
+      "salary_extra",
+    )
+    if (!record)
+      console.warn(`Skipping invalid Dataset B row: ${JSON.stringify(row)}`)
     return record
   })
 
   const cRecords = cRows.map((row) => {
-    const record = mapDatasetBCRecord(row, countryMap, jobMap, companyMap, "software_pro")
-    if (!record) console.warn(`Skipping invalid Dataset C row: ${JSON.stringify(row)}`)
+    const record = mapDatasetBCRecord(
+      row,
+      countryMap,
+      jobMap,
+      companyMap,
+      "software_pro",
+    )
+    if (!record)
+      console.warn(`Skipping invalid Dataset C row: ${JSON.stringify(row)}`)
     return record
   })
 
-  const totalInserted = await insertAllBatches([...aRecords, ...bRecords, ...cRecords])
+  const totalInserted = await insertAllBatches([
+    ...aRecords,
+    ...bRecords,
+    ...cRecords,
+  ])
   console.log(`Seeding complete. Total rows inserted: ${totalInserted}.`)
 }
 

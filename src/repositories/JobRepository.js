@@ -1,4 +1,4 @@
-import { SALARY_RECORD_INCLUDE } from './salaryRecordInclude.js'
+import { SALARY_RECORD_INCLUDE } from "./salaryRecordInclude.js"
 
 export class JobRepository {
   #prisma
@@ -18,8 +18,8 @@ export class JobRepository {
         include: { category: true },
         take: limit,
         skip: offset,
-        orderBy: { id: 'asc' }
-      })
+        orderBy: { id: "asc" },
+      }),
     ])
 
     // records.length instead of limit — the last page may return fewer rows than limit
@@ -29,7 +29,7 @@ export class JobRepository {
   async findById(id) {
     return this.#prisma.job.findUnique({
       where: { id },
-      include: { category: true }
+      include: { category: true },
     })
   }
 
@@ -44,11 +44,15 @@ export class JobRepository {
         include: SALARY_RECORD_INCLUDE,
         take: limit,
         skip: offset,
-        orderBy: { id: 'asc' }
-      })
+        orderBy: { id: "asc" },
+      }),
     ])
 
     // records.length instead of limit — the last page may return fewer rows than limit
-    return { records, totalCount, hasNextPage: offset + records.length < totalCount }
+    return {
+      records,
+      totalCount,
+      hasNextPage: offset + records.length < totalCount,
+    }
   }
 }

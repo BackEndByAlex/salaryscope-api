@@ -3,5 +3,5 @@ export const SALARY_RECORD_INCLUDE = {
   job: { include: { category: true } },
   employeeCountry: true,
   companyCountry: true,
-  company: true
+  company: true,
 }

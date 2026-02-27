@@ -1,4 +1,4 @@
-import { SALARY_RECORD_INCLUDE } from './salaryRecordInclude.js'
+import { SALARY_RECORD_INCLUDE } from "./salaryRecordInclude.js"
 
 export class SalaryRecordRepository {
   #prisma
@@ -19,7 +19,7 @@ export class SalaryRecordRepository {
     companySize,
     source,
     limit = 20,
-    offset = 0
+    offset = 0,
   } = {}) {
     const where = buildSalaryRecordWhere({
       workYear,
@@ -31,7 +31,7 @@ export class SalaryRecordRepository {
       employmentType,
       workSetting,
       companySize,
-      source
+      source,
     })
 
     // transaction ensures count and page share the same snapshot — no drift if writes happen between the two queries
@@ -42,18 +42,22 @@ export class SalaryRecordRepository {
         include: SALARY_RECORD_INCLUDE,
         take: limit,
         skip: offset,
-        orderBy: { id: 'asc' }
-      })
+        orderBy: { id: "asc" },
+      }),
     ])
 
     // records.length instead of limit — the last page may return fewer rows than limit
-    return { records, totalCount, hasNextPage: offset + records.length < totalCount }
+    return {
+      records,
+      totalCount,
+      hasNextPage: offset + records.length < totalCount,
+    }
   }
 
   async findById(id) {
     return this.#prisma.salaryRecord.findUnique({
       where: { id },
-      include: SALARY_RECORD_INCLUDE
+      include: SALARY_RECORD_INCLUDE,
     })
   }
 
@@ -80,22 +84,22 @@ function buildSalaryRecordWhere({
   employmentType,
   workSetting,
   companySize,
-  source
+  source,
 }) {
   const where = {}
 
-  if (workYear != null)        where.workYear = workYear
+  if (workYear != null) where.workYear = workYear
   // categoryId lives on the job relation, not on salaryRecord directly — both filters must go through where.job
   if (jobId != null && categoryId != null) where.job = { id: jobId, categoryId }
-  else if (jobId != null)      where.jobId = jobId
+  else if (jobId != null) where.jobId = jobId
   else if (categoryId != null) where.job = { categoryId }
-  if (countryId != null)       where.employeeCountryId = countryId
-  if (companyId != null)       where.companyId = companyId
+  if (countryId != null) where.employeeCountryId = countryId
+  if (companyId != null) where.companyId = companyId
   if (experienceLevel != null) where.experienceLevel = experienceLevel
-  if (employmentType != null)  where.employmentType = employmentType
-  if (workSetting != null)     where.workSetting = workSetting
-  if (companySize != null)     where.companySize = companySize
-  if (source != null)          where.source = source
+  if (employmentType != null) where.employmentType = employmentType
+  if (workSetting != null) where.workSetting = workSetting
+  if (companySize != null) where.companySize = companySize
+  if (source != null) where.source = source
 
   return where
 }
