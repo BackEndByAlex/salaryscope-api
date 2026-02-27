@@ -1,0 +1,39 @@
+type User {
+  id: ID!
+  email: String!
+  createdAt: String!
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+input RegisterInput {
+  email: String!
+  password: String!
+}
+
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+extend type Query {
+  """
+  Returns the currently authenticated user. Requires a valid Bearer token.
+  """
+  me: User
+}
+
+extend type Mutation {
+  """
+  Register a new account. Returns a JWT token valid for 24 hours.
+  """
+  register(input: RegisterInput!): AuthPayload!
+
+  """
+  Log in with email and password. Returns a JWT token valid for 24 hours.
+  """
+  login(input: LoginInput!): AuthPayload!
+}

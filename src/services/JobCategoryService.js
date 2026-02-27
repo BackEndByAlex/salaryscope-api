@@ -15,7 +15,7 @@ export class JobCategoryService {
   async getById(id) {
     const jobCategory = await this.#repository.findById(parseId(id))
     if (!jobCategory) {
-      throw new GraphQLError(`JobCategory with id ${id} was not found.`, {
+      throw new GraphQLError(`Job category with id ${id} was not found.`, {
         extensions: { code: "NOT_FOUND" },
       })
     }
@@ -25,9 +25,12 @@ export class JobCategoryService {
   async getByName(name) {
     const jobCategory = await this.#repository.findByName(name)
     if (!jobCategory) {
-      throw new GraphQLError(`JobCategory with name ${name} was not found.`, {
-        extensions: { code: "NOT_FOUND" },
-      })
+      throw new GraphQLError(
+        `Job category with name "${name}" was not found.`,
+        {
+          extensions: { code: "NOT_FOUND" },
+        },
+      )
     }
     return jobCategory
   }

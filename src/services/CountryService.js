@@ -25,7 +25,7 @@ export class CountryService {
   async getByName(name) {
     const country = await this.#repository.findByName(name)
     if (!country) {
-      throw new GraphQLError(`Country with name ${name} was not found.`, {
+      throw new GraphQLError(`Country with name "${name}" was not found.`, {
         extensions: { code: "NOT_FOUND" },
       })
     }

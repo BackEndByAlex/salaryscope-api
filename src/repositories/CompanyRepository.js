@@ -22,7 +22,7 @@ export class CompanyRepository {
       }),
     ])
 
-    // records.length instead of limit — the last page may return fewer rows than limit
+    // companies.length instead of limit — the last page may return fewer rows than limit
     return {
       companies,
       totalCount,

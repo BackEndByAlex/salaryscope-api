@@ -1,0 +1,29 @@
+type Job {
+  id: ID!
+  title: String!
+  category: JobCategory
+  roles: String
+
+  """
+  Paginated salary records for this job title.
+  """
+  records(limit: Int, offset: Int): SalaryRecordPage!
+}
+
+type JobPage {
+  jobs: [Job!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+}
+
+extend type Query {
+  """
+  Returns a paginated list of jobs, optionally filtered by category.
+  """
+  jobs(categoryId: ID, limit: Int, offset: Int): JobPage!
+
+  """
+  Returns a single job by its numeric ID.
+  """
+  job(id: ID!): Job!
+}

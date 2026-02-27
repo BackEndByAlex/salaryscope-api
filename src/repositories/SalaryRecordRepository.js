@@ -62,11 +62,11 @@ export class SalaryRecordRepository {
   }
 
   async create(data) {
-    return this.#prisma.salaryRecord.create({ data })
+    return this.#prisma.salaryRecord.create({ data, include: SALARY_RECORD_INCLUDE })
   }
 
   async update(id, data) {
-    return this.#prisma.salaryRecord.update({ where: { id }, data })
+    return this.#prisma.salaryRecord.update({ where: { id }, data, include: SALARY_RECORD_INCLUDE })
   }
 
   async delete(id) {

@@ -1,0 +1,42 @@
+type Company {
+  id: ID!
+  name: String!
+
+  """
+  Company rating out of 5.0, sourced from the salary_extra dataset.
+  """
+  rating: Float
+
+  """
+  Country where the company is headquartered.
+  """
+  country: Country
+
+  """
+  Paginated salary records for this company.
+  """
+  records(limit: Int, offset: Int): SalaryRecordPage!
+}
+
+type CompanyPage {
+  companies: [Company!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+}
+
+extend type Query {
+  """
+  Returns a paginated list of companies, optionally filtered by country.
+  """
+  companies(countryId: ID, limit: Int, offset: Int): CompanyPage!
+
+  """
+  Returns a single company by its numeric ID.
+  """
+  company(id: ID!): Company!
+
+  """
+  Returns a single company by its exact name.
+  """
+  companyByName(name: String!): Company!
+}

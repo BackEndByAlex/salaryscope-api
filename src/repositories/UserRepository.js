@@ -22,10 +22,4 @@ export class UserRepository {
       omit: { passwordHash: true }, // return the created user without exposing the hash to the caller
     })
   }
-
-  async emailExists(email) {
-    // count instead of findUnique so Prisma returns a number, not a full record we'd discard
-    const count = await this.#prisma.user.count({ where: { email } })
-    return count > 0
-  }
 }

@@ -22,7 +22,7 @@ export class JobRepository {
       }),
     ])
 
-    // records.length instead of limit — the last page may return fewer rows than limit
+    // jobs.length instead of limit — the last page may return fewer rows than limit
     return { jobs, totalCount, hasNextPage: offset + jobs.length < totalCount }
   }
 

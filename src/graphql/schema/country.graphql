@@ -1,0 +1,46 @@
+type Country {
+  id: ID!
+  name: String!
+
+  """
+  Number of salary records where the employee is from this country. Only populated on the countries list query.
+  """
+  employeeRecordCount: Int
+
+  """
+  Number of salary records where the company is located in this country. Only populated on the countries list query.
+  """
+  companyRecordCount: Int
+
+  """
+  Number of companies headquartered in this country. Only populated on the countries list query.
+  """
+  companyCount: Int
+
+  """
+  Paginated salary records where the employee is from this country.
+  """
+  employeeRecords(limit: Int, offset: Int): SalaryRecordPage!
+
+  """
+  Paginated salary records where the company is located in this country.
+  """
+  companyRecords(limit: Int, offset: Int): SalaryRecordPage!
+}
+
+extend type Query {
+  """
+  Returns all countries.
+  """
+  countries: [Country!]!
+
+  """
+  Returns a single country by its numeric ID.
+  """
+  country(id: ID!): Country!
+
+  """
+  Returns a single country by its exact name.
+  """
+  countryByName(name: String!): Country!
+}

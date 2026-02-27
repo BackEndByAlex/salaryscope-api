@@ -1,7 +1,7 @@
 import { GraphQLError } from "graphql"
 
 export function validateCreateInput({ salary, jobId, source }) {
-  if (salary == null || !jobId || !source) {
+  if (salary == null || jobId == null || source == null) {
     throw new GraphQLError("salary, jobId, and source are required.", {
       extensions: { code: "BAD_USER_INPUT" },
     })

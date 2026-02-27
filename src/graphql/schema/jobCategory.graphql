@@ -1,0 +1,26 @@
+type JobCategory {
+  id: ID!
+  name: String!
+
+  """
+  Number of jobs in this category. Null when the category is loaded as a nested relation.
+  """
+  jobCount: Int
+}
+
+extend type Query {
+  """
+  Returns all job categories.
+  """
+  jobCategories: [JobCategory!]!
+
+  """
+  Returns a single job category by its numeric ID.
+  """
+  jobCategory(id: ID!): JobCategory!
+
+  """
+  Returns a single job category by its exact name.
+  """
+  jobCategoryByName(name: String!): JobCategory!
+}

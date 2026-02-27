@@ -9,9 +9,7 @@ export class CompanyService {
   }
 
   async getAll(filters) {
-    const { companies, totalCount, hasNextPage } =
-      await this.#repository.findAll(filters)
-    return { companies, totalCount, hasNextPage }
+    return this.#repository.findAll(filters)
   }
 
   async getById(id) {
@@ -27,7 +25,7 @@ export class CompanyService {
   async getByName(name) {
     const company = await this.#repository.findByName(name)
     if (!company) {
-      throw new GraphQLError(`Company with name ${name} was not found.`, {
+      throw new GraphQLError(`Company with name "${name}" was not found.`, {
         extensions: { code: "NOT_FOUND" },
       })
     }

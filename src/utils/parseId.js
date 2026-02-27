@@ -1,12 +1,12 @@
 import { GraphQLError } from "graphql"
 
-// GraphQL ID scalars arrive as strings — Prisma expects Int. Parse at the service boundary.
+// GraphQL ID scalars arrive as strings — Prisma expects Int.
+// /^\d+$/ rejects partial matches like "3abc" that parseInt would silently accept.
 export function parseId(id) {
-  const parsed = parseInt(id, 10)
-  if (isNaN(parsed)) {
-    throw new GraphQLError(`Invalid id: ${id}`, {
+  if (!/^\d+$/.test(String(id))) {
+    throw new GraphQLError(`Invalid id: "${id}".`, {
       extensions: { code: "BAD_USER_INPUT" },
     })
   }
-  return parsed
+  return parseInt(id, 10)
 }

@@ -9,9 +9,7 @@ export class JobService {
   }
 
   async getAll(filters) {
-    const { jobs, totalCount, hasNextPage } =
-      await this.#repository.findAll(filters)
-    return { jobs, totalCount, hasNextPage }
+    return this.#repository.findAll(filters)
   }
 
   async getById(id) {

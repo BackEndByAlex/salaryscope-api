@@ -19,7 +19,7 @@ export class SalaryRecordService {
     const record = await this.#repository.findById(parseId(id))
 
     if (!record) {
-      throw new GraphQLError(`Salary record with id '${id}' was not found.`, {
+      throw new GraphQLError(`Salary record with id ${id} was not found.`, {
         extensions: { code: "NOT_FOUND" },
       })
     }
@@ -35,14 +35,7 @@ export class SalaryRecordService {
     try {
       return await this.#repository.update(parseId(id), data)
     } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === "P2025"
-      ) {
-        throw new GraphQLError(`Salary record with id '${id}' was not found.`, {
-          extensions: { code: "NOT_FOUND" },
-        })
-      }
+      this.#rethrowIfNotFound(e, id)
       throw e
     }
   }
@@ -51,15 +44,19 @@ export class SalaryRecordService {
     try {
       return await this.#repository.delete(parseId(id))
     } catch (e) {
-      if (
-        e instanceof Prisma.PrismaClientKnownRequestError &&
-        e.code === "P2025"
-      ) {
-        throw new GraphQLError(`Salary record with id '${id}' was not found.`, {
-          extensions: { code: "NOT_FOUND" },
-        })
-      }
+      this.#rethrowIfNotFound(e, id)
       throw e
+    }
+  }
+
+  #rethrowIfNotFound(error, id) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      throw new GraphQLError(`Salary record with id ${id} was not found.`, {
+        extensions: { code: "NOT_FOUND" },
+      })
     }
   }
 }

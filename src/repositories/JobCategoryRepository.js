@@ -14,14 +14,14 @@ export class JobCategoryRepository {
   async findById(id) {
     return this.#prisma.jobCategory.findUnique({
       where: { id },
-      include: { jobs: true },
+      include: { _count: { select: { jobs: true } } },
     })
   }
 
   async findByName(name) {
     return this.#prisma.jobCategory.findUnique({
       where: { name },
-      include: { jobs: true },
+      include: { _count: { select: { jobs: true } } },
     })
   }
 }

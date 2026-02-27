@@ -32,10 +32,8 @@ export class AuthService {
       passwordHash: hashedPassword,
     })
 
-    return {
-      token: this.#generateToken(user),
-      user: this.#toPublicUser(user),
-    }
+    // user is already safe — UserRepository.create omits passwordHash via Prisma's omit
+    return { token: this.#generateToken(user), user }
   }
 
   async login({ email, password }) {

@@ -1,0 +1,179 @@
+type SalaryRecord {
+  id: ID!
+  salary: Float!
+  source: String!
+
+  """
+  USD-normalised salary. Present only for jobs_in_data records.
+  """
+  salaryInUsd: Float
+
+  """
+  Original currency code. Present only for jobs_in_data records.
+  """
+  salaryCurrency: String
+
+  workYear: Int
+  experienceLevel: String
+  employmentType: String
+  workSetting: String
+  companySize: String
+
+  """
+  Number of salary responses aggregated into this record. Present only for salary_extra and software_pro records.
+  """
+  salariesReported: Int
+
+  """
+  Employment status. Present only for salary_extra records.
+  """
+  employmentStatus: String
+
+  job: Job!
+  employeeCountry: Country
+  companyCountry: Country
+  company: Company
+
+  createdAt: String!
+  updatedAt: String!
+}
+
+type SalaryRecordPage {
+  records: [SalaryRecord!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+}
+
+input SalaryRecordFilters {
+  """
+  Max records to return. Default 20, max 100.
+  """
+  limit: Int
+
+  """
+  Number of records to skip for pagination.
+  """
+  offset: Int
+
+  """
+  Filter by job ID.
+  """
+  jobId: ID
+
+  """
+  Filter by job category ID.
+  """
+  categoryId: ID
+
+  """
+  Filter by employee country ID.
+  """
+  countryId: ID
+
+  """
+  Filter by company ID.
+  """
+  companyId: ID
+
+  """
+  Filter by data source: jobs_in_data | salary_extra | software_pro
+  """
+  source: String
+
+  """
+  Filter by work year (e.g. 2023).
+  """
+  workYear: Int
+
+  """
+  Filter by experience level (e.g. SE, MI, EN, EX).
+  """
+  experienceLevel: String
+
+  """
+  Filter by employment type (e.g. FT, PT, CT, FL).
+  """
+  employmentType: String
+
+  """
+  Filter by work setting (e.g. Remote, Hybrid, In-person).
+  """
+  workSetting: String
+
+  """
+  Filter by company size (e.g. S, M, L).
+  """
+  companySize: String
+}
+
+input CreateSalaryRecordInput {
+  salary: Float!
+  source: String!
+  salaryInUsd: Float
+  salaryCurrency: String
+  workYear: Int
+  experienceLevel: String
+  employmentType: String
+  workSetting: String
+  companySize: String
+  salariesReported: Int
+  employmentStatus: String
+  jobId: ID!
+  employeeCountryId: ID
+  companyCountryId: ID
+  companyId: ID
+}
+
+"""
+source is intentionally excluded — a record's data origin cannot be changed after creation.
+"""
+input UpdateSalaryRecordInput {
+  salary: Float
+  salaryInUsd: Float
+  salaryCurrency: String
+  workYear: Int
+  experienceLevel: String
+  employmentType: String
+  workSetting: String
+  companySize: String
+  salariesReported: Int
+  employmentStatus: String
+  jobId: ID
+  employeeCountryId: ID
+  companyCountryId: ID
+  companyId: ID
+}
+
+extend type Query {
+  """
+  Returns a paginated list of salary records.
+  Requires authentication.
+  """
+  salaryRecords(filters: SalaryRecordFilters): SalaryRecordPage!
+
+  """
+  Returns a single salary record by its numeric ID.
+  Requires authentication.
+  """
+  salaryRecord(id: ID!): SalaryRecord!
+}
+
+extend type Mutation {
+  """
+  Creates a new salary record.
+  Requires authentication.
+  """
+  createSalaryRecord(input: CreateSalaryRecordInput!): SalaryRecord!
+
+  """
+  Updates an existing salary record by ID.
+  Requires authentication.
+  """
+  updateSalaryRecord(id: ID!, input: UpdateSalaryRecordInput!): SalaryRecord!
+
+  """
+  Deletes a salary record by ID. Returns true on success.
+  Requires authentication.
+  """
+  deleteSalaryRecord(id: ID!): Boolean!
+}
