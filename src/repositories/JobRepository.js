@@ -1,43 +1,21 @@
 import { SALARY_RECORD_INCLUDE } from './salaryRecordInclude.js'
 
-export class CountryRepository {
+export class JobRepository {
   #prisma
 
   constructor(prisma) {
     this.#prisma = prisma
   }
 
-  async findAll() {
-    return this.#prisma.country.findMany({
-      include: {
-        _count: {
-          select: {
-            employeeRecords: true,
-            companyRecords: true,
-            companies: true
-          }
-        }
-      }
-    })
-  }
-
-  async findById(id) {
-    return this.#prisma.country.findUnique({ where: { id } })
-  }
-
-  async findByName(name) {
-    return this.#prisma.country.findUnique({ where: { name } })
-  }
-
-  async findEmployeeRecords(countryId, { limit = 20, offset = 0 } = {}) {
-    const where = { employeeCountryId: countryId }
+  async findAll({ categoryId, limit = 20, offset = 0 } = {}) {
+    const where = categoryId != null ? { categoryId } : {}
 
     // transaction ensures count and page share the same snapshot — no drift if writes happen between the two queries
-    const [totalCount, records] = await this.#prisma.$transaction([
-      this.#prisma.salaryRecord.count({ where }),
-      this.#prisma.salaryRecord.findMany({
+    const [totalCount, jobs] = await this.#prisma.$transaction([
+      this.#prisma.job.count({ where }),
+      this.#prisma.job.findMany({
         where,
-        include: SALARY_RECORD_INCLUDE,
+        include: { category: true },
         take: limit,
         skip: offset,
         orderBy: { id: 'asc' }
@@ -45,11 +23,18 @@ export class CountryRepository {
     ])
 
     // records.length instead of limit — the last page may return fewer rows than limit
-    return { records, totalCount, hasNextPage: offset + records.length < totalCount }
+    return { jobs, totalCount, hasNextPage: offset + jobs.length < totalCount }
   }
 
-  async findCompanyRecords(countryId, { limit = 20, offset = 0 } = {}) {
-    const where = { companyCountryId: countryId }
+  async findById(id) {
+    return this.#prisma.job.findUnique({
+      where: { id },
+      include: { category: true }
+    })
+  }
+
+  async findRecordsByJob(jobId, { limit = 20, offset = 0 } = {}) {
+    const where = { jobId }
 
     // transaction ensures count and page share the same snapshot — no drift if writes happen between the two queries
     const [totalCount, records] = await this.#prisma.$transaction([
