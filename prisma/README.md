@@ -92,12 +92,12 @@ command: sh -c "npx prisma migrate deploy && node src/server.js"
 
 The `data/` folder is **not committed to git**. Download the CSV files and place them there before seeding.
 
-| File                                     | Source                                                                                                                        | Rows    |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `jobs_in_data.csv`                       | [Jobs in Data 2020–2023 — Kaggle](https://www.kaggle.com/datasets/hummaamqaasim/jobs-in-data)                                 | ~9,355  |
-| `jobs_in_data_2024.csv`                  | [Jobs and Salaries in Data 2024 — Kaggle](https://www.kaggle.com/datasets/murilozangari/jobs-and-salaries-in-data-field-2024) | ~14,199 |
-| `Salary_Dataset_with_Extra_Features.csv` | Kaggle — company salaries with ratings                                                                                        | ~22,770 |
-| `Software_Professional_Salaries.csv`     | Kaggle — software company salaries                                                                                            | ~22,774 |
+| File                                     | Source                                                                                                                        | Rows   |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------ |
+| `jobs_in_data.csv`                       | [Jobs in Data 2020–2023 — Kaggle](https://www.kaggle.com/datasets/hummaamqaasim/jobs-in-data)                                 | 9,356  |
+| `jobs_in_data_2024.csv`                  | [Jobs and Salaries in Data 2024 — Kaggle](https://www.kaggle.com/datasets/murilozangari/jobs-and-salaries-in-data-field-2024) | 14,200 |
+| `Salary_Dataset_with_Extra_Features.csv` | Kaggle — company salaries with ratings                                                                                        | 22,771 |
+| `Software_Professional_Salaries.csv`     | Kaggle — software company salaries                                                                                            | 22,775 |
 
 ---
 
