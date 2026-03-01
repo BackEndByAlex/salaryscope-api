@@ -1,4 +1,4 @@
-import { parseId } from '../../utils/parseId.js'
+import { parseId } from "../../utils/parseId.js"
 
 export const companyResolvers = {
   Query: {
@@ -8,8 +8,7 @@ export const companyResolvers = {
         limit,
         offset,
       }),
-    company: (_, { id }, { companyService }) =>
-      companyService.getById(id),
+    company: (_, { id }, { companyService }) => companyService.getById(id),
     companyByName: (_, { name }, { companyService }) =>
       companyService.getByName(name),
   },

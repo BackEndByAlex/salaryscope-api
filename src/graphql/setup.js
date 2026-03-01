@@ -1,46 +1,50 @@
-import { readFileSync } from 'fs'
-import { join, dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { ApolloServer } from '@apollo/server'
+import { readFileSync } from "fs"
+import { join, dirname } from "path"
+import { fileURLToPath } from "url"
+import { ApolloServer } from "@apollo/server"
+import {
+  ApolloServerPluginLandingPageLocalDefault,
+  ApolloServerPluginLandingPageProductionDefault,
+} from "@apollo/server/plugin/landingPage/default"
 
-import prisma from '../config/prismaClient.js'
-import { privateKey } from '../config/keys.js'
+import prisma from "../config/prismaClient.js"
+import { privateKey } from "../config/keys.js"
 
-import { UserRepository } from '../repositories/UserRepository.js'
-import { CountryRepository } from '../repositories/CountryRepository.js'
-import { JobCategoryRepository } from '../repositories/JobCategoryRepository.js'
-import { JobRepository } from '../repositories/JobRepository.js'
-import { CompanyRepository } from '../repositories/CompanyRepository.js'
-import { SalaryRecordRepository } from '../repositories/SalaryRecordRepository.js'
+import { UserRepository } from "../repositories/UserRepository.js"
+import { CountryRepository } from "../repositories/CountryRepository.js"
+import { JobCategoryRepository } from "../repositories/JobCategoryRepository.js"
+import { JobRepository } from "../repositories/JobRepository.js"
+import { CompanyRepository } from "../repositories/CompanyRepository.js"
+import { SalaryRecordRepository } from "../repositories/SalaryRecordRepository.js"
 
-import { AuthService } from '../auth/AuthService.js'
-import { UserService } from '../services/UserService.js'
-import { CountryService } from '../services/CountryService.js'
-import { JobCategoryService } from '../services/JobCategoryService.js'
-import { JobService } from '../services/JobService.js'
-import { CompanyService } from '../services/CompanyService.js'
-import { SalaryRecordService } from '../services/SalaryRecordService.js'
+import { AuthService } from "../auth/AuthService.js"
+import { UserService } from "../services/UserService.js"
+import { CountryService } from "../services/CountryService.js"
+import { JobCategoryService } from "../services/JobCategoryService.js"
+import { JobService } from "../services/JobService.js"
+import { CompanyService } from "../services/CompanyService.js"
+import { SalaryRecordService } from "../services/SalaryRecordService.js"
 
-import { authResolvers } from '../auth/authResolvers.js'
-import { countryResolvers } from './resolvers/countryResolvers.js'
-import { jobCategoryResolvers } from './resolvers/jobCategoryResolvers.js'
-import { jobResolvers } from './resolvers/jobResolvers.js'
-import { companyResolvers } from './resolvers/companyResolvers.js'
-import { salaryRecordResolvers } from './resolvers/salaryRecordResolvers.js'
+import { authResolvers } from "../auth/authResolvers.js"
+import { countryResolvers } from "./resolvers/countryResolvers.js"
+import { jobCategoryResolvers } from "./resolvers/jobCategoryResolvers.js"
+import { jobResolvers } from "./resolvers/jobResolvers.js"
+import { companyResolvers } from "./resolvers/companyResolvers.js"
+import { salaryRecordResolvers } from "./resolvers/salaryRecordResolvers.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 function loadTypeDefs() {
-  const schemaDir = join(__dirname, 'schema')
+  const schemaDir = join(__dirname, "schema")
   return [
-    'schema.graphql',
-    'auth.graphql',
-    'country.graphql',
-    'jobCategory.graphql',
-    'job.graphql',
-    'company.graphql',
-    'salaryRecord.graphql',
-  ].map((filename) => readFileSync(join(schemaDir, filename), 'utf8'))
+    "schema.graphql",
+    "auth.graphql",
+    "country.graphql",
+    "jobCategory.graphql",
+    "job.graphql",
+    "company.graphql",
+    "salaryRecord.graphql",
+  ].map((filename) => readFileSync(join(schemaDir, filename), "utf8"))
 }
 
 function createServices() {
@@ -74,6 +78,17 @@ export function buildApolloServer() {
       jobResolvers,
       companyResolvers,
       salaryRecordResolvers,
+    ],
+    plugins: [
+      process.env.NODE_ENV === "production"
+        ? ApolloServerPluginLandingPageProductionDefault({
+            embed: true,
+            footer: false,
+          })
+        : ApolloServerPluginLandingPageLocalDefault({
+            embed: true,
+            footer: false,
+          }),
     ],
   })
 }

@@ -1,10 +1,10 @@
-import { parseId } from '../../utils/parseId.js'
-import { assertAuthenticated } from '../../auth/authGuard.js'
+import { parseId } from "../../utils/parseId.js"
+import { assertAuthenticated } from "../../auth/authGuard.js"
 import {
   validateCreateInput,
   validateUpdateInput,
   validateFilters,
-} from '../../validators/salaryRecordValidator.js'
+} from "../../validators/salaryRecordValidator.js"
 
 export const salaryRecordResolvers = {
   Query: {
@@ -39,7 +39,9 @@ export const salaryRecordResolvers = {
     // Prisma Decimal serializes as a string via valueOf() — parseFloat converts it for GraphQL Float
     salary: (parent) => parseFloat(parent.salary.toString()),
     salaryInUsd: (parent) =>
-      parent.salaryInUsd != null ? parseFloat(parent.salaryInUsd.toString()) : null,
+      parent.salaryInUsd != null
+        ? parseFloat(parent.salaryInUsd.toString())
+        : null,
   },
 }
 
@@ -55,25 +57,45 @@ function parseFilters({ jobId, categoryId, countryId, companyId, ...rest }) {
 }
 
 // Convert IDs to integers and salary to string for Prisma Decimal precision
-function parseCreateInput({ jobId, employeeCountryId, companyCountryId, companyId, salary, ...rest }) {
+function parseCreateInput({
+  jobId,
+  employeeCountryId,
+  companyCountryId,
+  companyId,
+  salary,
+  ...rest
+}) {
   return {
     ...rest,
     salary: String(salary),
     jobId: parseId(jobId),
-    employeeCountryId: employeeCountryId != null ? parseId(employeeCountryId) : undefined,
-    companyCountryId: companyCountryId != null ? parseId(companyCountryId) : undefined,
+    employeeCountryId:
+      employeeCountryId != null ? parseId(employeeCountryId) : undefined,
+    companyCountryId:
+      companyCountryId != null ? parseId(companyCountryId) : undefined,
     companyId: companyId != null ? parseId(companyId) : undefined,
   }
 }
 
 // Convert only the fields that were provided (partial update)
-function parseUpdateInput({ jobId, employeeCountryId, companyCountryId, companyId, salary, ...rest }) {
+function parseUpdateInput({
+  jobId,
+  employeeCountryId,
+  companyCountryId,
+  companyId,
+  salary,
+  ...rest
+}) {
   return {
     ...rest,
     ...(salary != null && { salary: String(salary) }),
     ...(jobId != null && { jobId: parseId(jobId) }),
-    ...(employeeCountryId != null && { employeeCountryId: parseId(employeeCountryId) }),
-    ...(companyCountryId != null && { companyCountryId: parseId(companyCountryId) }),
+    ...(employeeCountryId != null && {
+      employeeCountryId: parseId(employeeCountryId),
+    }),
+    ...(companyCountryId != null && {
+      companyCountryId: parseId(companyCountryId),
+    }),
     ...(companyId != null && { companyId: parseId(companyId) }),
   }
 }

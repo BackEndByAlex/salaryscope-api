@@ -1,5 +1,8 @@
-import { validateRegisterInput, validateLoginInput } from '../validators/authValidator.js'
-import { assertAuthenticated } from './authGuard.js'
+import {
+  validateRegisterInput,
+  validateLoginInput,
+} from "../validators/authValidator.js"
+import { assertAuthenticated } from "./authGuard.js"
 
 export const authResolvers = {
   Query: {

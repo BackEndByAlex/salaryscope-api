@@ -1,4 +1,4 @@
-import { parseId } from '../../utils/parseId.js'
+import { parseId } from "../../utils/parseId.js"
 
 export const jobResolvers = {
   Query: {
@@ -8,8 +8,7 @@ export const jobResolvers = {
         limit,
         offset,
       }),
-    job: (_, { id }, { jobService }) =>
-      jobService.getById(id),
+    job: (_, { id }, { jobService }) => jobService.getById(id),
   },
   Job: {
     records: (parent, { limit, offset }, { jobService }) =>

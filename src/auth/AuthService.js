@@ -62,8 +62,8 @@ export class AuthService {
 
   #generateToken(user) {
     return jwt.sign({ userId: user.id, email: user.email }, this.#privateKey, {
-      algorithm: 'RS256',
-      expiresIn: '1d',
+      algorithm: "RS256",
+      expiresIn: "1d",
     })
   }
 

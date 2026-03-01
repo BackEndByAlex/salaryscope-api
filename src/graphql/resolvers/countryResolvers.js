@@ -1,9 +1,7 @@
 export const countryResolvers = {
   Query: {
-    countries: (_, __, { countryService }) =>
-      countryService.getAll(),
-    country: (_, { id }, { countryService }) =>
-      countryService.getById(id),
+    countries: (_, __, { countryService }) => countryService.getAll(),
+    country: (_, { id }, { countryService }) => countryService.getById(id),
     countryByName: (_, { name }, { countryService }) =>
       countryService.getByName(name),
   },

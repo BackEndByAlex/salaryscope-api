@@ -1,4 +1,4 @@
-import { GraphQLError } from 'graphql'
+import { GraphQLError } from "graphql"
 
 export class UserService {
   #repository
@@ -11,7 +11,7 @@ export class UserService {
     const user = await this.#repository.findById(id)
     if (!user) {
       throw new GraphQLError(`User with id ${id} was not found.`, {
-        extensions: { code: 'NOT_FOUND' },
+        extensions: { code: "NOT_FOUND" },
       })
     }
     return user
