@@ -20,7 +20,8 @@
     "generate": "prisma generate",
     "docker:up": "docker compose up postgres -d",
     "docker:down": "docker compose down",
-    "docker:logs": "docker compose logs -f postgres"
+    "docker:logs": "docker compose logs -f postgres",
+    "generate:keys": "node scripts/generate-keys.js"
   },
   "dependencies": {
     "@apollo/server": "^5.4.0",

@@ -4,12 +4,12 @@ import { GraphQLError } from "graphql"
 
 export class AuthService {
   #userRepository
-  #jwtSecret
+  #privateKey
   #saltRounds = 12
 
-  constructor(userRepository, jwtSecret) {
+  constructor(userRepository, privateKey) {
     this.#userRepository = userRepository
-    this.#jwtSecret = jwtSecret
+    this.#privateKey = privateKey
   }
 
   async register({ email, password }) {
@@ -61,8 +61,9 @@ export class AuthService {
   }
 
   #generateToken(user) {
-    return jwt.sign({ userId: user.id, email: user.email }, this.#jwtSecret, {
-      expiresIn: "1d",
+    return jwt.sign({ userId: user.id, email: user.email }, this.#privateKey, {
+      algorithm: 'RS256',
+      expiresIn: '1d',
     })
   }
 
