@@ -1,5 +1,15 @@
 import { SALARY_RECORD_INCLUDE } from "./salaryRecordInclude.js"
 
+const COUNTRY_COUNT_INCLUDE = {
+  _count: {
+    select: {
+      employeeRecords: true,
+      companyRecords: true,
+      companies: true,
+    },
+  },
+}
+
 export class CountryRepository {
   #prisma
 
@@ -7,26 +17,36 @@ export class CountryRepository {
     this.#prisma = prisma
   }
 
-  async findAll() {
-    return this.#prisma.country.findMany({
-      include: {
-        _count: {
-          select: {
-            employeeRecords: true,
-            companyRecords: true,
-            companies: true,
-          },
-        },
-      },
-    })
+  async findAll({ limit = 20, offset = 0 } = {}) {
+    const [totalCount, countries] = await this.#prisma.$transaction([
+      this.#prisma.country.count(),
+      this.#prisma.country.findMany({
+        include: COUNTRY_COUNT_INCLUDE,
+        take: limit,
+        skip: offset,
+        orderBy: { id: "asc" },
+      }),
+    ])
+
+    return {
+      countries,
+      totalCount,
+      hasNextPage: offset + countries.length < totalCount,
+    }
   }
 
   async findById(id) {
-    return this.#prisma.country.findUnique({ where: { id } })
+    return this.#prisma.country.findUnique({
+      where: { id },
+      include: COUNTRY_COUNT_INCLUDE,
+    })
   }
 
   async findByName(name) {
-    return this.#prisma.country.findUnique({ where: { name } })
+    return this.#prisma.country.findUnique({
+      where: { name },
+      include: COUNTRY_COUNT_INCLUDE,
+    })
   }
 
   async findEmployeeRecords(countryId, pagination = {}) {

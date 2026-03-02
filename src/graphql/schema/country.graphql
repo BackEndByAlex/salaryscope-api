@@ -28,11 +28,17 @@ type Country {
   companyRecords(limit: Int, offset: Int): SalaryRecordPage!
 }
 
+type CountryPage {
+  countries: [Country!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+}
+
 extend type Query {
   """
-  Returns all countries.
+  Returns a paginated list of countries.
   """
-  countries: [Country!]!
+  countries(limit: Int, offset: Int): CountryPage!
 
   """
   Returns a single country by its numeric ID.

@@ -8,11 +8,17 @@ type JobCategory {
   jobCount: Int
 }
 
+type JobCategoryPage {
+  jobCategories: [JobCategory!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
+}
+
 extend type Query {
   """
-  Returns all job categories.
+  Returns a paginated list of job categories.
   """
-  jobCategories: [JobCategory!]!
+  jobCategories(limit: Int, offset: Int): JobCategoryPage!
 
   """
   Returns a single job category by its numeric ID.

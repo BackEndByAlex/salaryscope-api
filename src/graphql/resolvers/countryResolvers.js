@@ -1,12 +1,13 @@
 export const countryResolvers = {
   Query: {
-    countries: (_, __, { countryService }) => countryService.getAll(),
+    countries: (_, { limit, offset }, { countryService }) =>
+      countryService.getAll({ limit, offset }),
     country: (_, { id }, { countryService }) => countryService.getById(id),
     countryByName: (_, { name }, { countryService }) =>
       countryService.getByName(name),
   },
   Country: {
-    // _count is only included on findAll — returns null when Country is loaded as a nested relation
+    // _count is not included when Country is loaded as a nested relation inside SalaryRecord
     employeeRecordCount: (parent) => parent._count?.employeeRecords ?? null,
     companyRecordCount: (parent) => parent._count?.companyRecords ?? null,
     companyCount: (parent) => parent._count?.companies ?? null,

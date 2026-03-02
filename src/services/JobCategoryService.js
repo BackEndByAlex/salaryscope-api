@@ -8,8 +8,8 @@ export class JobCategoryService {
     this.#repository = repository
   }
 
-  async getAll() {
-    return this.#repository.findAll()
+  async getAll({ limit, offset } = {}) {
+    return this.#repository.findAll({ limit, offset })
   }
 
   async getById(id) {

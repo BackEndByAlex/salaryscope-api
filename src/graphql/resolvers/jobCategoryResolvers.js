@@ -1,7 +1,7 @@
 export const jobCategoryResolvers = {
   Query: {
-    jobCategories: (_, __, { jobCategoryService }) =>
-      jobCategoryService.getAll(),
+    jobCategories: (_, { limit, offset }, { jobCategoryService }) =>
+      jobCategoryService.getAll({ limit, offset }),
     jobCategory: (_, { id }, { jobCategoryService }) =>
       jobCategoryService.getById(id),
     jobCategoryByName: (_, { name }, { jobCategoryService }) =>
