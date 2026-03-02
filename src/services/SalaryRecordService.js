@@ -1,6 +1,6 @@
-import { GraphQLError } from "graphql"
 import { Prisma } from "@prisma/client"
 import { parseId } from "../utils/parseId.js"
+import { NotFoundError } from "../utils/errors.js"
 
 export class SalaryRecordService {
   #repository
@@ -19,9 +19,7 @@ export class SalaryRecordService {
     const record = await this.#repository.findById(parseId(id))
 
     if (!record) {
-      throw new GraphQLError(`Salary record with id ${id} was not found.`, {
-        extensions: { code: "NOT_FOUND" },
-      })
+      throw new NotFoundError(`Salary record with id ${id} was not found.`)
     }
 
     return record
@@ -54,9 +52,7 @@ export class SalaryRecordService {
       error instanceof Prisma.PrismaClientKnownRequestError &&
       error.code === "P2025"
     ) {
-      throw new GraphQLError(`Salary record with id ${id} was not found.`, {
-        extensions: { code: "NOT_FOUND" },
-      })
+      throw new NotFoundError(`Salary record with id ${id} was not found.`)
     }
   }
 }

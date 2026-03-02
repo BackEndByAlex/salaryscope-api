@@ -1,4 +1,4 @@
-import { GraphQLError } from "graphql"
+import { NotFoundError } from "../utils/errors.js"
 
 export class UserService {
   #repository
@@ -10,9 +10,7 @@ export class UserService {
   async getById(id) {
     const user = await this.#repository.findById(id)
     if (!user) {
-      throw new GraphQLError(`User with id ${id} was not found.`, {
-        extensions: { code: "NOT_FOUND" },
-      })
+      throw new NotFoundError(`User with id ${id} was not found.`)
     }
     return user
   }

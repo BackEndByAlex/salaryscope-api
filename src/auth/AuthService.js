@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
-import { GraphQLError } from "graphql"
+import { BadUserInputError } from "../utils/errors.js"
 
 export class AuthService {
   #userRepository
@@ -15,15 +15,11 @@ export class AuthService {
   async register({ email, password }) {
     // last-resort guard — validator should catch this first, but bcrypt.hash accepts empty strings
     if (!email || !password)
-      throw new GraphQLError("Email and password are required.", {
-        extensions: { code: "BAD_USER_INPUT" },
-      })
+      throw new BadUserInputError("Email and password are required.")
 
     const existingUser = await this.#userRepository.findByEmail(email)
     if (existingUser) {
-      throw new GraphQLError("Email is already registered.", {
-        extensions: { code: "BAD_USER_INPUT" },
-      })
+      throw new BadUserInputError("Email is already registered.")
     }
 
     const hashedPassword = await bcrypt.hash(password, this.#saltRounds)
@@ -39,9 +35,7 @@ export class AuthService {
   async login({ email, password }) {
     // last-resort guard — validator should catch this first, but bcrypt.compare accepts empty strings
     if (!email || !password)
-      throw new GraphQLError("Email and password are required.", {
-        extensions: { code: "BAD_USER_INPUT" },
-      })
+      throw new BadUserInputError("Email and password are required.")
 
     const user = await this.#userRepository.findByEmail(email)
     const passwordMatches =
@@ -49,9 +43,7 @@ export class AuthService {
 
     // Deliberately vague — never reveal whether email or password was wrong.
     if (!passwordMatches) {
-      throw new GraphQLError("Invalid credentials.", {
-        extensions: { code: "BAD_USER_INPUT" },
-      })
+      throw new BadUserInputError("Invalid credentials.")
     }
 
     return {

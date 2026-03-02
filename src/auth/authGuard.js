@@ -1,9 +1,7 @@
-import { GraphQLError } from "graphql"
+import { UnauthenticatedError } from "../utils/errors.js"
 
 export function assertAuthenticated(user) {
   if (!user) {
-    throw new GraphQLError("You must be logged in to perform this action.", {
-      extensions: { code: "UNAUTHENTICATED" },
-    })
+    throw new UnauthenticatedError()
   }
 }

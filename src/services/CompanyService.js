@@ -1,4 +1,4 @@
-import { GraphQLError } from "graphql"
+import { NotFoundError } from "../utils/errors.js"
 import { parseId } from "../utils/parseId.js"
 
 export class CompanyService {
@@ -15,9 +15,7 @@ export class CompanyService {
   async getById(id) {
     const company = await this.#repository.findById(parseId(id))
     if (!company) {
-      throw new GraphQLError(`Company with id ${id} was not found.`, {
-        extensions: { code: "NOT_FOUND" },
-      })
+      throw new NotFoundError(`Company with id ${id} was not found.`)
     }
     return company
   }
@@ -25,9 +23,7 @@ export class CompanyService {
   async getByName(name) {
     const company = await this.#repository.findByName(name)
     if (!company) {
-      throw new GraphQLError(`Company with name "${name}" was not found.`, {
-        extensions: { code: "NOT_FOUND" },
-      })
+      throw new NotFoundError(`Company with name "${name}" was not found.`)
     }
     return company
   }

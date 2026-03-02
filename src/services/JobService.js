@@ -1,4 +1,4 @@
-import { GraphQLError } from "graphql"
+import { NotFoundError } from "../utils/errors.js"
 import { parseId } from "../utils/parseId.js"
 
 export class JobService {
@@ -15,9 +15,7 @@ export class JobService {
   async getById(id) {
     const job = await this.#repository.findById(parseId(id))
     if (!job) {
-      throw new GraphQLError(`Job with id ${id} was not found.`, {
-        extensions: { code: "NOT_FOUND" },
-      })
+      throw new NotFoundError(`Job with id ${id} was not found.`)
     }
     return job
   }

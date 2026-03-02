@@ -8,26 +8,24 @@ import {
 
 export const salaryRecordResolvers = {
   Query: {
-    salaryRecords: (_, { filters = {} }, { user, salaryRecordService }) => {
-      assertAuthenticated(user)
+    salaryRecords: async (_, { filters = {} }, { salaryRecordService }) => {
       validateFilters(filters)
-      return salaryRecordService.getAll(parseFilters(filters))
+      return salaryRecordService.getAll(normalizeFilters(filters))
     },
-    salaryRecord: (_, { id }, { user, salaryRecordService }) => {
-      assertAuthenticated(user)
+    salaryRecord: async (_, { id }, { salaryRecordService }) => {
       return salaryRecordService.getById(id)
     },
   },
   Mutation: {
-    createSalaryRecord: (_, { input }, { user, salaryRecordService }) => {
+    createSalaryRecord: async (_, { input }, { user, salaryRecordService }) => {
       assertAuthenticated(user)
       validateCreateInput(input)
-      return salaryRecordService.create(parseCreateInput(input))
+      return salaryRecordService.create(normalizeCreateInput(input))
     },
-    updateSalaryRecord: (_, { id, input }, { user, salaryRecordService }) => {
+    updateSalaryRecord: async (_, { id, input }, { user, salaryRecordService }) => {
       assertAuthenticated(user)
       validateUpdateInput(input)
-      return salaryRecordService.update(id, parseUpdateInput(input))
+      return salaryRecordService.update(id, normalizeUpdateInput(input))
     },
     deleteSalaryRecord: async (_, { id }, { user, salaryRecordService }) => {
       assertAuthenticated(user)
@@ -37,27 +35,37 @@ export const salaryRecordResolvers = {
   },
   SalaryRecord: {
     // Prisma Decimal serializes as a string via valueOf() — parseFloat converts it for GraphQL Float
-    salary: (parent) => parseFloat(parent.salary.toString()),
+    salary: (parent) => toFloatFromDecimal(parent.salary),
     salaryInUsd: (parent) =>
-      parent.salaryInUsd != null
-        ? parseFloat(parent.salaryInUsd.toString())
+      parent.salaryInUsd !== null && parent.salaryInUsd !== undefined
+        ? toFloatFromDecimal(parent.salaryInUsd)
         : null,
   },
 }
 
-// Convert GraphQL ID strings to integers for all filter fields
-function parseFilters({ jobId, categoryId, countryId, companyId, ...rest }) {
+// Converts a Prisma Decimal value to a JS float for GraphQL Float fields
+function toFloatFromDecimal(value) {
+  return parseFloat(value.toString())
+}
+
+// Parses an ID string to integer only when the value is present; returns undefined otherwise
+function parseOptionalId(value) {
+  return value !== null && value !== undefined ? parseId(value) : undefined
+}
+
+// Normalizes GraphQL ID strings to integers for Prisma query filters
+function normalizeFilters({ jobId, categoryId, countryId, companyId, ...rest }) {
   return {
     ...rest,
-    jobId: jobId != null ? parseId(jobId) : undefined,
-    categoryId: categoryId != null ? parseId(categoryId) : undefined,
-    countryId: countryId != null ? parseId(countryId) : undefined,
-    companyId: companyId != null ? parseId(companyId) : undefined,
+    jobId: parseOptionalId(jobId),
+    categoryId: parseOptionalId(categoryId),
+    countryId: parseOptionalId(countryId),
+    companyId: parseOptionalId(companyId),
   }
 }
 
-// Convert IDs to integers and salary to string for Prisma Decimal precision
-function parseCreateInput({
+// Normalizes IDs to integers and salary to string for Prisma Decimal precision
+function normalizeCreateInput({
   jobId,
   employeeCountryId,
   companyCountryId,
@@ -69,16 +77,14 @@ function parseCreateInput({
     ...rest,
     salary: String(salary),
     jobId: parseId(jobId),
-    employeeCountryId:
-      employeeCountryId != null ? parseId(employeeCountryId) : undefined,
-    companyCountryId:
-      companyCountryId != null ? parseId(companyCountryId) : undefined,
-    companyId: companyId != null ? parseId(companyId) : undefined,
+    employeeCountryId: parseOptionalId(employeeCountryId),
+    companyCountryId: parseOptionalId(companyCountryId),
+    companyId: parseOptionalId(companyId),
   }
 }
 
-// Convert only the fields that were provided (partial update)
-function parseUpdateInput({
+// Normalizes only the provided fields for a partial update (Prisma Decimal and ID coercion)
+function normalizeUpdateInput({
   jobId,
   employeeCountryId,
   companyCountryId,
@@ -88,14 +94,17 @@ function parseUpdateInput({
 }) {
   return {
     ...rest,
-    ...(salary != null && { salary: String(salary) }),
-    ...(jobId != null && { jobId: parseId(jobId) }),
-    ...(employeeCountryId != null && {
-      employeeCountryId: parseId(employeeCountryId),
-    }),
-    ...(companyCountryId != null && {
-      companyCountryId: parseId(companyCountryId),
-    }),
-    ...(companyId != null && { companyId: parseId(companyId) }),
+    ...(salary !== null && salary !== undefined && { salary: String(salary) }),
+    ...(jobId !== null && jobId !== undefined && { jobId: parseId(jobId) }),
+    ...(employeeCountryId !== null &&
+      employeeCountryId !== undefined && {
+        employeeCountryId: parseId(employeeCountryId),
+      }),
+    ...(companyCountryId !== null &&
+      companyCountryId !== undefined && {
+        companyCountryId: parseId(companyCountryId),
+      }),
+    ...(companyId !== null &&
+      companyId !== undefined && { companyId: parseId(companyId) }),
   }
 }
