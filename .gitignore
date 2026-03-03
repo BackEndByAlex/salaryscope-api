@@ -6,3 +6,4 @@ prisma/migrations/
 package-lock.json
 data/
 keys/private.pem
+.claude
