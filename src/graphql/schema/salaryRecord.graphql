@@ -147,13 +147,11 @@ input UpdateSalaryRecordInput {
 extend type Query {
   """
   Returns a paginated list of salary records.
-  Requires authentication.
   """
   salaryRecords(filters: SalaryRecordFilters): SalaryRecordPage!
 
   """
   Returns a single salary record by its numeric ID.
-  Requires authentication.
   """
   salaryRecord(id: ID!): SalaryRecord!
 }
