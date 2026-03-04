@@ -1,0 +1,13 @@
+# Production overrides — security and performance hardening
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+
+services:
+  postgres:
+    restart: always
+    # No exposed ports — Postgres only accessible internally via Docker network
+
+  api:
+    restart: always
+    environment:
+      NODE_ENV: production
+      # Caddy on host reverse-proxies to 127.0.0.1:4000 (internal only)

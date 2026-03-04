@@ -1,0 +1,14 @@
+services:
+  seed:
+    build: .
+    restart: "no" # one-shot: seed once and exit; safe to rerun because seed script is idempotent
+    command: node prisma/seed.js
+    environment:
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/jobs_salary
+    volumes:
+      - ./data:/app/data:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy

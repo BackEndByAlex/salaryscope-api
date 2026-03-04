@@ -1,0 +1,12 @@
+# Development overrides — adds local tooling access
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+services:
+  postgres:
+    ports:
+      # Expose to host for local Prisma Studio, migrations, seeding
+      - "127.0.0.1:5432:5432"
+
+  api:
+    environment:
+      NODE_ENV: development
