@@ -12,7 +12,9 @@ export function validateCreateInput({ salary, jobId, source }) {
 
 export function validateUpdateInput(data) {
   if (!data || Object.keys(data).length === 0) {
-    throw new BadUserInputError("At least one field must be provided to update.")
+    throw new BadUserInputError(
+      "At least one field must be provided to update.",
+    )
   }
 }
 

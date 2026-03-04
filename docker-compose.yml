@@ -1,35 +1,60 @@
 services:
   postgres:
     image: postgres:16-alpine
-    restart: unless-stopped # "always" would restart even after a deliberate manual stop
+    restart: unless-stopped
     environment:
       POSTGRES_DB: jobs_salary
       POSTGRES_USER: admin
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # credentials are set via .env file and not hardcoded for security reasons
-    ports:
-      - "5432:5432"
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data # named volume persists data across container restarts and recreations
-    healthcheck: # without this, the api can start before Postgres is ready to accept connections
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
       test: ["CMD-SHELL", "pg_isready -U admin -d jobs_salary"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 30s # gives Postgres time to initialise its data directory on first boot
+
+  migrate:
+    build: .
+    restart: "no" # one-shot: run migrations once and exit; Compose will not restart it
+    command: npx prisma migrate deploy
+    environment:
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/jobs_salary
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   api:
     build: .
     restart: unless-stopped
     ports:
-      - "4000:4000"
+      # 127.0.0.1 binds only to the loopback interface — Caddy on the host can reach
+      # this port, but the public internet cannot. 0.0.0.0 would bypass Caddy's
+      # TLS termination, rate-limiting, and auth headers.
+      - "127.0.0.1:4000:4000"
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      NODE_ENV: development
+      DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/jobs_salary
+      NODE_ENV: production
       PORT: 4000
+      PRIVATE_KEY_PATH: /run/secrets/private_key
+    secrets:
+      # Mounted as a Docker secret (tmpfs) rather than an env var so it is not
+      # visible in "docker inspect" output or container environment dumps.
+      # mode: 0444 is set explicitly so the non-root appuser can read the file.
+      - source: private_key
+        mode: 0444
+    volumes:
+      - ./keys/public.pem:/app/keys/public.pem:ro
     depends_on:
+      migrate:
+        condition: service_completed_successfully
       postgres:
         condition: service_healthy
-    command: sh -c "npx prisma migrate deploy && node src/server.js" # ensures schema is in sync before the app starts
+
+secrets:
+  private_key:
+    file: ./keys/private.pem
 
 volumes:
   postgres_data:
