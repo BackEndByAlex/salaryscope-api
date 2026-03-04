@@ -77,6 +77,9 @@ model SalaryRecord {
   companyId          Int?
   company            Company? @relation(fields: [companyId], references: [id])
 
+  createdBy          Int?
+  createdByUser      User?    @relation(fields: [createdBy], references: [id])
+
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
@@ -89,8 +92,9 @@ model SalaryRecord {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  passwordHash  String
+  createdAt     DateTime       @default(now())
+  salaryRecords SalaryRecord[]
 }

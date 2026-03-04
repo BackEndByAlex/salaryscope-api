@@ -20,16 +20,16 @@ export const salaryRecordResolvers = {
     createSalaryRecord: async (_, { input }, { user, salaryRecordService }) => {
       assertAuthenticated(user)
       validateCreateInput(input)
-      return salaryRecordService.create(normalizeCreateInput(input))
+      return salaryRecordService.create(normalizeCreateInput(input), user.id)
     },
     updateSalaryRecord: async (_, { id, input }, { user, salaryRecordService }) => {
       assertAuthenticated(user)
       validateUpdateInput(input)
-      return salaryRecordService.update(id, normalizeUpdateInput(input))
+      return salaryRecordService.update(id, normalizeUpdateInput(input), user.id)
     },
     deleteSalaryRecord: async (_, { id }, { user, salaryRecordService }) => {
       assertAuthenticated(user)
-      await salaryRecordService.delete(id)
+      await salaryRecordService.delete(id, user.id)
       return true
     },
   },

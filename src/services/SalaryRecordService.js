@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client"
 import { parseId } from "../utils/parseId.js"
-import { NotFoundError } from "../utils/errors.js"
+import { NotFoundError, ForbiddenError } from "../utils/errors.js"
 
 export class SalaryRecordService {
   #repository
@@ -25,34 +25,31 @@ export class SalaryRecordService {
     return record
   }
 
-  async create(data) {
-    return this.#repository.create(data)
+  async create(data, userId) {
+    return this.#repository.create({ ...data, createdBy: userId })
   }
 
-  async update(id, data) {
-    try {
-      return await this.#repository.update(parseId(id), data)
-    } catch (e) {
-      this.#rethrowIfNotFound(e, id)
-      throw e
+  async update(id, data, userId) {
+    const record = await this.#repository.findById(parseId(id))
+    if (!record) throw new NotFoundError(`Salary record with id ${id} was not found.`)
+    this.#assertOwnership(record, userId, id)
+    return this.#repository.update(parseId(id), data)
+  }
+
+  async delete(id, userId) {
+    const record = await this.#repository.findById(parseId(id))
+    if (!record) throw new NotFoundError(`Salary record with id ${id} was not found.`)
+    this.#assertOwnership(record, userId, id)
+    return this.#repository.delete(parseId(id))
+  }
+
+  #assertOwnership(record, userId, id) {
+    // null createdBy = seeded public data — no user owns it, so nobody can modify it
+    if (record.createdBy === null) {
+      throw new ForbiddenError("This record is part of the public dataset and cannot be modified.")
     }
-  }
-
-  async delete(id) {
-    try {
-      return await this.#repository.delete(parseId(id))
-    } catch (e) {
-      this.#rethrowIfNotFound(e, id)
-      throw e
-    }
-  }
-
-  #rethrowIfNotFound(error, id) {
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
-    ) {
-      throw new NotFoundError(`Salary record with id ${id} was not found.`)
+    if (record.createdBy !== userId) {
+      throw new ForbiddenError(`You do not have permission to modify salary record with id ${id}.`)
     }
   }
 }

@@ -24,6 +24,18 @@ export class NotFoundError extends GraphQLError {
   }
 }
 
+export class ForbiddenError extends GraphQLError {
+  constructor(message = "You do not have permission to perform this action.") {
+    super(message, {
+      extensions: {
+        code: "FORBIDDEN",
+        http: { status: 403 },
+      },
+    })
+    this.name = "ForbiddenError"
+  }
+}
+
 export class BadUserInputError extends GraphQLError {
   constructor(message = "Invalid input provided.") {
     super(message, {
