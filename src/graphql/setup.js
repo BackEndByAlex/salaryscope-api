@@ -79,6 +79,7 @@ export function buildApolloServer() {
       companyResolvers,
       salaryRecordResolvers,
     ],
+    introspection: true, // Enable introspection in production
     plugins: [
       process.env.NODE_ENV === "production"
         ? ApolloServerPluginLandingPageProductionDefault({

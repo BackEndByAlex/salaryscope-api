@@ -18,7 +18,7 @@ services:
   migrate:
     build: .
     restart: "no" # one-shot: run migrations once and exit; Compose will not restart it
-    command: npx prisma migrate deploy
+    command: npx prisma db push --accept-data-loss
     environment:
       DATABASE_URL: postgresql://admin:${POSTGRES_PASSWORD}@postgres:5432/jobs_salary
     depends_on:
