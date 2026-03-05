@@ -41,6 +41,7 @@
     "express": "^5.2.1",
     "express-rate-limit": "^8.2.1",
     "graphql": "^16.13.0",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.18.0",
     "prisma": "^7.4.1"

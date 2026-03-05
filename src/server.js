@@ -1,6 +1,7 @@
 import "dotenv/config"
 import express from "express"
 import cors from "cors"
+import helmet from "helmet"
 import rateLimit from "express-rate-limit"
 import { expressMiddleware } from "@as-integrations/express5"
 import { buildContext } from "./auth/jwtMiddleware.js"
@@ -8,11 +9,30 @@ import { buildApolloServer, services } from "./graphql/setup.js"
 
 const PORT = process.env.PORT
 
+// ALLOWED_ORIGINS is a comma-separated list of trusted client origins.
+// Requests with no Origin header (Postman, server-to-server) are always allowed.
+const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? "").split(",").filter(Boolean)
+
 const apolloServer = buildApolloServer()
 await apolloServer.start()
 
 const app = express()
-app.use(cors())
+
+// Sets X-Content-Type-Options, X-Frame-Options, HSTS, Referrer-Policy, and more.
+// CSP is disabled — Apollo Sandbox uses inline scripts that a strict CSP would block.
+app.use(helmet({ contentSecurityPolicy: false }))
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no Origin (Postman, curl, server-to-server calls)
+      if (!origin) return callback(null, true)
+      if (allowedOrigins.includes(origin)) return callback(null, true)
+      callback(new Error(`CORS: origin "${origin}" is not allowed.`))
+    },
+  }),
+)
+
 app.use(express.json())
 
 // Global rate limit — covers all routes
