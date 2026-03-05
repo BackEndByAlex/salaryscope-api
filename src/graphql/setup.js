@@ -79,7 +79,23 @@ export function buildApolloServer() {
       companyResolvers,
       salaryRecordResolvers,
     ],
-    introspection: true, // Enable introspection in production
+    // Introspection exposes the full schema to anyone who can reach the endpoint.
+    // Disable in production so attackers cannot enumerate types and fields.
+    introspection: process.env.NODE_ENV !== "production",
+    formatError(formattedError, error) {
+      // Always log the real error server-side so nothing is lost
+      console.error(error)
+
+      if (process.env.NODE_ENV === "production") {
+        // Only forward errors the client is meant to act on
+        const safeCodes = ["BAD_USER_INPUT", "UNAUTHENTICATED", "NOT_FOUND", "FORBIDDEN"]
+        if (safeCodes.includes(formattedError.extensions?.code)) return formattedError
+        // Everything else (Prisma internals, stack traces, unexpected errors) is hidden
+        return { message: "Internal server error", extensions: { code: "INTERNAL_SERVER_ERROR" } }
+      }
+
+      return formattedError
+    },
     plugins: [
       process.env.NODE_ENV === "production"
         ? ApolloServerPluginLandingPageProductionDefault({

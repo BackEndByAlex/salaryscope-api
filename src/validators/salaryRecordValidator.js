@@ -8,6 +8,10 @@ export function validateCreateInput({ salary, jobId, source }) {
   if (!(Number(salary) > 0)) {
     throw new BadUserInputError("salary must be a positive number.")
   }
+
+  if (source.length > 200) {
+    throw new BadUserInputError("source must not exceed 200 characters.")
+  }
 }
 
 export function validateUpdateInput(data) {

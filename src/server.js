@@ -33,7 +33,7 @@ app.use(
   }),
 )
 
-app.use(express.json())
+app.use(express.json({ limit: "100kb" }))
 
 // Global rate limit — covers all routes
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200, standardHeaders: true, legacyHeaders: false }))
