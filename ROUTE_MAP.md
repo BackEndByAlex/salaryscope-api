@@ -19,13 +19,15 @@ A plain-language guide to everything that happens in this API: what it is, where
    - [Layer 7 — Prisma & PostgreSQL](#layer-7--prisma--postgresql)
 5. [The Composition Root](#5-the-composition-root-srcgraphqlsetupjs)
 6. [Authentication In Depth](#6-authentication-in-depth)
-7. [Every Operation: What It Does and Who Can Call It](#7-every-operation-what-it-does-and-who-can-call-it)
-8. [Pagination — How List Responses Work](#8-pagination--how-list-responses-work)
-9. [Error Handling](#9-error-handling)
-10. [The Database](#10-the-database)
-11. [Input Validation and ID Parsing](#11-input-validation-and-id-parsing)
-12. [Folder and File Reference](#12-folder-and-file-reference)
-13. [Running the Project](#13-running-the-project)
+7. [Security Hardening](#7-security-hardening)
+8. [Every Operation: What It Does and Who Can Call It](#8-every-operation-what-it-does-and-who-can-call-it)
+9. [Ownership Model](#9-ownership-model)
+10. [Pagination — How List Responses Work](#10-pagination--how-list-responses-work)
+11. [Error Handling](#11-error-handling)
+12. [The Database](#12-the-database)
+13. [Input Validation and ID Parsing](#13-input-validation-and-id-parsing)
+14. [Folder and File Reference](#14-folder-and-file-reference)
+15. [Running the Project](#15-running-the-project)
 
 ---
 
@@ -34,16 +36,19 @@ A plain-language guide to everything that happens in this API: what it is, where
 This is a **read-and-write API** for tech industry salary data. It combines four different salary datasets (from CSV files) into one unified database, then exposes that data over a GraphQL interface so clients can query it in a flexible way.
 
 **What the data covers:**
+
 - Salary records from tech jobs — job title, salary, country, company, year, experience level, work setting, etc.
-- Three source datasets, each with slightly different fields: `jobs_in_data` (2023–2024 data), `salary_extra`, and `software_pro`.
+- Four source datasets, each with slightly different fields: `jobs_in_data` (2023–2024 data), `salary_extra`, and `software_pro`.
 
 **What the API lets you do:**
+
 - Browse and filter salary records (public — no login required)
 - Browse jobs, countries, companies, and job categories (public)
 - Create, update, and delete salary records (requires being logged in)
 - Register an account and log in
 
 **Built with:**
+
 - **Node.js + Express** — the web server
 - **Apollo Server** — the GraphQL engine
 - **Prisma** — the database toolkit
@@ -135,12 +140,17 @@ The response travels back up the same stack and is returned to your client as JS
 This is the entry point — the first file that runs when you start the application.
 
 **What it does:**
-1. Loads all environment variables from the `.env` file (database URL, port, etc.)
+
+1. Loads all environment variables from the `.env` file (database URL, port, allowed origins, etc.)
 2. Creates the Express web server
 3. Starts Apollo Server (the GraphQL engine)
 4. Applies middleware in order:
-   - **CORS** — allows requests from any origin (required for the browser sandbox)
-   - **JSON body parser** — reads the request body as JSON
+   - **Helmet** — sets HTTP security headers on every response (X-Content-Type-Options, X-Frame-Options, HSTS, Referrer-Policy, etc.). CSP is disabled because Apollo Sandbox uses inline scripts.
+   - **CORS** — only allows requests from origins listed in the `ALLOWED_ORIGINS` environment variable. Requests with no `Origin` header (Postman, curl, server-to-server calls) are always allowed.
+   - **JSON body parser** — reads the request body as JSON, capped at 100 KB to prevent oversized payloads from reaching the application.
+   - **Global rate limiter** — limits every IP to 200 requests per 15 minutes across all routes.
+   - **Batch request blocker** — rejects any request to `/graphql` whose body is a JSON array. A single batched request can contain hundreds of mutations, which would bypass per-request rate limits entirely.
+   - **Auth rate limiter** — applies a stricter limit of 10 requests per 15 minutes specifically on `login` and `register` mutations, identified by the `operationName` field in the request body.
    - **Apollo at `/graphql`** — mounts the GraphQL engine at that URL
 5. Starts listening for connections on the configured port
 
@@ -153,6 +163,7 @@ This is the entry point — the first file that runs when you start the applicat
 Runs automatically on **every single request**, before any resolver sees it.
 
 **What it does:**
+
 - Looks at the `Authorization` header in the HTTP request
 - If it finds a valid Bearer token (a JWT), it decodes and verifies it using the public RSA key
 - Sets `context.user` to `{ id, email }` if the token is valid
@@ -170,15 +181,15 @@ The schema is a formal description of everything the API can do. It defines ever
 
 **Files and what they define:**
 
-| File | What it adds |
-|---|---|
-| `schema.graphql` | The base `Query` and `Mutation` types — all other files extend these |
-| `auth.graphql` | User type, login/register mutations, `me` query |
-| `country.graphql` | Country type, country list/lookup queries |
-| `jobCategory.graphql` | Job category type, category list/lookup queries |
-| `job.graphql` | Job type, job list/lookup queries |
-| `company.graphql` | Company type, company list/lookup queries |
-| `salaryRecord.graphql` | SalaryRecord type, all salary queries and mutations |
+| File                   | What it adds                                                         |
+| ---------------------- | -------------------------------------------------------------------- |
+| `schema.graphql`       | The base `Query` and `Mutation` types — all other files extend these |
+| `auth.graphql`         | User type, login/register mutations, `me` query                      |
+| `country.graphql`      | Country type, country list/lookup queries                            |
+| `jobCategory.graphql`  | Job category type, category list/lookup queries                      |
+| `job.graphql`          | Job type, job list/lookup queries                                    |
+| `company.graphql`      | Company type, company list/lookup queries                            |
+| `salaryRecord.graphql` | SalaryRecord type, all salary queries and mutations                  |
 
 **Analogy:** The schema is a menu. It tells clients exactly what they can order and in what format. Apollo enforces the menu — if a client asks for something not on it, the request is rejected immediately, before any code runs.
 
@@ -189,6 +200,7 @@ The schema is a formal description of everything the API can do. It defines ever
 Each query and mutation in the schema has a matching resolver function. The resolver is what actually runs when a client sends that query.
 
 **What resolvers do (and do not do):**
+
 - Check whether the user is logged in (for protected operations)
 - Validate the shape and values of the incoming arguments
 - Call the appropriate service method
@@ -198,14 +210,14 @@ Resolvers contain **no business logic and no database calls**. They are thin coo
 
 **Files:**
 
-| File | Handles |
-|---|---|
-| `authResolvers.js` | `me`, `register`, `login` |
-| `countryResolvers.js` | `countries`, `country`, `countryByName` + nested fields |
-| `jobCategoryResolvers.js` | `jobCategories`, `jobCategory`, `jobCategoryByName` + nested fields |
-| `jobResolvers.js` | `jobs`, `job` + nested salary records |
-| `companyResolvers.js` | `companies`, `company`, `companyByName` + nested salary records |
-| `salaryRecordResolvers.js` | `salaryRecords`, `salaryRecord` + all mutations |
+| File                       | Handles                                                             |
+| -------------------------- | ------------------------------------------------------------------- |
+| `authResolvers.js`         | `me`, `register`, `login`                                           |
+| `countryResolvers.js`      | `countries`, `country`, `countryByName` + nested fields             |
+| `jobCategoryResolvers.js`  | `jobCategories`, `jobCategory`, `jobCategoryByName` + nested fields |
+| `jobResolvers.js`          | `jobs`, `job` + nested salary records                               |
+| `companyResolvers.js`      | `companies`, `company`, `companyByName` + nested salary records     |
+| `salaryRecordResolvers.js` | `salaryRecords`, `salaryRecord` + all mutations                     |
 
 **Analogy:** The resolver is a waiter. They take your order, check that everything looks right, and pass it to the kitchen (service). They do not cook anything themselves.
 
@@ -216,6 +228,7 @@ Resolvers contain **no business logic and no database calls**. They are thin coo
 Services contain the business rules — the "thinking" part of the application.
 
 **What services do:**
+
 - Convert GraphQL ID strings to real database integers
 - Check whether a record actually exists before trying to use it (and throw a clean "not found" error if it does not)
 - Handle Prisma-specific error codes and translate them into meaningful GraphQL errors (e.g., "record not found on delete" becomes a `NotFoundError`)
@@ -223,15 +236,15 @@ Services contain the business rules — the "thinking" part of the application.
 
 **Files and what they handle:**
 
-| File | Responsibility |
-|---|---|
-| `AuthService.js` | Hashing passwords, signing JWT tokens, checking credentials |
-| `UserService.js` | Looking up the current user by their ID |
-| `CountryService.js` | Country lookups, paginated employee and company records by country |
-| `JobCategoryService.js` | Job category lookups |
-| `JobService.js` | Job lookups, paginated salary records by job |
-| `CompanyService.js` | Company lookups, paginated salary records by company |
-| `SalaryRecordService.js` | All salary record CRUD, filter delegation, error mapping |
+| File                     | Responsibility                                                     |
+| ------------------------ | ------------------------------------------------------------------ |
+| `AuthService.js`         | Hashing passwords, signing JWT tokens, checking credentials        |
+| `UserService.js`         | Looking up the current user by their ID                            |
+| `CountryService.js`      | Country lookups, paginated employee and company records by country |
+| `JobCategoryService.js`  | Job category lookups                                               |
+| `JobService.js`          | Job lookups, paginated salary records by job                       |
+| `CompanyService.js`      | Company lookups, paginated salary records by company               |
+| `SalaryRecordService.js` | All salary record CRUD, filter delegation, error mapping           |
 
 **Analogy:** The service is the kitchen — it does the actual work based on the waiter's order. It decides what to cook, how to prepare it, and what to do if an ingredient is missing.
 
@@ -242,20 +255,21 @@ Services contain the business rules — the "thinking" part of the application.
 Repositories are the only part of the application that communicate with the database. Everything database-related lives here and nowhere else.
 
 **What repositories do:**
+
 - Build and execute Prisma queries (`findMany`, `findFirst`, `create`, `update`, `delete`)
 - Handle pagination (count + fetch in a single atomic transaction)
 - Define which related data to load alongside a record (e.g., always load the job and countries when fetching a salary record)
 
 **Files:**
 
-| File | Talks to DB table |
-|---|---|
-| `UserRepository.js` | `User` |
-| `CountryRepository.js` | `Country` + salary records by employee country and company country |
-| `JobCategoryRepository.js` | `JobCategory` |
-| `JobRepository.js` | `Job` + salary records by job |
-| `CompanyRepository.js` | `Company` + salary records by company |
-| `SalaryRecordRepository.js` | `SalaryRecord` with all filters and relations |
+| File                        | Talks to DB table                                                  |
+| --------------------------- | ------------------------------------------------------------------ |
+| `UserRepository.js`         | `User`                                                             |
+| `CountryRepository.js`      | `Country` + salary records by employee country and company country |
+| `JobCategoryRepository.js`  | `JobCategory`                                                      |
+| `JobRepository.js`          | `Job` + salary records by job                                      |
+| `CompanyRepository.js`      | `Company` + salary records by company                              |
+| `SalaryRecordRepository.js` | `SalaryRecord` with all filters and relations                      |
 
 **Shared constant `SALARY_RECORD_INCLUDE`:**
 Any query that returns salary records needs to load the related job, categories, countries, and company in the same query. A shared constant defines this set of relations once, and every repository that fetches salary records imports it. This means if a new relation is added, there is only one place to update.
@@ -267,6 +281,7 @@ Any query that returns salary records needs to load the related job, categories,
 ### Layer 7 — Prisma & PostgreSQL
 
 **Prisma** is the toolkit that sits between the application code and PostgreSQL. It provides:
+
 - A type-safe query builder (so queries are checked at development time, not only at runtime)
 - Automatic handling of the database connection pool
 - A migration system for evolving the database schema over time
@@ -299,8 +314,8 @@ This file is the "wiring diagram" of the whole application. It is the only place
 
 This API uses **JWT (JSON Web Token)** authentication with **RS256** — an asymmetric cryptographic algorithm. Two keys are used:
 
-- **Private key** (`keys/private.pem`) — kept secret on the server. Used to *sign* tokens when a user logs in.
-- **Public key** (`keys/public.pem`) — can be shared. Used to *verify* tokens on incoming requests.
+- **Private key** (`keys/private.pem`) — kept secret on the server. Used to _sign_ tokens when a user logs in.
+- **Public key** (`keys/public.pem`) — can be shared. Used to _verify_ tokens on incoming requests.
 
 ### Register flow
 
@@ -364,36 +379,104 @@ Protected resolvers call `assertAuthenticated(user)` as their first line. If `co
 
 ---
 
-## 7. Every Operation: What It Does and Who Can Call It
+## 7. Security Hardening
+
+Several protections were added on top of the base GraphQL setup. They are all applied at the Express layer, before Apollo ever sees the request.
+
+### Helmet — HTTP security headers
+
+Helmet sets a collection of HTTP response headers that instruct browsers to behave more securely:
+
+| Header | What it does |
+|---|---|
+| `X-Content-Type-Options: nosniff` | Prevents the browser from guessing the content type (stops MIME-type sniffing attacks) |
+| `X-Frame-Options: DENY` | Blocks the page from being embedded in an `<iframe>` (prevents clickjacking) |
+| `Strict-Transport-Security` | Tells the browser to only use HTTPS for this domain in future visits |
+| `Referrer-Policy` | Controls what URL is sent in the `Referer` header when following links |
+
+Content Security Policy (CSP) is disabled for this API because Apollo Sandbox uses inline scripts, which a strict CSP would block.
+
+### CORS — origin allowlist
+
+CORS headers control which websites are allowed to make requests to the API from a browser. The `ALLOWED_ORIGINS` environment variable is a comma-separated list of trusted origins (e.g. `https://yourdashboard.lnu.se`).
+
+- Requests from listed origins: allowed
+- Requests with no `Origin` header (Postman, curl, server-to-server): always allowed
+- Requests from unlisted origins: blocked with a CORS error before they reach Apollo
+
+### Rate limiting
+
+Two rate limits are in place to prevent brute-force attacks and API abuse:
+
+| Limit | Applies to | Maximum | Window |
+|---|---|---|---|
+| Global | Every route, every IP | 200 requests | 15 minutes |
+| Auth | `login` and `register` mutations only | 10 requests | 15 minutes |
+
+The auth limit is applied by checking the `operationName` field in the request body. Clients can name their operations to trigger this: `mutation Login { ... }` or `mutation Register { ... }`.
+
+### Batch request blocking
+
+GraphQL supports batched requests — sending an array of queries in a single HTTP request. This would allow an attacker to send 100 login attempts in one request, bypassing the per-request rate limit.
+
+Any request to `/graphql` whose body is a JSON array is rejected immediately with a `400` error before it reaches Apollo.
+
+### Body size limit
+
+The JSON body parser accepts a maximum of **100 KB** per request. This prevents memory exhaustion from clients sending very large request bodies.
+
+### Introspection disabled in production
+
+GraphQL introspection lets clients query the full schema — every type, field, query, and mutation. This is useful during development but in production it gives attackers a complete map of the API for free.
+
+Introspection is disabled when `NODE_ENV=production`. The interactive Apollo Sandbox is also replaced with a minimal production landing page.
+
+### Production error sanitization
+
+In production, unexpected errors (Prisma internals, stack traces, unhandled exceptions) are never returned to the client. Only errors with a known, safe code are passed through:
+
+| Code | Passed to client? |
+|---|---|
+| `UNAUTHENTICATED` | Yes |
+| `BAD_USER_INPUT` | Yes |
+| `NOT_FOUND` | Yes |
+| `FORBIDDEN` | Yes |
+| Anything else | Replaced with `"Internal server error"` |
+
+All errors are still logged on the server so nothing is lost — clients just do not see the internal details.
+
+---
+
+## 8. Every Operation: What It Does and Who Can Call It
 
 ### Public operations (no login required)
 
-| Operation | What it does |
-|---|---|
-| `register(input)` | Creates a new account, returns a token |
-| `login(input)` | Checks credentials, returns a token |
-| `countries(limit, offset)` | Paginated list of all countries |
-| `country(id)` | Single country by ID |
-| `countryByName(name)` | Single country by name |
-| `jobCategories(limit, offset)` | Paginated list of job categories |
-| `jobCategory(id)` | Single job category by ID |
-| `jobCategoryByName(name)` | Single job category by name |
-| `jobs(categoryId, limit, offset)` | Paginated jobs, optionally filtered by category |
-| `job(id)` | Single job by ID |
+| Operation                             | What it does                                        |
+| ------------------------------------- | --------------------------------------------------- |
+| `register(input)`                     | Creates a new account, returns a token              |
+| `login(input)`                        | Checks credentials, returns a token                 |
+| `countries(limit, offset)`            | Paginated list of all countries                     |
+| `country(id)`                         | Single country by ID                                |
+| `countryByName(name)`                 | Single country by name                              |
+| `jobCategories(limit, offset)`        | Paginated list of job categories                    |
+| `jobCategory(id)`                     | Single job category by ID                           |
+| `jobCategoryByName(name)`             | Single job category by name                         |
+| `jobs(categoryId, limit, offset)`     | Paginated jobs, optionally filtered by category     |
+| `job(id)`                             | Single job by ID                                    |
 | `companies(countryId, limit, offset)` | Paginated companies, optionally filtered by country |
-| `company(id)` | Single company by ID |
-| `companyByName(name)` | Single company by name |
-| `salaryRecords(filters)` | Paginated salary records with up to 9 filter fields |
-| `salaryRecord(id)` | Single salary record by ID |
+| `company(id)`                         | Single company by ID                                |
+| `companyByName(name)`                 | Single company by name                              |
+| `salaryRecords(filters)`              | Paginated salary records with up to 9 filter fields |
+| `salaryRecord(id)`                    | Single salary record by ID                          |
 
 ### Protected operations (login required)
 
-| Operation | What it does |
-|---|---|
-| `me` | Returns the currently logged-in user's profile |
-| `createSalaryRecord(input)` | Adds a new salary record to the database |
+| Operation                       | What it does                                     |
+| ------------------------------- | ------------------------------------------------ |
+| `me`                            | Returns the currently logged-in user's profile   |
+| `createSalaryRecord(input)`     | Adds a new salary record to the database         |
 | `updateSalaryRecord(id, input)` | Updates one or more fields on an existing record |
-| `deleteSalaryRecord(id)` | Permanently removes a salary record |
+| `deleteSalaryRecord(id)`        | Permanently removes a salary record              |
 
 ### Nested queries
 
@@ -410,21 +493,49 @@ These nested lists also support `limit` and `offset` and return the same paginat
 
 The `salaryRecords` query accepts an optional `filters` object with these fields:
 
-| Filter | Type | What it matches |
-|---|---|---|
-| `jobId` | ID | Records for a specific job |
-| `categoryId` | ID | Records where the job belongs to this category |
-| `employeeCountryId` | ID | Records where the employee is in this country |
-| `companyCountryId` | ID | Records where the company is in this country |
-| `companyId` | ID | Records for a specific company |
-| `experienceLevel` | String | e.g. `"SE"`, `"MI"`, `"EN"`, `"EX"` |
-| `employmentType` | String | e.g. `"FT"`, `"PT"`, `"CT"`, `"FL"` |
-| `workSetting` | String | e.g. `"Remote"`, `"Hybrid"`, `"In-person"` |
-| `source` | String | Which dataset: `"jobs_in_data"`, `"salary_extra"`, `"software_pro"` |
+| Filter            | Type   | What it matches                                                     |
+| ----------------- | ------ | ------------------------------------------------------------------- |
+| `jobId`           | ID     | Records for a specific job                                          |
+| `categoryId`      | ID     | Records where the job belongs to this category                      |
+| `countryId`       | ID     | Records where the employee is in this country                       |
+| `companyId`       | ID     | Records for a specific company                                      |
+| `workYear`        | Int    | Records from a specific year (e.g. `2023`)                          |
+| `experienceLevel` | String | e.g. `"SE"`, `"MI"`, `"EN"`, `"EX"`                                 |
+| `employmentType`  | String | e.g. `"FT"`, `"PT"`, `"CT"`, `"FL"`                                 |
+| `workSetting`     | String | e.g. `"Remote"`, `"Hybrid"`, `"In-person"`                          |
+| `companySize`     | String | e.g. `"S"`, `"M"`, `"L"`                                            |
+| `source`          | String | Which dataset: `"jobs_in_data"`, `"salary_extra"`, `"software_pro"` |
 
 ---
 
-## 8. Pagination — How List Responses Work
+## 9. Ownership Model
+
+When an authenticated user creates a salary record, that record is stamped with their user ID in the `createdBy` field. This field is the basis for all mutation permissions.
+
+**The rules:**
+
+| `createdBy` value | Who can modify it? |
+|---|---|
+| `null` | Nobody — these are seeded public dataset records |
+| A user ID | Only the user with that ID |
+
+**Why seeded records are immutable:**
+
+The ~69,000 records loaded from the CSV files have `createdBy: null`. This means no user owns them. Attempting to update or delete a seeded record returns a `403 FORBIDDEN` error with the message: `"This record is part of the public dataset and cannot be modified."` This prevents the public dataset from being corrupted through the API.
+
+**How it is enforced:**
+
+`SalaryRecordService` calls `#assertOwnership()` on every `update` and `delete` before touching the database. It checks:
+
+1. Is `createdBy` null? → throw `ForbiddenError` (public data)
+2. Is `createdBy` different from the current user's ID? → throw `ForbiddenError` (someone else's record)
+3. Both pass → proceed with the database operation
+
+Authentication (`assertAuthenticated`) is checked in the resolver before the service is even called, so by the time `#assertOwnership` runs, `userId` is always a valid integer.
+
+---
+
+## 10. Pagination — How List Responses Work
 
 Every list query returns a page object, not a raw array. This tells the client how much data exists in total and whether there is more to fetch.
 
@@ -440,10 +551,10 @@ Every list query returns a page object, not a raw array. This tells the client h
 
 **Query arguments:**
 
-| Argument | Default | Maximum | Meaning |
-|---|---|---|---|
-| `limit` | 20 | 100 | How many records to return in this response |
-| `offset` | 0 | — | How many records to skip (for moving through pages) |
+| Argument | Default | Maximum | Meaning                                             |
+| -------- | ------- | ------- | --------------------------------------------------- |
+| `limit`  | 20      | 100     | How many records to return in this response         |
+| `offset` | 0       | —       | How many records to skip (for moving through pages) |
 
 **Example: getting page 3 with 50 records per page:**
 Send `limit: 50, offset: 100` — skip the first 100, return the next 50.
@@ -457,17 +568,19 @@ This means if you are on the last page and only 8 records came back (even though
 
 ---
 
-## 9. Error Handling
+## 11. Error Handling
 
 When something goes wrong, the API returns a structured error — never a raw crash or a leaked database error.
 
 ### Error types
 
-| Error | HTTP status | Code in response | When it is thrown |
-|---|---|---|---|
-| `UnauthenticatedError` | 401 | `UNAUTHENTICATED` | Calling a protected operation without a valid token |
-| `NotFoundError` | 404 | `NOT_FOUND` | Looking up a record by ID or name that does not exist |
-| `BadUserInputError` | 400 | `BAD_USER_INPUT` | Invalid input format, duplicate email, non-numeric ID |
+| Error                  | HTTP status | Code in response        | When it is thrown                                               |
+| ---------------------- | ----------- | ----------------------- | --------------------------------------------------------------- |
+| `UnauthenticatedError` | 401         | `UNAUTHENTICATED`       | Calling a protected operation without a valid token             |
+| `ForbiddenError`       | 403         | `FORBIDDEN`             | Trying to modify a record you did not create, or a seeded record |
+| `NotFoundError`        | 404         | `NOT_FOUND`             | Looking up a record by ID or name that does not exist           |
+| `BadUserInputError`    | 400         | `BAD_USER_INPUT`        | Invalid input format, duplicate email, non-numeric ID           |
+| (unexpected)           | 500         | `INTERNAL_SERVER_ERROR` | Any unhandled error — details hidden in production              |
 
 ### What the client receives
 
@@ -499,7 +612,7 @@ When you try to update or delete a record that does not exist, Prisma throws a s
 
 ---
 
-## 10. The Database
+## 12. The Database
 
 The database has six tables. Here is what each one stores and how they relate.
 
@@ -511,31 +624,31 @@ Every salary entry from all three datasets ends up here. Each record belongs to 
 
 Key fields:
 
-| Field | What it is |
-|---|---|
-| `salary` | The reported salary (exact decimal, e.g. 120000.00) |
-| `salaryInUsd` | Converted salary in USD (only from `jobs_in_data`) |
-| `salaryCurrency` | The original currency (only from `jobs_in_data`) |
-| `workYear` | Year the data was collected (only from `jobs_in_data`) |
-| `experienceLevel` | e.g. SE (senior), MI (mid), EN (entry), EX (executive) |
-| `employmentType` | e.g. FT (full-time), PT (part-time), CT (contract), FL (freelance) |
-| `workSetting` | Remote / Hybrid / In-person |
-| `companySize` | S / M / L |
+| Field              | What it is                                                                               |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| `salary`           | The reported salary (exact decimal, e.g. 120000.00)                                      |
+| `salaryInUsd`      | Converted salary in USD (only from `jobs_in_data`)                                       |
+| `salaryCurrency`   | The original currency (only from `jobs_in_data`)                                         |
+| `workYear`         | Year the data was collected (only from `jobs_in_data`)                                   |
+| `experienceLevel`  | e.g. SE (senior), MI (mid), EN (entry), EX (executive)                                   |
+| `employmentType`   | e.g. FT (full-time), PT (part-time), CT (contract), FL (freelance)                       |
+| `workSetting`      | Remote / Hybrid / In-person                                                              |
+| `companySize`      | S / M / L                                                                                |
 | `salariesReported` | Number of responses this data point represents (only from `salary_extra`/`software_pro`) |
-| `source` | Which dataset this record came from |
+| `source`           | Which dataset this record came from                                                      |
 
 **`Job`** — job titles
 
-| Field | What it is |
-|---|---|
-| `title` | Job title (e.g. "Machine Learning Engineer") |
-| `categoryId` | Optional: which category this job belongs to |
-| `roles` | Alternative role names (only from `salary_extra`/`software_pro`) |
+| Field        | What it is                                                       |
+| ------------ | ---------------------------------------------------------------- |
+| `title`      | Job title (e.g. "Machine Learning Engineer")                     |
+| `categoryId` | Optional: which category this job belongs to                     |
+| `roles`      | Alternative role names (only from `salary_extra`/`software_pro`) |
 
 **`JobCategory`** — groups of related jobs
 
-| Field | What it is |
-|---|---|
+| Field  | What it is                                       |
+| ------ | ------------------------------------------------ |
 | `name` | Category name (e.g. "Data Science and Research") |
 
 **`Country`** — countries
@@ -544,17 +657,17 @@ Countries appear twice on salary records — once for the employee's country, on
 
 **`Company`** — companies
 
-| Field | What it is |
-|---|---|
-| `name` | Company name |
-| `rating` | Rating out of 5.0 (only from `salary_extra`) |
-| `countryId` | Which country the company is in |
+| Field       | What it is                                   |
+| ----------- | -------------------------------------------- |
+| `name`      | Company name                                 |
+| `rating`    | Rating out of 5.0 (only from `salary_extra`) |
+| `countryId` | Which country the company is in              |
 
 **`User`** — registered accounts
 
-| Field | What it is |
-|---|---|
-| `email` | Login email (must be unique) |
+| Field          | What it is                                                  |
+| -------------- | ----------------------------------------------------------- |
+| `email`        | Login email (must be unique)                                |
 | `passwordHash` | bcrypt-hashed password — the plain password is never stored |
 
 ### Relationships
@@ -589,17 +702,19 @@ The seed is safe to re-run at any time.
 
 ---
 
-## 11. Input Validation and ID Parsing
+## 13. Input Validation and ID Parsing
 
 ### Validators
 
 Two validator files run before any service logic:
 
 **`authValidator.js`** — checks register and login input:
+
 - Email must be present and match a valid email format
 - Password must be present and at least 8 characters long (for registration)
 
 **`salaryRecordValidator.js`** — checks salary record input:
+
 - `salary`, `jobId`, and `source` are required when creating a record
 - `salary` must be a positive number
 - When updating, at least one field must be provided (empty updates are rejected)
@@ -613,7 +728,7 @@ The key detail: `parseInt("3abc")` in JavaScript silently returns `3`, which wou
 
 ---
 
-## 12. Folder and File Reference
+## 14. Folder and File Reference
 
 ```
 src/
@@ -691,7 +806,7 @@ data/
 
 ---
 
-## 13. Running the Project
+## 15. Running the Project
 
 ### First-time setup
 
@@ -717,16 +832,16 @@ npm run db:seed
 
 ### Day-to-day commands
 
-| Command | What it does |
-|---|---|
-| `npm run dev` | Start the server in development mode (auto-restarts on file changes) |
-| `npm start` | Start the server in production mode |
-| `npm run db:seed` | Re-populate the database (safe to re-run) |
-| `npm run db:migrate` | Apply any pending schema migrations |
-| `npm run db:studio` | Open a browser-based database browser at `http://localhost:5555` |
-| `npm run db:reset` | Wipe all data and re-apply migrations (destructive) |
-| `npm run generate:keys` | Re-generate the RSA key pair (invalidates all existing tokens) |
-| `npm run docker:up` | Start the local PostgreSQL database container |
+| Command                 | What it does                                                         |
+| ----------------------- | -------------------------------------------------------------------- |
+| `npm run dev`           | Start the server in development mode (auto-restarts on file changes) |
+| `npm start`             | Start the server in production mode                                  |
+| `npm run db:seed`       | Re-populate the database (safe to re-run)                            |
+| `npm run db:migrate`    | Apply any pending schema migrations                                  |
+| `npm run db:studio`     | Open a browser-based database browser at `http://localhost:5555`     |
+| `npm run db:reset`      | Wipe all data and re-apply migrations (destructive)                  |
+| `npm run generate:keys` | Re-generate the RSA key pair (invalidates all existing tokens)       |
+| `npm run docker:up`     | Start the local PostgreSQL database container                        |
 
 ### Where to find the API
 
