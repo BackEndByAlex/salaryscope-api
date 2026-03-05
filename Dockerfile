@@ -21,6 +21,7 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 COPY --from=deps /app/node_modules ./node_modules
 COPY prisma/ ./prisma/
 COPY src/ ./src/
+COPY data/ ./data/
 
 COPY package.json ./
 

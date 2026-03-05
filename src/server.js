@@ -18,6 +18,9 @@ await apolloServer.start()
 
 const app = express()
 
+// Trust proxy headers when behind reverse proxy (Caddy)
+app.set('trust proxy', true)
+
 // Sets X-Content-Type-Options, X-Frame-Options, HSTS, Referrer-Policy, and more.
 // CSP is disabled — Apollo Sandbox uses inline scripts that a strict CSP would block.
 app.use(helmet({ contentSecurityPolicy: false }))

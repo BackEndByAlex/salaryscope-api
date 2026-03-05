@@ -20,7 +20,6 @@ dist
 
 # Local test collections and raw data files.
 postman
-data
 
 # Key generation script — not needed at runtime.
 scripts
