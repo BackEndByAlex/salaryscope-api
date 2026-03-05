@@ -18,15 +18,6 @@
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force",
     "generate": "prisma generate",
-    "docker:up": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
-    "docker:dev:up": "docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build",
-    "docker:prod:up": "docker compose -f docker-compose.yml -f docker-compose.prod.yml up --build",
-    "docker:seed": "docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.seed.yml run --rm seed",
-    "docker:dev:seed": "docker compose -f docker-compose.yml -f docker-compose.dev.yml -f docker-compose.seed.yml run --rm seed",
-    "docker:prod:seed": "docker compose -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.seed.yml run --rm seed",
-    "docker:down": "docker compose down",
-    "docker:dev:logs": "docker compose -f docker-compose.yml -f docker-compose.dev.yml logs -f postgres",
-    "docker:logs": "docker compose -f docker-compose.yml -f docker-compose.dev.yml logs -f postgres",
     "generate:keys": "node scripts/generate-keys.js"
   },
   "dependencies": {

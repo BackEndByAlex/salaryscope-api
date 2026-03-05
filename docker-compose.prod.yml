@@ -1,13 +1,65 @@
-# Production overrides — security and performance hardening
-# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up
+# Production deployment (Cumulus)
+# Postgres is NOT exposed to the host — only reachable within the Docker network.
+# Private key is injected via Docker secret so it never appears in environment dumps.
+# Caddy on the host reverse-proxies public traffic to 127.0.0.1:4000.
+#
+# Usage:
+#   docker compose -f docker-compose.prod.yml up --build -d
+#   docker compose -f docker-compose.prod.yml exec api node prisma/seed.js  # first deploy only
+#   docker compose -f docker-compose.prod.yml down
 
 services:
   postgres:
-    restart: always
-    # No exposed ports — Postgres only accessible internally via Docker network
-
-  api:
+    image: postgres:16-alpine
     restart: always
     environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  migrate:
+    build: .
+    restart: "no" # one-shot: runs migrations once then exits
+    command: npx prisma db push --accept-data-loss
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build: .
+    restart: always
+    ports:
+      - "127.0.0.1:4000:4000" # loopback only — Caddy on the host proxies to this port
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NODE_ENV: production
-      # Caddy on host reverse-proxies to 127.0.0.1:4000 (internal only)
+      PORT: 4000
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      PRIVATE_KEY_PATH: /run/secrets/private_key
+    secrets:
+      - source: private_key
+        mode: 0444 # readable by the non-root appuser inside the container
+    volumes:
+      - ./keys/public.pem:/app/keys/public.pem:ro
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      postgres:
+        condition: service_healthy
+
+secrets:
+  private_key:
+    file: ./keys/private.pem # never committed — lives on the server only
+
+volumes:
+  postgres_data:
