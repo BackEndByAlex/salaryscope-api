@@ -44,7 +44,6 @@ export class SalaryRecordService {
   }
 
   #assertOwnership(record, userId, id) {
-    // null createdBy = seeded public data — no user owns it, so nobody can modify it
     if (record.createdBy === null) {
       throw new ForbiddenError("This record is part of the public dataset and cannot be modified.")
     }

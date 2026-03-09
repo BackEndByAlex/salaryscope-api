@@ -8,7 +8,6 @@ export const jobCategoryResolvers = {
       jobCategoryService.getByName(name),
   },
   JobCategory: {
-    // _count is included by all repository methods — null when loaded as a nested relation
     jobCount: (parent) => parent._count?.jobs ?? null,
   },
 }

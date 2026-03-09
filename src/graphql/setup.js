@@ -79,7 +79,6 @@ export function buildApolloServer() {
       companyResolvers,
       salaryRecordResolvers,
     ],
-    // Introspection exposes the full schema to anyone who can reach the endpoint.
     introspection: true,
     plugins: [
       process.env.NODE_ENV === "production"

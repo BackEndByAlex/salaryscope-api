@@ -45,7 +45,6 @@ export class SalaryRecordRepository {
       }),
     ])
 
-    // records.length instead of limit — the last page may return fewer rows than limit
     return {
       records,
       totalCount,
@@ -95,7 +94,6 @@ function buildSalaryRecordWhere({
   const where = {}
 
   if (workYear != null) where.workYear = workYear
-  // categoryId lives on the job relation, filters must go through where.job
   if (jobId != null && categoryId != null) where.job = { id: jobId, categoryId }
   else if (jobId != null) where.jobId = jobId
   else if (categoryId != null) where.job = { categoryId }

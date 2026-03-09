@@ -13,7 +13,6 @@ export const companyResolvers = {
       companyService.getByName(name),
   },
   Company: {
-    // parseFloat converts it for GraphQL Float
     rating: (parent) =>
       parent.rating != null ? parseFloat(parent.rating.toString()) : null,
     records: (parent, { limit, offset }, { companyService }) =>

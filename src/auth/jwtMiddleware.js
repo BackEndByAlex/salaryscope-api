@@ -12,7 +12,6 @@ export function buildContext({ req }) {
 
   try {
     const payload = jwt.verify(token, publicKey, { algorithms: ["RS256"] })
-    // jwt.verify can return a string if the token was signed with a string payload
     if (typeof payload !== "object" || payload === null) return { user: null }
     return { user: { id: payload.userId, email: payload.email } }
   } catch {

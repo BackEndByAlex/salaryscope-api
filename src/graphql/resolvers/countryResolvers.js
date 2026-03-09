@@ -7,7 +7,6 @@ export const countryResolvers = {
       countryService.getByName(name),
   },
   Country: {
-    // _count is not included when Country is loaded as a nested relation inside SalaryRecord
     employeeRecordCount: (parent) => parent._count?.employeeRecords ?? null,
     companyRecordCount: (parent) => parent._count?.companyRecords ?? null,
     companyCount: (parent) => parent._count?.companies ?? null,

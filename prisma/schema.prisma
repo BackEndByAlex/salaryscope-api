@@ -1,4 +1,4 @@
-// After any schema change, run: npx prisma generate && npx prisma migrate dev
+
 
 generator client {
   provider = "prisma-client-js"

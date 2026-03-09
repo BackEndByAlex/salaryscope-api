@@ -50,7 +50,6 @@ function parseOptionalId(value) {
   return value !== null && value !== undefined ? parseId(value) : undefined
 }
 
-// Normalizes GraphQL ID strings to integers for Prisma query filters
 function normalizeFilters({ jobId, categoryId, countryId, companyId, ...rest }) {
   return {
     ...rest,
@@ -79,7 +78,6 @@ function normalizeCreateInput({
   }
 }
 
-// Normalizes only the provided fields for a partial update (Prisma Decimal and ID coercion)
 function normalizeUpdateInput({
   jobId,
   employeeCountryId,
