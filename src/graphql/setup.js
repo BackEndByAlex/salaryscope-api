@@ -34,6 +34,7 @@ import { salaryRecordResolvers } from "./resolvers/salaryRecordResolvers.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
+// Appollo Server setup
 function loadTypeDefs() {
   const schemaDir = join(__dirname, "schema")
   return [
@@ -68,6 +69,7 @@ function createServices() {
 
 export const services = createServices()
 
+// Builds and returns the Apollo Server instance with the loaded type definitions, resolvers, and plugins.
 export function buildApolloServer() {
   return new ApolloServer({
     typeDefs: loadTypeDefs(),

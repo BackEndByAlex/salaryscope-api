@@ -2,6 +2,7 @@ import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { BadUserInputError } from "../utils/errors.js"
 
+// This file defines the AuthService class, which encapsulates the business logic for user authentication, including registration and login.
 export class AuthService {
   #userRepository
   #privateKey

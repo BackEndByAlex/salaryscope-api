@@ -1,3 +1,4 @@
+// This file defines the GraphQL resolvers for country-related queries and fields.
 export const countryResolvers = {
   Query: {
     countries: (_, { limit, offset }, { countryService }) =>

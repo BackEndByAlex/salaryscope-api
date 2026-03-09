@@ -8,6 +8,7 @@ const keysDir = join(__dirname, "../keys")
 
 mkdirSync(keysDir, { recursive: true })
 
+// Generate an RSA key pair for signing and verifying JWTs
 const { privateKey, publicKey } = generateKeyPairSync("rsa", {
   modulusLength: 2048,
   publicKeyEncoding: { type: "spki", format: "pem" },

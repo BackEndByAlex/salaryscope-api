@@ -18,8 +18,7 @@ function loadAndParseCsv(filename) {
 
 // --- Concurrency helper ---
 
-// Prisma's default pool has ~10 connections — firing thousands of concurrent queries
-// causes pool timeout errors. Process in small chunks to stay within pool limits.
+// Runs an async function over items in sequential batches to avoid overwhelming the DB with too many concurrent requests.
 async function runInChunks(items, fn, chunkSize = 50) {
   const results = []
   for (let i = 0; i < items.length; i += chunkSize) {
@@ -32,6 +31,7 @@ async function runInChunks(items, fn, chunkSize = 50) {
 
 // --- Dimension seeding ---
 
+// Upsert countries and return a map of name → id for foreign key references.
 async function seedCountries(aRows, bRows, cRows) {
   const names = new Set()
 
@@ -71,9 +71,8 @@ async function seedCategories(aRows) {
   return new Map(entries.map((c) => [c.name, c.id]))
 }
 
+// Upsert jobs and return a map of "title|categoryName" → id for foreign key references.
 async function seedJobs(aRows, bRows, cRows, categoryMap) {
-  // Dataset A: key = "title|categoryName" (name used as key, id stored as value)
-  // Dataset B/C: key = "title|null"
   const jobMap = new Map()
 
   for (const row of aRows) {
@@ -113,7 +112,6 @@ async function seedJobs(aRows, bRows, cRows, categoryMap) {
 }
 
 async function seedCompanies(bRows, cRows, countryMap) {
-  // Last write wins for rating — good enough since duplicates across B and C are identical.
   const companyByName = new Map()
 
   for (const row of [...bRows, ...cRows]) {
@@ -128,7 +126,7 @@ async function seedCompanies(bRows, cRows, countryMap) {
   }
 
   console.log(`Upserting ${companyByName.size} companies...`)
-
+  // Similar to jobs, Prisma doesn't allow upsert with null in unique fields — use findFirst + create instead.
   const entries = await runInChunks(
     [...companyByName.entries()],
     ([name, { rating, countryId }]) =>
@@ -159,6 +157,7 @@ function mapDatasetARecord(row, countryMap, jobMap) {
   const jobId = jobMap.get(`${title}|${category}`)
   if (!jobId) return null
 
+  // For countries, trim whitespace and use the map to convert to foreign keys. If a country isn't found in the map, set the FK to null and log a warning.
   return {
     salary,
     salaryInUsd:
@@ -177,6 +176,8 @@ function mapDatasetARecord(row, countryMap, jobMap) {
   }
 }
 
+// Datasets B and C have the same structure, so we can use one mapping function for both. 
+// The "source" parameter allows us to handle any source-specific fields (e.g. "Employment Status" only exists in Dataset B).
 function mapDatasetBCRecord(row, countryMap, jobMap, companyMap, source) {
   const salary = row.Salary?.trim()
   if (!salary || isNaN(Number(salary))) return null

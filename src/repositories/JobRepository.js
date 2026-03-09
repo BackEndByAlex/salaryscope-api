@@ -6,7 +6,7 @@ export class JobRepository {
   constructor(prisma) {
     this.#prisma = prisma
   }
-
+  // Retrieves a paginated list of jobs, optionally filtered by category ID, along with the total count and pagination info.
   async findAll({ categoryId, limit = 20, offset = 0 } = {}) {
     const where = categoryId != null ? { categoryId } : {}
 

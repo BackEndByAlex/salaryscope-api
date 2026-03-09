@@ -1,6 +1,8 @@
 import jwt from "jsonwebtoken"
 import { publicKey } from "../config/keys.js"
 
+
+// This file defines the JWT middleware for the GraphQL server.
 export function buildContext({ req }) {
   const authHeader = req.headers.authorization
 

@@ -1,5 +1,6 @@
 import { parseId } from "../../utils/parseId.js"
 
+// This file defines the GraphQL resolvers for job-related queries and fields.
 export const jobResolvers = {
   Query: {
     jobs: (_, { categoryId, limit, offset }, { jobService }) =>

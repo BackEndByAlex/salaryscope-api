@@ -4,6 +4,10 @@ import {
 } from "../validators/authValidator.js"
 import { assertAuthenticated } from "./authGuard.js"
 
+// This file defines the GraphQL resolvers for 
+// authentication-related operations, 
+// including user registration, 
+// login, and fetching the current user's profile.
 export const authResolvers = {
   Query: {
     me: (_, __, { user, userService }) => {

@@ -1,4 +1,6 @@
-
+// This Prisma schema defines the data model for the salary records application. 
+// It includes models for countries, job categories, jobs, companies, salary records, and users. 
+// The relationships between these models are set up to allow for efficient querying and data integrity.
 
 generator client {
   provider = "prisma-client-js"

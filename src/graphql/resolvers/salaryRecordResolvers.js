@@ -6,6 +6,7 @@ import {
   validateFilters,
 } from "../../validators/salaryRecordValidator.js"
 
+// This file defines the GraphQL resolvers for salary record-related queries and mutations.
 export const salaryRecordResolvers = {
   Query: {
     salaryRecords: async (_, { filters = {} }, { salaryRecordService }) => {
@@ -78,6 +79,7 @@ function normalizeCreateInput({
   }
 }
 
+// For updates, all fields are optional — only include them in the normalized input if they're provided.  
 function normalizeUpdateInput({
   jobId,
   employeeCountryId,
