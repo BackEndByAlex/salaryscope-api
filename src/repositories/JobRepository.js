@@ -10,7 +10,6 @@ export class JobRepository {
   async findAll({ categoryId, limit = 20, offset = 0 } = {}) {
     const where = categoryId != null ? { categoryId } : {}
 
-    // transaction ensures count and page share the same snapshot — no drift if writes happen between the two queries
     const [totalCount, jobs] = await this.#prisma.$transaction([
       this.#prisma.job.count({ where }),
       this.#prisma.job.findMany({
@@ -22,7 +21,6 @@ export class JobRepository {
       }),
     ])
 
-    // jobs.length instead of limit — the last page may return fewer rows than limit
     return { jobs, totalCount, hasNextPage: offset + jobs.length < totalCount }
   }
 
@@ -36,7 +34,6 @@ export class JobRepository {
   async findRecordsByJob(jobId, { limit = 20, offset = 0 } = {}) {
     const where = { jobId }
 
-    // transaction ensures count and page share the same snapshot — no drift if writes happen between the two queries
     const [totalCount, records] = await this.#prisma.$transaction([
       this.#prisma.salaryRecord.count({ where }),
       this.#prisma.salaryRecord.findMany({
@@ -48,7 +45,6 @@ export class JobRepository {
       }),
     ])
 
-    // records.length instead of limit — the last page may return fewer rows than limit
     return {
       records,
       totalCount,

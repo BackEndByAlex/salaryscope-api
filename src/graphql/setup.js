@@ -80,7 +80,6 @@ export function buildApolloServer() {
       salaryRecordResolvers,
     ],
     // Introspection exposes the full schema to anyone who can reach the endpoint.
-    // Disable in production so attackers cannot enumerate types and fields.
     introspection: true,
     plugins: [
       process.env.NODE_ENV === "production"

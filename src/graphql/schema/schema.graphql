@@ -1,6 +1,3 @@
-# Base type declarations — each domain file extends these with its own fields.
-# GraphQL requires at least one field per type, so _ is a placeholder.
-
 type Query {
   """
   Internal placeholder — not intended for client use.

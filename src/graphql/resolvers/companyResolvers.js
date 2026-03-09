@@ -13,7 +13,7 @@ export const companyResolvers = {
       companyService.getByName(name),
   },
   Company: {
-    // Prisma Decimal serializes as a string via valueOf() — parseFloat converts it for GraphQL Float
+    // parseFloat converts it for GraphQL Float
     rating: (parent) =>
       parent.rating != null ? parseFloat(parent.rating.toString()) : null,
     records: (parent, { limit, offset }, { companyService }) =>

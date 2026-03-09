@@ -34,7 +34,6 @@ export class SalaryRecordRepository {
       source,
     })
 
-    // transaction ensures count and page share the same snapshot — no drift if writes happen between the two queries
     const [totalCount, records] = await this.#prisma.$transaction([
       this.#prisma.salaryRecord.count({ where }),
       this.#prisma.salaryRecord.findMany({
@@ -96,7 +95,7 @@ function buildSalaryRecordWhere({
   const where = {}
 
   if (workYear != null) where.workYear = workYear
-  // categoryId lives on the job relation, not on salaryRecord directly — both filters must go through where.job
+  // categoryId lives on the job relation, filters must go through where.job
   if (jobId != null && categoryId != null) where.job = { id: jobId, categoryId }
   else if (jobId != null) where.jobId = jobId
   else if (categoryId != null) where.job = { categoryId }

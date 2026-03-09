@@ -13,7 +13,6 @@ export class AuthService {
   }
 
   async register({ email, password }) {
-    // last-resort guard — validator should catch this first, but bcrypt.hash accepts empty strings
     if (!email || !password)
       throw new BadUserInputError("Email and password are required.")
 
@@ -28,12 +27,10 @@ export class AuthService {
       passwordHash: hashedPassword,
     })
 
-    // user is already safe — UserRepository.create omits passwordHash via Prisma's omit
     return { token: this.#generateToken(user), user }
   }
 
   async login({ email, password }) {
-    // last-resort guard — validator should catch this first, but bcrypt.compare accepts empty strings
     if (!email || !password)
       throw new BadUserInputError("Email and password are required.")
 
@@ -41,7 +38,6 @@ export class AuthService {
     const passwordMatches =
       user && (await bcrypt.compare(password, user.passwordHash))
 
-    // Deliberately vague — never reveal whether email or password was wrong.
     if (!passwordMatches) {
       throw new BadUserInputError("Invalid credentials.")
     }

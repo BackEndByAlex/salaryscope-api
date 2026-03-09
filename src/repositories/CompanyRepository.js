@@ -10,7 +10,7 @@ export class CompanyRepository {
   async findAll({ countryId, limit = 20, offset = 0 } = {}) {
     const where = countryId != null ? { countryId } : {}
 
-    // transaction ensures count and page share the same snapshot — no drift if writes happen between the two queries
+    // transaction ensures count and page share the same snapshot
     const [totalCount, companies] = await this.#prisma.$transaction([
       this.#prisma.company.count({ where }),
       this.#prisma.company.findMany({
@@ -59,7 +59,6 @@ export class CompanyRepository {
       }),
     ])
 
-    // records.length instead of limit — the last page may return fewer rows than limit
     return {
       records,
       totalCount,

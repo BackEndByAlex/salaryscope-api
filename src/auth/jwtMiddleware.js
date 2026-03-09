@@ -16,7 +16,6 @@ export function buildContext({ req }) {
     if (typeof payload !== "object" || payload === null) return { user: null }
     return { user: { id: payload.userId, email: payload.email } }
   } catch {
-    // A bad token is not a server error — controllers decide what to do with user: null
     return { user: null }
   }
 }

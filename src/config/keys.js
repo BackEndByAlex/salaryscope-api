@@ -13,8 +13,6 @@ function loadPrivateKey() {
 }
 
 function loadPublicKey() {
-  // In production it arrives via a read-only bind-mount; in development
-  // it is generated locally. No secret-level protection is needed for a public key.
   return readKeyFromPath(
     join(import.meta.dirname, "../../keys/public.pem"),
     "keys/public.pem — run: npm run generate:keys",

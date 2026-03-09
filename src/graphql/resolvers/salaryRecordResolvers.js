@@ -34,7 +34,6 @@ export const salaryRecordResolvers = {
     },
   },
   SalaryRecord: {
-    // Prisma Decimal serializes as a string via valueOf() — parseFloat converts it for GraphQL Float
     salary: (parent) => toFloatFromDecimal(parent.salary),
     salaryInUsd: (parent) =>
       parent.salaryInUsd !== null && parent.salaryInUsd !== undefined
@@ -43,12 +42,10 @@ export const salaryRecordResolvers = {
   },
 }
 
-// Converts a Prisma Decimal value to a JS float for GraphQL Float fields
 function toFloatFromDecimal(value) {
   return parseFloat(value.toString())
 }
 
-// Parses an ID string to integer only when the value is present; returns undefined otherwise
 function parseOptionalId(value) {
   return value !== null && value !== undefined ? parseId(value) : undefined
 }
@@ -64,7 +61,6 @@ function normalizeFilters({ jobId, categoryId, countryId, companyId, ...rest }) 
   }
 }
 
-// Normalizes IDs to integers and salary to string for Prisma Decimal precision
 function normalizeCreateInput({
   jobId,
   employeeCountryId,

@@ -64,7 +64,6 @@ export class CountryRepository {
   }
 
   async #findPaginatedRecords(where, { limit = 20, offset = 0 } = {}) {
-    // transaction ensures count and page share the same snapshot — no drift if writes happen between the two queries
     const [totalCount, records] = await this.#prisma.$transaction([
       this.#prisma.salaryRecord.count({ where }),
       this.#prisma.salaryRecord.findMany({
@@ -76,7 +75,6 @@ export class CountryRepository {
       }),
     ])
 
-    // records.length instead of limit — the last page may return fewer rows than limit
     return {
       records,
       totalCount,
