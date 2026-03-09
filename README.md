@@ -4,6 +4,50 @@
 
 SalaryScope
 
+## Getting Started
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- CSV files already downloaded, more instructions below.
+
+**First deploy (includes seeding)**
+
+docker compose -f docker-compose.prod.yml up --build -d
+
+This will start Postgres, run migrations, seed the database, and start the API.
+
+OBS:
+
+To download the CSV files:
+
+https://www.kaggle.com/datasets/murilozangari/jobs-and-salaries-in-data-field-2024
+https://www.kaggle.com/code/lucasgalanti/jobs-in-data
+https://www.kaggle.com/code/iamsouravbanerjee/software-professional-salaries/input
+https://www.kaggle.com/code/iamsouravbanerjee/software-professional-salaries/input
+
+Then make sure you create a /data folder in the root of the project (outside /src) and add the CSV
+files into it. The /data folder is not included in the repository — you need to create it locally.
+Check that the file names match exactly as shown below, the reason is the seed script has hardcoded
+file names:
+
+- data/jobs_in_data_2024.csv
+- data/jobs_in_data.csv
+- data/Salary_Dataset_with_Extra_Features.csv
+- data/Software_Professional_Salaries.csv
+
+Subsequent deploys (skip seeding)
+
+docker compose -f docker-compose.prod.yml up --build -d --scale seed=0
+
+Run seed manually (if needed)
+
+docker compose -f docker-compose.prod.yml run --rm seed
+
+Local development
+
+docker compose -f docker-compose.dev.yml up --build
+
 ## Objective
 
 Design and develop a robust, well-documented API (REST or GraphQL) that allows users to retrieve and manage information from a dataset of your choice. The API must include JWT authentication, automated testing via Postman/Newman in a CI/CD pipeline, and be publicly deployed.
