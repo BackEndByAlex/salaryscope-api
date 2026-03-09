@@ -5,67 +5,57 @@ import helmet from "helmet"
 import rateLimit from "express-rate-limit"
 import { expressMiddleware } from "@as-integrations/express5"
 import { buildContext } from "./auth/jwtMiddleware.js"
-import { buildApolloServer, services } from "./graphql/setup.js"
+import { buildApolloServer, createServices } from "./graphql/setup.js"
 
 const PORT = process.env.PORT
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
+const GENERAL_RATE_LIMIT_MAX = 200
+const AUTH_RATE_LIMIT_MAX = 10
+const AUTH_OPERATIONS = ["Login", "Register"]
 
 const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? "")
   .split(",")
   .filter(Boolean)
 
+function corsOriginValidator(origin, callback) {
+  if (!origin) return callback(null, true)
+  if (allowedOrigins.includes(origin)) return callback(null, true)
+  callback(new Error(`CORS: origin "${origin}" is not allowed.`))
+}
+
+function blockBatchedRequests(req, res, next) {
+  if (Array.isArray(req.body)) {
+    return res.status(400).json({ error: "Batched requests are not allowed." })
+  }
+  next()
+}
+
+function applyAuthRateLimit(authRateLimit) {
+  return (req, res, next) => {
+    const op = req.body?.operationName
+    if (AUTH_OPERATIONS.includes(op)) return authRateLimit(req, res, next)
+    next()
+  }
+}
+
 try {
   const apolloServer = buildApolloServer()
   await apolloServer.start()
 
+  const services = createServices()
   const app = express()
 
   app.set("trust proxy", 1)
 
   app.use(helmet({ contentSecurityPolicy: false }))
-
-  app.use(
-    cors({
-      origin: (origin, callback) => {
-        if (!origin) return callback(null, true)
-        if (allowedOrigins.includes(origin)) return callback(null, true)
-        callback(new Error(`CORS: origin "${origin}" is not allowed.`))
-      },
-    }),
-  )
-
+  app.use(cors({ origin: corsOriginValidator }))
   app.use(express.json({ limit: "100kb" }))
+  app.use(rateLimit({ windowMs: RATE_LIMIT_WINDOW_MS, max: GENERAL_RATE_LIMIT_MAX, standardHeaders: true, legacyHeaders: false }))
 
-  app.use(
-    rateLimit({
-      windowMs: 15 * 60 * 1000,
-      max: 200,
-      standardHeaders: true,
-      legacyHeaders: false,
-    }),
-  )
-
-  app.use("/graphql", (req, res, next) => {
-    if (Array.isArray(req.body)) {
-      return res
-        .status(400)
-        .json({ error: "Batched requests are not allowed." })
-    }
-    next()
-  })
-
-  const authRateLimit = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 10,
-    standardHeaders: true,
-    legacyHeaders: false,
-  })
-
-  app.use("/graphql", (req, res, next) => {
-    const op = req.body?.operationName
-    if (op === "Login" || op === "Register")
-      return authRateLimit(req, res, next)
-    next()
-  })
+  app.use("/graphql", blockBatchedRequests)
+  app.use("/graphql", applyAuthRateLimit(
+    rateLimit({ windowMs: RATE_LIMIT_WINDOW_MS, max: AUTH_RATE_LIMIT_MAX, standardHeaders: true, legacyHeaders: false })
+  ))
 
   app.use(
     "/graphql",
