@@ -17,7 +17,7 @@ docker compose -f docker-compose.prod.yml up --build -d
 
 This will start Postgres, run migrations, seed the database, and start the API.
 
-OBS:
+**OBS:**
 
 To download the CSV files:
 
@@ -27,7 +27,7 @@ https://www.kaggle.com/code/iamsouravbanerjee/software-professional-salaries/inp
 https://www.kaggle.com/code/iamsouravbanerjee/software-professional-salaries/input
 
 Then make sure you create a /data folder in the root of the project (outside /src) and add the CSV
-files into it. The /data folder is not included in the repository — you need to create it locally.
+files into it. The /data folder is not included in the repository, you need to create it locally.
 Check that the file names match exactly as shown below, the reason is the seed script has hardcoded
 file names:
 
@@ -36,15 +36,15 @@ file names:
 - data/Salary_Dataset_with_Extra_Features.csv
 - data/Software_Professional_Salaries.csv
 
-Subsequent deploys (skip seeding)
+**Subsequent deploys (skip seeding)**
 
 docker compose -f docker-compose.prod.yml up --build -d --scale seed=0
 
-Run seed manually (if needed)
+**Run seed manually (if needed)**
 
 docker compose -f docker-compose.prod.yml run --rm seed
 
-Local development
+**Local development**
 
 docker compose -f docker-compose.dev.yml up --build
 
