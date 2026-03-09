@@ -37,12 +37,20 @@ This is a **read-and-write API** for tech industry salary data. It combines four
 
 **What the data covers:**
 
-- Salary records from tech jobs — job title, salary, country, company, year, experience level, work setting, etc.
+- Salary records from tech jobs:
+  - job title,
+  - salary,
+  - country,
+  - company,
+  - year,
+  - experience level,
+  - work setting, etc.
+
 - Four source datasets, each with slightly different fields: `jobs_in_data` (2023–2024 data), `salary_extra`, and `software_pro`.
 
 **What the API lets you do:**
 
-- Browse and filter salary records (public — no login required)
+- Browse and filter salary records (public, no login required)
 - Browse jobs, countries, companies, and job categories (public)
 - Create, update, and delete salary records (requires being logged in)
 - Register an account and log in
@@ -65,7 +73,7 @@ Unlike a REST API that has many URLs (`/users`, `/jobs`, `/records/123`), this A
 POST http://localhost:PORT/graphql
 ```
 
-Every request — whether you are fetching a list of jobs, looking up a single salary record, or creating a new one — goes to this same address. The GraphQL query in the request body tells the server what you want.
+Every request, whether you are fetching a list of jobs, looking up a single salary record, or creating a new one, goes to this same address. The GraphQL query in the request body tells the server what you want.
 
 There is also a browser-based sandbox at:
 
@@ -79,7 +87,7 @@ Open that URL in a browser and you get an interactive tool where you can write a
 
 ## 3. How a Request Travels Through the System
 
-Think of the API as a building with six floors. Every request enters on the ground floor and goes up — and the response comes back down the same way.
+Think of the API as a building with six floors. Every request enters on the ground floor and goes up and the response comes back down the same way.
 
 ```
 Your client (browser, app, etc.)
@@ -129,7 +137,7 @@ Your client (browser, app, etc.)
 
 The response travels back up the same stack and is returned to your client as JSON.
 
-**One important rule: no layer skips a floor.** Resolvers never talk directly to the database. Repositories never apply business logic. This keeps each layer small, focused, and easy to reason about.
+**One important rule: no layer skips a floor.** Resolvers never talk directly to the database. Repositories never apply business logic.
 
 ---
 
@@ -137,7 +145,7 @@ The response travels back up the same stack and is returned to your client as JS
 
 ### Layer 1 — The Server (`src/server.js`)
 
-This is the entry point — the first file that runs when you start the application.
+This is the entry point. The first file that runs when you start the application.
 
 **What it does:**
 
@@ -145,7 +153,7 @@ This is the entry point — the first file that runs when you start the applicat
 2. Creates the Express web server
 3. Starts Apollo Server (the GraphQL engine)
 4. Applies middleware in order:
-   - **Helmet** — sets HTTP security headers on every response (X-Content-Type-Options, X-Frame-Options, HSTS, Referrer-Policy, etc.). CSP is disabled because Apollo Sandbox uses inline scripts.
+   - **Helmet** — sets HTTP security headers on every response. CSP is disabled because Apollo Sandbox uses inline scripts.
    - **CORS** — only allows requests from origins listed in the `ALLOWED_ORIGINS` environment variable. Requests with no `Origin` header (Postman, curl, server-to-server calls) are always allowed.
    - **JSON body parser** — reads the request body as JSON, capped at 100 KB to prevent oversized payloads from reaching the application.
    - **Global rate limiter** — limits every IP to 200 requests per 15 minutes across all routes.
@@ -171,7 +179,7 @@ Runs automatically on **every single request**, before any resolver sees it.
 
 **Critically, it never throws an error.** It just sets `user` to `null` and moves on. The decision of whether to reject the request is made one floor up, in the resolver.
 
-**Analogy:** This is the doorman who checks IDs. If your ID is valid, they write your name on the visitor list (`context.user`). If you have no ID or a fake one, they write "anonymous" on the list. They do not turn you away — that happens upstairs.
+**Analogy:** This is the doorman who checks IDs. If your ID is valid, they write your name on the visitor list (`context.user`). If you have no ID or a fake one, they write "anonymous" on the list. They do not turn you away, that happens upstairs.
 
 ---
 
@@ -191,7 +199,7 @@ The schema is a formal description of everything the API can do. It defines ever
 | `company.graphql`      | Company type, company list/lookup queries                            |
 | `salaryRecord.graphql` | SalaryRecord type, all salary queries and mutations                  |
 
-**Analogy:** The schema is a menu. It tells clients exactly what they can order and in what format. Apollo enforces the menu — if a client asks for something not on it, the request is rejected immediately, before any code runs.
+**Analogy:** The schema is a menu. It tells clients exactly what they can order and in what format. Apollo enforces the menu. If a client asks for something not on it, the request is rejected immediately, before any code runs.
 
 ---
 
@@ -225,7 +233,7 @@ Resolvers contain **no business logic and no database calls**. They are thin coo
 
 ### Layer 5 — Services (`src/services/`)
 
-Services contain the business rules — the "thinking" part of the application.
+Services contain the business rules, the "thinking" part of the application.
 
 **What services do:**
 
@@ -246,7 +254,7 @@ Services contain the business rules — the "thinking" part of the application.
 | `CompanyService.js`      | Company lookups, paginated salary records by company               |
 | `SalaryRecordService.js` | All salary record CRUD, filter delegation, error mapping           |
 
-**Analogy:** The service is the kitchen — it does the actual work based on the waiter's order. It decides what to cook, how to prepare it, and what to do if an ingredient is missing.
+**Analogy:** The service is the kitchen, it does the actual work based on the waiter's order. It decides what to cook, how to prepare it, and what to do if an ingredient is missing.
 
 ---
 
@@ -274,7 +282,7 @@ Repositories are the only part of the application that communicate with the data
 **Shared constant `SALARY_RECORD_INCLUDE`:**
 Any query that returns salary records needs to load the related job, categories, countries, and company in the same query. A shared constant defines this set of relations once, and every repository that fetches salary records imports it. This means if a new relation is added, there is only one place to update.
 
-**Analogy:** The repository is the pantry and the person who fetches ingredients. The kitchen (service) says "get me all salary records from Germany" and the repository goes and gets exactly that — no more, no less.
+**Analogy:** The repository is the pantry and the person who fetches ingredients. The kitchen (service) says "get me all salary records from Germany" and the repository goes and gets exactly that, no more, no less.
 
 ---
 
@@ -306,13 +314,13 @@ This file is the "wiring diagram" of the whole application. It is the only place
 5. Creates the Apollo Server with all resolvers merged
 6. Returns all service instances so they can be passed into every request's context
 
-**Why this matters:** Because all dependencies are created once here and passed down, every layer is easy to test in isolation — you can swap a real repository for a fake one without changing any other file.
+**Why this matters:** Because all dependencies are created once here and passed down, every layer is easy to test in isolation, it can swap a real repository for a fake one without changing any other file.
 
 ---
 
 ## 6. Authentication In Depth
 
-This API uses **JWT (JSON Web Token)** authentication with **RS256** — an asymmetric cryptographic algorithm. Two keys are used:
+This API uses **JWT (JSON Web Token)** authentication with **RS256**. An asymmetric cryptographic algorithm. Two keys are used:
 
 - **Private key** (`keys/private.pem`) — kept secret on the server. Used to _sign_ tokens when a user logs in.
 - **Public key** (`keys/public.pem`) — can be shared. Used to _verify_ tokens on incoming requests.
@@ -354,7 +362,7 @@ UserRepository loads the user by email
          |
          v
 bcrypt compares the submitted password to the stored hash
-  → If wrong: "Invalid credentials." (deliberately vague — never says which field was wrong)
+  → If wrong: "Invalid credentials."
          |
          v
 AuthService signs a new JWT
@@ -387,18 +395,18 @@ Several protections were added on top of the base GraphQL setup. They are all ap
 
 Helmet sets a collection of HTTP response headers that instruct browsers to behave more securely:
 
-| Header | What it does |
-|---|---|
+| Header                            | What it does                                                                           |
+| --------------------------------- | -------------------------------------------------------------------------------------- |
 | `X-Content-Type-Options: nosniff` | Prevents the browser from guessing the content type (stops MIME-type sniffing attacks) |
-| `X-Frame-Options: DENY` | Blocks the page from being embedded in an `<iframe>` (prevents clickjacking) |
-| `Strict-Transport-Security` | Tells the browser to only use HTTPS for this domain in future visits |
-| `Referrer-Policy` | Controls what URL is sent in the `Referer` header when following links |
+| `X-Frame-Options: DENY`           | Blocks the page from being embedded in an `<iframe>` (prevents clickjacking)           |
+| `Strict-Transport-Security`       | Tells the browser to only use HTTPS for this domain in future visits                   |
+| `Referrer-Policy`                 | Controls what URL is sent in the `Referer` header when following links                 |
 
 Content Security Policy (CSP) is disabled for this API because Apollo Sandbox uses inline scripts, which a strict CSP would block.
 
 ### CORS — origin allowlist
 
-CORS headers control which websites are allowed to make requests to the API from a browser. The `ALLOWED_ORIGINS` environment variable is a comma-separated list of trusted origins (e.g. `https://yourdashboard.lnu.se`).
+CORS headers control which websites are allowed to make requests to the API from a browser. The `ALLOWED_ORIGINS` environment variable is a comma-separated list of trusted origins (e.g. `https://cu0080.lnu.se`).
 
 - Requests from listed origins: allowed
 - Requests with no `Origin` header (Postman, curl, server-to-server): always allowed
@@ -408,16 +416,16 @@ CORS headers control which websites are allowed to make requests to the API from
 
 Two rate limits are in place to prevent brute-force attacks and API abuse:
 
-| Limit | Applies to | Maximum | Window |
-|---|---|---|---|
-| Global | Every route, every IP | 200 requests | 15 minutes |
-| Auth | `login` and `register` mutations only | 10 requests | 15 minutes |
+| Limit  | Applies to                            | Maximum      | Window     |
+| ------ | ------------------------------------- | ------------ | ---------- |
+| Global | Every route, every IP                 | 200 requests | 15 minutes |
+| Auth   | `login` and `register` mutations only | 10 requests  | 15 minutes |
 
 The auth limit is applied by checking the `operationName` field in the request body. Clients can name their operations to trigger this: `mutation Login { ... }` or `mutation Register { ... }`.
 
 ### Batch request blocking
 
-GraphQL supports batched requests — sending an array of queries in a single HTTP request. This would allow an attacker to send 100 login attempts in one request, bypassing the per-request rate limit.
+GraphQL supports batched requests: sending an array of queries in a single HTTP request. This would allow an attacker to send 100 login attempts in one request, bypassing the per-request rate limit.
 
 Any request to `/graphql` whose body is a JSON array is rejected immediately with a `400` error before it reaches Apollo.
 
@@ -425,25 +433,21 @@ Any request to `/graphql` whose body is a JSON array is rejected immediately wit
 
 The JSON body parser accepts a maximum of **100 KB** per request. This prevents memory exhaustion from clients sending very large request bodies.
 
-### Introspection disabled in production
+### Introspection
 
-GraphQL introspection lets clients query the full schema — every type, field, query, and mutation. This is useful during development but in production it gives attackers a complete map of the API for free.
-
-Introspection is disabled when `NODE_ENV=production`. The interactive Apollo Sandbox is also replaced with a minimal production landing page.
+GraphQL introspection lets clients query the full schema, every type, field, query, and mutation. Introspection is currently **enabled** in all environments to support Postman schema loading and the Apollo Sandbox playground. This is an acceptable trade-off for a student project where tooling access is prioritised over hiding the schema.
 
 ### Production error sanitization
 
 In production, unexpected errors (Prisma internals, stack traces, unhandled exceptions) are never returned to the client. Only errors with a known, safe code are passed through:
 
-| Code | Passed to client? |
-|---|---|
-| `UNAUTHENTICATED` | Yes |
-| `BAD_USER_INPUT` | Yes |
-| `NOT_FOUND` | Yes |
-| `FORBIDDEN` | Yes |
-| Anything else | Replaced with `"Internal server error"` |
-
-All errors are still logged on the server so nothing is lost — clients just do not see the internal details.
+| Code              | Passed to client?                       |
+| ----------------- | --------------------------------------- |
+| `UNAUTHENTICATED` | Yes                                     |
+| `BAD_USER_INPUT`  | Yes                                     |
+| `NOT_FOUND`       | Yes                                     |
+| `FORBIDDEN`       | Yes                                     |
+| Anything else     | Replaced with `"Internal server error"` |
 
 ---
 
@@ -514,10 +518,10 @@ When an authenticated user creates a salary record, that record is stamped with 
 
 **The rules:**
 
-| `createdBy` value | Who can modify it? |
-|---|---|
-| `null` | Nobody — these are seeded public dataset records |
-| A user ID | Only the user with that ID |
+| `createdBy` value | Who can modify it?                               |
+| ----------------- | ------------------------------------------------ |
+| `null`            | Nobody — these are seeded public dataset records |
+| A user ID         | Only the user with that ID                       |
 
 **Why seeded records are immutable:**
 
@@ -574,13 +578,13 @@ When something goes wrong, the API returns a structured error — never a raw cr
 
 ### Error types
 
-| Error                  | HTTP status | Code in response        | When it is thrown                                               |
-| ---------------------- | ----------- | ----------------------- | --------------------------------------------------------------- |
-| `UnauthenticatedError` | 401         | `UNAUTHENTICATED`       | Calling a protected operation without a valid token             |
+| Error                  | HTTP status | Code in response        | When it is thrown                                                |
+| ---------------------- | ----------- | ----------------------- | ---------------------------------------------------------------- |
+| `UnauthenticatedError` | 401         | `UNAUTHENTICATED`       | Calling a protected operation without a valid token              |
 | `ForbiddenError`       | 403         | `FORBIDDEN`             | Trying to modify a record you did not create, or a seeded record |
-| `NotFoundError`        | 404         | `NOT_FOUND`             | Looking up a record by ID or name that does not exist           |
-| `BadUserInputError`    | 400         | `BAD_USER_INPUT`        | Invalid input format, duplicate email, non-numeric ID           |
-| (unexpected)           | 500         | `INTERNAL_SERVER_ERROR` | Any unhandled error — details hidden in production              |
+| `NotFoundError`        | 404         | `NOT_FOUND`             | Looking up a record by ID or name that does not exist            |
+| `BadUserInputError`    | 400         | `BAD_USER_INPUT`        | Invalid input format, duplicate email, non-numeric ID            |
+| (unexpected)           | 500         | `INTERNAL_SERVER_ERROR` | Any unhandled error — details hidden in production               |
 
 ### What the client receives
 
@@ -782,7 +786,7 @@ src/
     salaryRecordValidator.js — Validates salary record inputs and filters
 
   utils/
-    errors.js                — UnauthenticatedError, NotFoundError, BadUserInputError
+    errors.js                — UnauthenticatedError, NotFoundError, ForbiddenError, BadUserInputError
     parseId.js               — Safe string-to-integer conversion for GraphQL IDs
 
 prisma/
@@ -818,7 +822,7 @@ npm install
 cp .env.example .env
 
 # 3. Start PostgreSQL (requires Docker)
-npm run docker:up
+docker compose -f docker-compose.dev.yml up -d postgres
 
 # 4. Apply the database schema
 npm run db:migrate
@@ -841,7 +845,7 @@ npm run db:seed
 | `npm run db:studio`     | Open a browser-based database browser at `http://localhost:5555`     |
 | `npm run db:reset`      | Wipe all data and re-apply migrations (destructive)                  |
 | `npm run generate:keys` | Re-generate the RSA key pair (invalidates all existing tokens)       |
-| `npm run docker:up`     | Start the local PostgreSQL database container                        |
+| `docker compose -f docker-compose.dev.yml up -d postgres` | Start the local PostgreSQL database container |
 
 ### Where to find the API
 

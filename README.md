@@ -65,7 +65,7 @@ GraphQL
 |                                       | URL / File                            |
 | ------------------------------------- | ------------------------------------- |
 | **Production API**                    | https://cu0080.camp.lnu.se/graphql    |
-| **API Documentation**                 | ROUTE_MAP.md                          |
+| **API Documentation**                 | [ROUTE_MAP](/ROUTE_MAP.md)            |
 | **GraphQL Playground** (GraphQL only) | https://cu0080.camp.lnu.se/graphql    |
 | **Postman Collection**                | `*.postman_collection.json`           |
 | **Production Environment**            | `production.postman_environment.json` |
