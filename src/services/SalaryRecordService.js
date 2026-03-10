@@ -24,25 +24,24 @@ export class SalaryRecordService {
     return record
   }
 
-  // Creates a new salary record with the provided data and associates it with the user ID of the creator.
   async create(data, userId) {
     return this.#repository.create({ ...data, createdBy: userId })
   }
 
   async update(id, data, userId) {
-    const record = await this.#repository.findById(parseId(id))
-    if (!record)
-      throw new NotFoundError(`Salary record with id ${id} was not found.`)
+    const numericId = parseId(id)
+    const record = await this.#repository.findById(numericId)
+    if (!record) throw new NotFoundError(`Salary record with id ${id} was not found.`)
     this.#assertOwnership(record, userId, id)
-    return this.#repository.update(parseId(id), data)
+    return this.#repository.update(numericId, data)
   }
 
   async delete(id, userId) {
-    const record = await this.#repository.findById(parseId(id))
-    if (!record)
-      throw new NotFoundError(`Salary record with id ${id} was not found.`)
+    const numericId = parseId(id)
+    const record = await this.#repository.findById(numericId)
+    if (!record) throw new NotFoundError(`Salary record with id ${id} was not found.`)
     this.#assertOwnership(record, userId, id)
-    return this.#repository.delete(parseId(id))
+    return this.#repository.delete(numericId)
   }
 
   #assertOwnership(record, userId, id) {

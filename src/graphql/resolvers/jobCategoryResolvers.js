@@ -1,4 +1,3 @@
-// This file defines the GraphQL resolvers for job category-related queries and fields.
 export const jobCategoryResolvers = {
   Query: {
     jobCategories: (_, { limit, offset }, { jobCategoryService }) =>

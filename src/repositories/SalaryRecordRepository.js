@@ -6,7 +6,7 @@ export class SalaryRecordRepository {
   constructor(prisma) {
     this.#prisma = prisma
   }
-  // Retrieves a paginated list of salary records based on various optional filters, along with the total count and pagination info.
+
   async findAll({
     workYear,
     jobId,
@@ -79,7 +79,6 @@ export class SalaryRecordRepository {
   }
 }
 
-// Builds a Prisma "where" filter object based on the provided optional parameters for querying salary records.
 function buildSalaryRecordWhere({
   workYear,
   jobId,

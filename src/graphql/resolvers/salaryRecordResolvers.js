@@ -6,7 +6,6 @@ import {
   validateFilters,
 } from "../../validators/salaryRecordValidator.js"
 
-// This file defines the GraphQL resolvers for salary record-related queries and mutations.
 export const salaryRecordResolvers = {
   Query: {
     salaryRecords: async (_, { filters = {} }, { salaryRecordService }) => {
@@ -37,9 +36,7 @@ export const salaryRecordResolvers = {
   SalaryRecord: {
     salary: (parent) => toFloatFromDecimal(parent.salary),
     salaryInUsd: (parent) =>
-      parent.salaryInUsd !== null && parent.salaryInUsd !== undefined
-        ? toFloatFromDecimal(parent.salaryInUsd)
-        : null,
+      parent.salaryInUsd != null ? toFloatFromDecimal(parent.salaryInUsd) : null,
   },
 }
 
@@ -48,7 +45,7 @@ function toFloatFromDecimal(value) {
 }
 
 function parseOptionalId(value) {
-  return value !== null && value !== undefined ? parseId(value) : undefined
+  return value != null ? parseId(value) : undefined
 }
 
 function normalizeFilters({ jobId, categoryId, countryId, companyId, ...rest }) {
@@ -79,28 +76,13 @@ function normalizeCreateInput({
   }
 }
 
-// For updates, all fields are optional — only include them in the normalized input if they're provided.  
-function normalizeUpdateInput({
-  jobId,
-  employeeCountryId,
-  companyCountryId,
-  companyId,
-  salary,
-  ...rest
-}) {
+function normalizeUpdateInput({ jobId, employeeCountryId, companyCountryId, companyId, salary, ...rest }) {
   return {
     ...rest,
-    ...(salary !== null && salary !== undefined && { salary: String(salary) }),
-    ...(jobId !== null && jobId !== undefined && { jobId: parseId(jobId) }),
-    ...(employeeCountryId !== null &&
-      employeeCountryId !== undefined && {
-        employeeCountryId: parseId(employeeCountryId),
-      }),
-    ...(companyCountryId !== null &&
-      companyCountryId !== undefined && {
-        companyCountryId: parseId(companyCountryId),
-      }),
-    ...(companyId !== null &&
-      companyId !== undefined && { companyId: parseId(companyId) }),
+    ...(salary != null && { salary: String(salary) }),
+    ...(jobId != null && { jobId: parseOptionalId(jobId) }),
+    ...(employeeCountryId != null && { employeeCountryId: parseOptionalId(employeeCountryId) }),
+    ...(companyCountryId != null && { companyCountryId: parseOptionalId(companyCountryId) }),
+    ...(companyId != null && { companyId: parseOptionalId(companyId) }),
   }
 }
