@@ -1,0 +1,98 @@
+{
+  "info": {
+    "name": "SalaryScope API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "email", "value": "" },
+    { "key": "password", "value": "" },
+    { "key": "token", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "countryId", "value": "" },
+    { "key": "countryName", "value": "" },
+    { "key": "jobId", "value": "" },
+    { "key": "recordId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 - Auth",
+      "item": [
+        {
+          "name": "Register",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const id = Math.random().toString(36).substring(2, 10);",
+                  "pm.collectionVariables.set('email', `test_${id}@example.com`);",
+                  "pm.collectionVariables.set('password', `Pass_${id}!`);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns token and user', function () {",
+                  "  pm.expect(json.data.register.token).to.be.a('string');",
+                  "  pm.expect(json.data.register.user.email).to.eql(pm.collectionVariables.get('email'));",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('token', json.data.register.token);",
+                  "pm.collectionVariables.set('userId', json.data.register.user.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    token\n    user { id email }\n  }\n}",
+                "variables": "{ \"input\": { \"email\": \"{{email}}\", \"password\": \"{{password}}\" } }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns token and user', function () {",
+                  "  pm.expect(json.data.login.token).to.be.a('string');",
+                  "  pm.expect(json.data.login.user.email).to.eql(pm.collectionVariables.get('email'));",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('token', json.data.login.token);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user { id email }\n  }\n}",
+                "variables": "{ \"input\": { \"email\": \"{{email}}\", \"password\": \"{{password}}\" } }"
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
