@@ -1,31 +1,77 @@
 # auth/
 
-Handles all authentication concerns: JWT generation and verification, request context, and access control.
+Everything that handles who a user is and whether they are allowed to do something.
 
-## Files
+---
 
-### `AuthService.js`
-Registers and logs in users. Hashes passwords with bcrypt (12 salt rounds), signs JWTs with RS256 using the private key from `config/keys.js`. Tokens expire after 24 hours.
+## AuthService.js
 
-### `jwtMiddleware.js`
-Express middleware that runs on every request. Reads the `Authorization: Bearer <token>` header, verifies the token against the public RSA key, and attaches the decoded user (`{ id, email }`) to the Apollo context. An invalid or missing token sets `user: null` — it does not throw. Resolvers decide what to do with an unauthenticated context.
+Handles registering and logging in users.
 
-### `authGuard.js`
-Single function — `assertAuthenticated(user)`. Called at the top of any resolver that requires a logged-in user. Throws `UnauthenticatedError` (HTTP 401) if `user` is null.
+**Register:**
+1. Checks that email and password are provided
+2. Checks that the email is not already taken
+3. Hashes the password (never stores it in plain text)
+4. Creates the user in the database
+5. Returns a signed token and the new user
 
-### `authResolvers.js`
-GraphQL resolvers for `register`, `login`, and `me`. Delegates all logic to `AuthService` and `UserService`. Validates input via `authValidator` before touching the service layer.
+**Login:**
+1. Checks that email and password are provided
+2. Looks up the user by email
+3. Compares the provided password against the stored hash
+4. If it matches — returns a signed token and the user
+5. If it doesn't — throws an "Invalid credentials" error (same message whether the email or password is wrong, intentionally)
+
+Tokens are signed with the private RSA key from `config/keys.js`, use the RS256 algorithm, and expire after 24 hours.
+
+---
+
+## jwtMiddleware.js
+
+Runs on every incoming request before anything else.
+
+1. Reads the `Authorization` header
+2. If it starts with `Bearer `, extracts the token
+3. Verifies the token using the public RSA key
+4. If valid — attaches `{ id, email }` to the request context so resolvers know who is making the request
+5. If missing or invalid — sets `user: null` and continues without throwing
+
+Resolvers decide what to do with an unauthenticated request. This middleware never blocks a request on its own.
+
+---
+
+## authGuard.js
+
+A single function — `assertAuthenticated(user)`.
+
+Called at the top of any resolver that requires a logged-in user. If `user` is null, it throws an `UnauthenticatedError`. If the user is logged in, it does nothing and the resolver continues.
+
+---
+
+## authResolvers.js
+
+The GraphQL entry points for authentication.
+
+- `register` — validates input, then calls `AuthService.register`
+- `login` — validates input, then calls `AuthService.login`
+- `me` — checks that the user is logged in, then returns their profile from `UserService`
+
+Input validation happens before the service layer is touched.
+
+---
 
 ## Auth flow
 
 ```
-Request
-  └── jwtMiddleware (sets context.user or null)
+Incoming request
+  └── jwtMiddleware — reads token, sets context.user (or null)
         └── Resolver
-              ├── [mutation] assertAuthenticated(user) → throws 401 if not logged in
-              └── [query] no guard — reads are public
+              ├── mutations (create/update/delete) — assertAuthenticated(user) → blocks if not logged in
+              └── queries (read) — no guard, public access
 ```
 
-## Schema
+---
 
-The GraphQL types (`User`, `AuthPayload`, `register`, `login`, `me`) are defined in `src/graphql/schema/auth.graphql`.
+## GraphQL schema
+
+The types and operations (`User`, `AuthPayload`, `register`, `login`, `me`) are defined in `src/graphql/schema/auth.graphql`.

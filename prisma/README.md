@@ -1,129 +1,65 @@
 # Prisma
 
-Everything related to the database structure, migrations, and data seeding.
+This folder owns everything related to the database — its structure, its history of changes, and the script that fills it with data.
 
 ---
 
-## Files
+## schema.prisma
 
-| File / Folder       | Purpose                                                                                                                                   |
-| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `schema.prisma`     | Blueprint of the database — models, relations, indexes. Change this to change the DB structure.                                           |
-| `migrations/`       | Auto-generated SQL files. Prisma applies these to build or update the DB. **Never delete.**                                               |
-| `seed.js`           | Reads all four CSV files from `data/` and inserts ~68,000 rows across Country, Job, Company, and SalaryRecord tables.                     |
-| `prisma.config.mjs` | Lives at project root. Owns the database URL, migrations path, and seed command. Prisma 7 reads this instead of `.env` or `package.json`. |
+This is the blueprint of the database. It defines every table, every column, and how the tables are connected to each other.
+
+The tables in this project are:
+
+- **Country** — stores unique country names. Used to track where employees live and where companies are located.
+- **JobCategory** — groups jobs into categories like "Data Science" or "Machine Learning".
+- **Job** — stores job titles. Each job can belong to a category.
+- **Company** — stores company names, ratings, and their country.
+- **SalaryRecord** — the main table. Every salary entry links to a job, and optionally to a company and two countries (where the employee lives, where the company is). Salary records also track things like work year, experience level, employment type, and work setting.
+- **User** — stores registered users. Used only for authentication — users can create and manage their own salary records.
+
+When you change `schema.prisma`, you always create a migration afterwards to apply those changes to the database.
 
 ---
 
-## First-time setup (fresh machine or wiped database)
+## migrations/
+
+Every time the schema is changed, Prisma generates a SQL file here that describes exactly what needs to change in the database.
+
+When deploying to production, Prisma reads these files and applies any that haven't run yet — this is how the database stays in sync across environments without wiping it.
+
+> Never delete or edit these files manually.
+
+---
+
+## seed.js
+
+This script fills the database with real-world salary data from four CSV files (~68,000 rows total).
+
+Here's what it does, step by step:
+
+1. Reads all four CSV files from the `data/` folder
+2. Collects all unique countries, categories, jobs, and companies — and inserts them first (these are the lookup tables that salary records reference)
+3. Maps each CSV row to a salary record and links it to the right job, company, and countries using the IDs from step 2
+4. Inserts all salary records in batches of 500 to avoid overloading the database
+
+The script uses `skipDuplicates` — so it's safe to run more than once. Rows that already exist are skipped, not duplicated.
+
+> The `data/` folder is not committed to git. You need to download the CSV files and place them there before seeding. Links to the datasets are in the root README.
+
+---
+
+## Commands
 
 ```bash
-# 1. Start the database container
-npm run docker:up
-
-# 2. Create the migration and apply it to the database
+# Apply all pending migrations (use this on a fresh database or after pulling new migrations)
 npm run db:migrate
-# When prompted for a name, type something like: init
 
-# 3. Seed all four CSV files (~68k rows)
+# Fill the database with CSV data
 npm run db:seed
-```
 
----
-
-## Wiping and starting over
-
-Use this when the local database is out of sync with the migration history,
-or when you want a clean slate after schema changes.
-
-```bash
-# Drops all tables, re-applies all migrations from scratch, then prompts to seed
+# Wipe the database and start over (destructive — all data is lost)
 npm run db:reset
-```
 
-> `db:reset` is destructive — all data is lost. It does NOT seed automatically in Prisma 7.
-> Run `npm run db:seed` manually afterwards.
-
----
-
-## Day-to-day commands
-
-```bash
-# After editing schema.prisma — creates a new migration and applies it
-npm run db:migrate
-
-# After running db:migrate — regenerates the Prisma client (usually auto-runs with migrate)
-npm run generate
-
-# Fill the database with CSV data (safe to re-run — uses skipDuplicates)
-npm run db:seed
-
-# Open Prisma Studio (browser UI to browse and edit rows)
+# Open a browser UI to browse and edit rows
 npm run db:studio
 ```
-
----
-
-## Schema changes workflow
-
-1. Edit `schema.prisma`
-2. Run `npm run db:migrate` — name the migration after what you changed (e.g. `add_salary_index`)
-3. Prisma generates the SQL file in `migrations/` and applies it
-4. The Prisma client is regenerated automatically
-
----
-
-## Production / Docker
-
-```bash
-# Applies pending migrations without prompting — safe for CI and Docker startup
-npx prisma migrate deploy
-```
-
-The `docker-compose.yml` api service runs this automatically on every startup:
-
-```
-command: sh -c "npx prisma migrate deploy && node src/server.js"
-```
-
----
-
-## Dataset files
-
-The `data/` folder is **not committed to git**. Download the CSV files and place them there before seeding.
-
-| File                                     | Source                                                                                                                        | Rows   |
-| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------ |
-| `jobs_in_data.csv`                       | [Jobs in Data 2020–2023 — Kaggle](https://www.kaggle.com/datasets/hummaamqaasim/jobs-in-data)                                 | 9,356  |
-| `jobs_in_data_2024.csv`                  | [Jobs and Salaries in Data 2024 — Kaggle](https://www.kaggle.com/datasets/murilozangari/jobs-and-salaries-in-data-field-2024) | 14,200 |
-| `Salary_Dataset_with_Extra_Features.csv` | Kaggle — company salaries with ratings                                                                                        | 22,771 |
-| `Software_Professional_Salaries.csv`     | Kaggle — software company salaries                                                                                            | 22,775 |
-
----
-
-## Database schema overview
-
-```
-Country ──────────────────────────────────────────┐
-  id, name                                         │
-                                                   │
-Job ──────────────────────────────────┐            │
-  id, title, category?, roles?        │            │
-                                      ↓            ↓
-Company ──────────────────→  SalaryRecord  ←──── Country
-  id, name, rating?,            (fact table)     (company location)
-  countryId?                  jobId (FK)
-                              companyId? (FK)
-                              employeeCountryId? (FK)
-                              companyCountryId? (FK)
-                              salary, source, ...
-
-User
-  id, email, passwordHash  (auth only — no relation to SalaryRecord)
-```
-
-`source` on `SalaryRecord` tells you which CSV the row came from:
-
-- `"jobs_in_data"` — global tech salaries (CSV A)
-- `"salary_extra"` — company salaries with ratings (CSV B)
-- `"software_pro"` — software professional salaries (CSV C)

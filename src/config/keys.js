@@ -6,8 +6,6 @@ const PRIVATE_KEY_PATH =
 
 function loadPrivateKey() {
   const remediationHint = process.env.PRIVATE_KEY_PATH
-    ? "Docker secret — ensure private_key is declared in docker-compose.yml"
-    : "keys/private.pem — run: npm run generate:keys"
 
   return readKeyFromPath(PRIVATE_KEY_PATH, remediationHint)
 }
@@ -15,7 +13,6 @@ function loadPrivateKey() {
 function loadPublicKey() {
   return readKeyFromPath(
     join(import.meta.dirname, "../../keys/public.pem"),
-    "keys/public.pem — run: npm run generate:keys",
   )
 }
 

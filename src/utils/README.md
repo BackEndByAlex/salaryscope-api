@@ -1,10 +1,26 @@
 # utils/
 
-Shared utility functions with no side effects.
+Small shared functions used across the entire codebase. No business logic — just helpers that solve one specific problem each.
 
-- `parseId.js` — converts a GraphQL string ID to a Prisma integer. Uses `/^\d+$/` to reject partial strings like `"3abc"` that `parseInt` would silently accept. Throws `BAD_USER_INPUT` on invalid input.
-- `errors.js` — custom GraphQL error classes used across the entire API. Each class extends `GraphQLError` and sets both an error `code` and an HTTP status code via `extensions`.
-  - `UnauthenticatedError` — code `UNAUTHENTICATED`, HTTP 401
-  - `NotFoundError` — code `NOT_FOUND`, HTTP 404
-  - `ForbiddenError` — code `FORBIDDEN`, HTTP 403
-  - `BadUserInputError` — code `BAD_USER_INPUT`, HTTP 400
+---
+
+## parseId.js
+
+Converts a GraphQL string ID into an integer before it reaches the database.
+
+GraphQL IDs are always strings. Prisma expects integers. This function bridges the gap, and does it safely. It rejects anything that isn't a plain positive number (e.g. `"3abc"` or `""`) and throws a `BadUserInputError` with a clear message. Without this, `parseInt` would silently accept `"3abc"` and return `3`, which could cause subtle bugs.
+
+---
+
+## errors.js
+
+Custom error classes used across the entire API. Each one maps to a specific situation and carries both an error code and an HTTP status so clients get consistent, meaningful responses.
+
+| Class | Code | HTTP | When it's used |
+|---|---|---|---|
+| `UnauthenticatedError` | `UNAUTHENTICATED` | 401 | The request requires login but no valid token was provided |
+| `NotFoundError` | `NOT_FOUND` | 404 | A requested record doesn't exist |
+| `ForbiddenError` | `FORBIDDEN` | 403 | The user is logged in but not allowed to perform this action |
+| `BadUserInputError` | `BAD_USER_INPUT` | 400 | The input provided is invalid (missing fields, bad ID, etc.) |
+
+All four extend `GraphQLError` — so Apollo Server handles them correctly and includes the code and status in the response automatically.

@@ -1,6 +1,31 @@
 # validators/
 
-Input validation that runs before any service or database call. Each function throws a `GraphQLError` with `code: "BAD_USER_INPUT"` if input is invalid, or returns nothing if it passes.
+Input validation that runs before any service or database call. If the input is invalid, a `BadUserInputError` is thrown immediately with a clear message. If it passes, nothing happens and the request continues.
 
-- `authValidator.js` — `validateRegisterInput` (email format, min 8 char password), `validateLoginInput` (fields present)
-- `salaryRecordValidator.js` — `validateCreateInput` (salary positive, jobId and source present), `validateUpdateInput` (at least one field), `validateFilters` (limit 1–100, offset non-negative)
+---
+
+## authValidator.js
+
+**`validateRegisterInput`**
+- Email and password must be provided
+- Email must follow a valid format (must have `@` and a domain)
+- Password must be at least 8 characters
+
+**`validateLoginInput`**
+- Email and password must be provided
+
+---
+
+## salaryRecordValidator.js
+
+**`validateCreateInput`**
+- `salary`, `jobId`, and `source` are required
+- `salary` must be a positive number
+- `source` must not exceed 200 characters
+
+**`validateUpdateInput`**
+- At least one field must be included in the update — an empty update is rejected
+
+**`validateFilters`**
+- `limit` must be between 1 and 100 if provided
+- `offset` must not be negative if provided

@@ -1,11 +1,64 @@
 # repositories/
 
-The only layer that talks to the database. Each class wraps Prisma for one domain (User, Country, Job, JobCategory, Company, SalaryRecord) and exposes named methods like `findById`, `findAll`, and `findRecordsByCompany`.
+The only layer that talks directly to the database. Every query and write goes through here, nothing else in the app uses Prisma directly.
 
-- `salaryRecordInclude.js` — shared Prisma `include` shape used by all salary record queries
-- `UserRepository.js` — find by email or ID, create user (passwordHash omitted on return)
-- `CountryRepository.js` — list with aggregate counts, find by ID/name, paginated salary records by employee or company country
-- `JobCategoryRepository.js` — list, find by ID/name, all return job count via `_count`
-- `JobRepository.js` — paginated list with optional category filter, find by ID, paginated records per job
-- `CompanyRepository.js` — paginated list with optional country filter, find by ID/name, paginated records per company
-- `SalaryRecordRepository.js` — full CRUD plus a paginated list with up to ten filters
+Each repository wraps one database table and exposes named methods. Services call these methods, they never write database queries themselves.
+
+---
+
+## UserRepository.js
+
+- `findByEmail` — looks up a user by email (used during login)
+- `findById` — looks up a user by ID (password hash is never returned)
+- `create` — creates a new user (password hash is never returned)
+
+---
+
+## CountryRepository.js
+
+- `findAll` — paginated list of countries, each with aggregate counts (employee records, company records, companies)
+- `findById` — single country by ID
+- `findByName` — single country by name
+- `findEmployeeRecords` — paginated salary records where employees live in a given country
+- `findCompanyRecords` — paginated salary records where companies are based in a given country
+
+---
+
+## JobCategoryRepository.js
+
+- `findAll` — paginated list of job categories, each with a job count
+- `findById` — single category by ID, with job count
+- `findByName` — single category by name, with job count
+
+---
+
+## JobRepository.js
+
+- `findAll` — paginated list of jobs, with an optional category filter
+- `findById` — single job by ID
+- `findRecordsByJob` — paginated salary records for a given job
+
+---
+
+## CompanyRepository.js
+
+- `findAll` — paginated list of companies, with an optional country filter
+- `findById` — single company by ID
+- `findByName` — single company by name
+- `findRecordsByCompany` — paginated salary records for a given company
+
+---
+
+## SalaryRecordRepository.js
+
+- `findAll` — paginated list of salary records with up to ten optional filters (job, category, country, company, experience level, employment type, work setting, company size, source, work year)
+- `findById` — single salary record by ID
+- `create` — creates a new salary record
+- `update` — updates an existing salary record by ID
+- `delete` — deletes a salary record by ID
+
+---
+
+## salaryRecordInclude.js
+
+A shared Prisma `include` configuration used by every salary record query. Tells Prisma to always fetch the related job (with its category), employee country, company country, and company alongside each record — so resolvers never have to request them separately.

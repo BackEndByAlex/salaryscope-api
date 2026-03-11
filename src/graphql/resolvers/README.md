@@ -1,10 +1,58 @@
 # graphql/resolvers/
 
-The resolver layer connects the GraphQL schema to the service layer. Each file handles one domain. Resolvers are thin — they guard, validate, parse input, and delegate to a service. No business logic lives here.
+Resolvers are the bridge between the GraphQL schema and the service layer. When a query or mutation comes in, the matching resolver handles it.
 
-- `authResolvers.js` — `me` (auth guard + userService), `register` and `login` (validate input + authService)
-- `countryResolvers.js` — country queries + `Country` field resolvers for aggregate counts and nested paginated salary records
-- `jobCategoryResolvers.js` — job category queries + `jobCount` field resolver (reads from `_count`)
-- `jobResolvers.js` — job queries + `Job.records` field resolver; parses `categoryId` filter from string to integer
-- `companyResolvers.js` — company queries + `Company.rating` field resolver (Prisma Decimal → Float) + `Company.records`; parses `countryId` filter
-- `salaryRecordResolvers.js` — all salary record queries and mutations (auth required on all); parses filter IDs, create/update input IDs, and converts `salary`/`salaryInUsd` Decimal fields to Float
+Each file covers one domain. Resolvers are kept thin on purpose, they guard access, validate input, parse IDs, and hand off to a service. No business logic lives here.
+
+---
+
+## companyResolvers.js
+
+- `companies` — returns a paginated list of companies, with an optional country filter
+- `company` — returns a single company by ID
+- `companyByName` — returns a company by name
+- `Company.rating` — converts the rating from a Prisma Decimal to a regular number before sending it to the client
+- `Company.records` — returns paginated salary records that belong to that company
+
+---
+
+## countryResolvers.js
+
+- `countries` — returns a paginated list of countries
+- `country` — returns a single country by ID
+- `countryByName` — returns a country by name
+- `Country.employeeRecordCount` — total salary records where employees live in this country
+- `Country.companyRecordCount` — total salary records where companies are based in this country
+- `Country.companyCount` — total companies based in this country
+- `Country.employeeRecords` — paginated salary records by employee country
+- `Country.companyRecords` — paginated salary records by company country
+
+---
+
+## jobCategoryResolvers.js
+
+- `jobCategories` — returns a paginated list of job categories
+- `jobCategory` — returns a single category by ID
+- `jobCategoryByName` — returns a category by name
+- `JobCategory.jobCount` — total number of jobs that belong to this category
+
+---
+
+## jobResolvers.js
+
+- `jobs` — returns a paginated list of jobs, with an optional category filter
+- `job` — returns a single job by ID
+- `Job.records` — returns paginated salary records for that job
+
+---
+
+## salaryRecordResolvers.js
+
+- `salaryRecords` — returns a paginated list of salary records, with optional filters (job, category, country, company, experience level, etc.)
+- `salaryRecord` — returns a single salary record by ID
+- `createSalaryRecord` — creates a new salary record. Requires login.
+- `updateSalaryRecord` — updates a salary record. Requires login. Only the owner can update.
+- `deleteSalaryRecord` — deletes a salary record. Requires login. Only the owner can delete.
+- `SalaryRecord.salary` and `SalaryRecord.salaryInUsd` — convert Prisma Decimal values to regular numbers before sending to the client
+
+GraphQL IDs come in as strings, this file also converts all ID fields to integers before passing them to the service layer.

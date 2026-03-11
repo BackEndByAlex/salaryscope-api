@@ -21,10 +21,10 @@ This will start Postgres, run migrations, seed the database, and start the API.
 
 To download the CSV files:
 
-https://www.kaggle.com/datasets/murilozangari/jobs-and-salaries-in-data-field-2024
-https://www.kaggle.com/code/lucasgalanti/jobs-in-data
-https://www.kaggle.com/code/iamsouravbanerjee/software-professional-salaries/input
-https://www.kaggle.com/code/iamsouravbanerjee/software-professional-salaries/input
+- https://www.kaggle.com/datasets/murilozangari/jobs-and-salaries-in-data-field-2024
+- https://www.kaggle.com/code/lucasgalanti/jobs-in-data
+- https://www.kaggle.com/code/iamsouravbanerjee/software-professional-salaries/input
+- https://www.kaggle.com/code/iamsouravbanerjee/software-professional-salaries/input
 
 Then make sure you create a /data folder in the root of the project (outside /src) and add the CSV
 files into it. The /data folder is not included in the repository, you need to create it locally.
@@ -108,7 +108,7 @@ In my case I used **RS256**. THe way it works, the server holds the private key 
 
 **HS256** uses a single shared secret for both. It would be simpler, but any service that can verify tokens can also forget them.
 
-More over Ed25519, become a option later but because the implementation was done with RS256 the idea using Ed25519 become not necesery because the API works well with RS256 in this case. I did not verify if the project and the dependencies works with Ed25519. If the time is there I way changed, because Ed25519 is faster and produces shorter signatures and has also a better algorithm.
+More over **Ed25519**, become a option later but because the implementation was done with RS256 the idea using Ed25519 become not necesery because the API works well with RS256 in this case. I did not verify if the project and the dependencies works with Ed25519. If the time is there I way changed, because Ed25519 is faster and produces shorter signatures and has also a better algorithm.
 
 I've documented the authentication structure and how it works depper:
 
