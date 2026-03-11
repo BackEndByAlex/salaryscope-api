@@ -374,6 +374,161 @@
               }
             }
           }
+        },
+        {
+          "name": "Jobs list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns paginated jobs', function () {",
+                  "  pm.expect(json.data.jobs.jobs).to.be.an('array');",
+                  "  pm.expect(json.data.jobs.totalCount).to.be.above(0);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('jobId', json.data.jobs.jobs[0].id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Jobs {\n  jobs {\n    jobs { id title category { name } }\n    totalCount\n    hasNextPage\n  }\n}",
+                "variables": ""
+              }
+            }
+          }
+        },
+        {
+          "name": "Companies list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns paginated companies', function () {",
+                  "  pm.expect(json.data.companies.companies).to.be.an('array');",
+                  "  pm.expect(json.data.companies.totalCount).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Companies {\n  companies {\n    companies { id name rating }\n    totalCount\n    hasNextPage\n  }\n}",
+                "variables": ""
+              }
+            }
+          }
+        },
+        {
+          "name": "Salary Records list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns paginated salary records', function () {",
+                  "  pm.expect(json.data.salaryRecords.records).to.be.an('array');",
+                  "  pm.expect(json.data.salaryRecords.totalCount).to.be.above(0);",
+                  "  pm.expect(json.data.salaryRecords.hasNextPage).to.be.a('boolean');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query SalaryRecords {\n  salaryRecords {\n    records { id salary source job { title } }\n    totalCount\n    hasNextPage\n  }\n}",
+                "variables": ""
+              }
+            }
+          }
+        },
+        {
+          "name": "Salary Records - with filters",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns filtered results', function () {",
+                  "  pm.expect(json.data.salaryRecords.records).to.be.an('array');",
+                  "  json.data.salaryRecords.records.forEach(function (r) {",
+                  "    pm.expect(r.source).to.eql('jobs_in_data');",
+                  "  });",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query SalaryRecords($filters: SalaryRecordFilters) {\n  salaryRecords(filters: $filters) {\n    records { id salary source }\n    totalCount\n    hasNextPage\n  }\n}",
+                "variables": "{ \"filters\": { \"source\": \"jobs_in_data\", \"limit\": 5 } }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Salary Records - invalid limit",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns BAD_USER_INPUT error', function () {",
+                  "  pm.expect(json.errors).to.be.an('array');",
+                  "  pm.expect(json.errors[0].extensions.code).to.eql('BAD_USER_INPUT');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query SalaryRecords($filters: SalaryRecordFilters) {\n  salaryRecords(filters: $filters) {\n    records { id }\n    totalCount\n  }\n}",
+                "variables": "{ \"filters\": { \"limit\": 999 } }"
+              }
+            }
+          }
         }
       ]
     }
