@@ -246,6 +246,136 @@
           }
         }
       ]
+    },
+    {
+      "name": "02 - Public Queries",
+      "item": [
+        {
+          "name": "Countries list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns paginated countries', function () {",
+                  "  pm.expect(json.data.countries.countries).to.be.an('array');",
+                  "  pm.expect(json.data.countries.totalCount).to.be.above(0);",
+                  "  pm.expect(json.data.countries.hasNextPage).to.be.a('boolean');",
+                  "});",
+                  "",
+                  "const first = json.data.countries.countries[0];",
+                  "pm.collectionVariables.set('countryId', first.id);",
+                  "pm.collectionVariables.set('countryName', first.name);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Countries {\n  countries {\n    countries { id name }\n    totalCount\n    hasNextPage\n  }\n}",
+                "variables": ""
+              }
+            }
+          }
+        },
+        {
+          "name": "Country by ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns the correct country', function () {",
+                  "  pm.expect(json.data.country.id).to.eql(pm.collectionVariables.get('countryId'));",
+                  "  pm.expect(json.data.country.name).to.eql(pm.collectionVariables.get('countryName'));",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Country($id: ID!) {\n  country(id: $id) {\n    id\n    name\n  }\n}",
+                "variables": "{ \"id\": \"{{countryId}}\" }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Country - not found",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns NOT_FOUND error', function () {",
+                  "  pm.expect(json.errors).to.be.an('array');",
+                  "  pm.expect(json.errors[0].extensions.code).to.eql('NOT_FOUND');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Country($id: ID!) {\n  country(id: $id) {\n    id\n    name\n  }\n}",
+                "variables": "{ \"id\": \"999999\" }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Job Categories list",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns paginated job categories', function () {",
+                  "  pm.expect(json.data.jobCategories.jobCategories).to.be.an('array');",
+                  "  pm.expect(json.data.jobCategories.totalCount).to.be.above(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query JobCategories {\n  jobCategories {\n    jobCategories { id name jobCount }\n    totalCount\n    hasNextPage\n  }\n}",
+                "variables": ""
+              }
+            }
+          }
+        }
+      ]
     }
   ]
 }
