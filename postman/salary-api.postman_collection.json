@@ -91,6 +91,159 @@
               }
             }
           }
+        },
+        {
+          "name": "Register - duplicate email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns BAD_USER_INPUT error', function () {",
+                  "  pm.expect(json.errors).to.be.an('array');",
+                  "  pm.expect(json.errors[0].extensions.code).to.eql('BAD_USER_INPUT');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    token\n    user { id email }\n  }\n}",
+                "variables": "{ \"input\": { \"email\": \"{{email}}\", \"password\": \"{{password}}\" } }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Register - short password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns BAD_USER_INPUT error', function () {",
+                  "  pm.expect(json.errors).to.be.an('array');",
+                  "  pm.expect(json.errors[0].extensions.code).to.eql('BAD_USER_INPUT');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    token\n    user { id email }\n  }\n}",
+                "variables": "{ \"input\": { \"email\": \"short@example.com\", \"password\": \"123\" } }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Login - wrong password",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns BAD_USER_INPUT error', function () {",
+                  "  pm.expect(json.errors).to.be.an('array');",
+                  "  pm.expect(json.errors[0].extensions.code).to.eql('BAD_USER_INPUT');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user { id email }\n  }\n}",
+                "variables": "{ \"input\": { \"email\": \"{{email}}\", \"password\": \"wrongpassword123\" } }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Me - authenticated",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns current user', function () {",
+                  "  pm.expect(json.data.me.email).to.eql(pm.collectionVariables.get('email'));",
+                  "  pm.expect(json.data.me.id).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Me {\n  me {\n    id\n    email\n    createdAt\n  }\n}",
+                "variables": ""
+              }
+            }
+          }
+        },
+        {
+          "name": "Me - no token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns UNAUTHENTICATED error', function () {",
+                  "  pm.expect(json.errors).to.be.an('array');",
+                  "  pm.expect(json.errors[0].extensions.code).to.eql('UNAUTHENTICATED');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query Me {\n  me {\n    id\n    email\n    createdAt\n  }\n}",
+                "variables": ""
+              }
+            }
+          }
         }
       ]
     }
