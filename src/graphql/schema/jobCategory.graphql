@@ -1,5 +1,12 @@
 type JobCategory {
+  """
+  Unique category ID.
+  """
   id: ID!
+
+  """
+  Category name (e.g. "Data Science and Research").
+  """
   name: String!
 
   """
@@ -9,8 +16,19 @@ type JobCategory {
 }
 
 type JobCategoryPage {
+  """
+  The job categories in this page.
+  """
   jobCategories: [JobCategory!]!
+
+  """
+  Total number of job categories matching the query.
+  """
   totalCount: Int!
+
+  """
+  Whether there are more categories after this page.
+  """
   hasNextPage: Boolean!
 }
 

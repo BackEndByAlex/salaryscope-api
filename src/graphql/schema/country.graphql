@@ -1,5 +1,12 @@
 type Country {
+  """
+  Unique country ID.
+  """
   id: ID!
+
+  """
+  Country name.
+  """
   name: String!
 
   """
@@ -29,8 +36,19 @@ type Country {
 }
 
 type CountryPage {
+  """
+  The countries in this page.
+  """
   countries: [Country!]!
+
+  """
+  Total number of countries matching the query.
+  """
   totalCount: Int!
+
+  """
+  Whether there are more countries after this page.
+  """
   hasNextPage: Boolean!
 }
 

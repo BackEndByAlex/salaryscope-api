@@ -1,5 +1,12 @@
 type Company {
+  """
+  Unique company ID.
+  """
   id: ID!
+
+  """
+  Company name.
+  """
   name: String!
 
   """
@@ -19,8 +26,19 @@ type Company {
 }
 
 type CompanyPage {
+  """
+  The companies in this page.
+  """
   companies: [Company!]!
+
+  """
+  Total number of companies matching the query.
+  """
   totalCount: Int!
+
+  """
+  Whether there are more companies after this page.
+  """
   hasNextPage: Boolean!
 }
 

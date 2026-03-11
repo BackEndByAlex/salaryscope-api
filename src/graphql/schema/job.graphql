@@ -1,7 +1,22 @@
 type Job {
+  """
+  Unique job ID.
+  """
   id: ID!
+
+  """
+  Job title (e.g. "Machine Learning Engineer").
+  """
   title: String!
+
+  """
+  The job category this job belongs to, if any.
+  """
   category: JobCategory
+
+  """
+  Alternative role names for this job. Present only for salary_extra and software_pro records.
+  """
   roles: String
 
   """
@@ -11,8 +26,19 @@ type Job {
 }
 
 type JobPage {
+  """
+  The jobs in this page.
+  """
   jobs: [Job!]!
+
+  """
+  Total number of jobs matching the query.
+  """
   totalCount: Int!
+
+  """
+  Whether there are more jobs after this page.
+  """
   hasNextPage: Boolean!
 }
 

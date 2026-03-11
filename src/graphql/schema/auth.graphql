@@ -1,21 +1,53 @@
 type User {
+  """
+  Unique user ID.
+  """
   id: ID!
+
+  """
+  The user's email address.
+  """
   email: String!
+
+  """
+  When the account was created.
+  """
   createdAt: String!
 }
 
 type AuthPayload {
+  """
+  JWT token valid for 24 hours. Send as `Authorization: Bearer <token>` on subsequent requests.
+  """
   token: String!
+
+  """
+  The authenticated user.
+  """
   user: User!
 }
 
 input RegisterInput {
+  """
+  Email address for the new account. Must be unique.
+  """
   email: String!
+
+  """
+  Password for the new account. Minimum 8 characters.
+  """
   password: String!
 }
 
 input LoginInput {
+  """
+  The registered email address.
+  """
   email: String!
+
+  """
+  The account password.
+  """
   password: String!
 }
 

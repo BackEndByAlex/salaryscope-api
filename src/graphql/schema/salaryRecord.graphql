@@ -1,6 +1,17 @@
 type SalaryRecord {
+  """
+  Unique salary record ID.
+  """
   id: ID!
+
+  """
+  The reported salary amount.
+  """
   salary: Float!
+
+  """
+  Which dataset this record came from: jobs_in_data, salary_extra, or software_pro.
+  """
   source: String!
 
   """
@@ -13,10 +24,29 @@ type SalaryRecord {
   """
   salaryCurrency: String
 
+  """
+  Year the salary data was collected (e.g. 2023). Present only for jobs_in_data records.
+  """
   workYear: Int
+
+  """
+  Experience level: SE (senior), MI (mid), EN (entry), EX (executive).
+  """
   experienceLevel: String
+
+  """
+  Employment type: FT (full-time), PT (part-time), CT (contract), FL (freelance).
+  """
   employmentType: String
+
+  """
+  Work setting: Remote, Hybrid, or In-person.
+  """
   workSetting: String
+
+  """
+  Company size: S (small), M (medium), L (large).
+  """
   companySize: String
 
   """
@@ -29,18 +59,51 @@ type SalaryRecord {
   """
   employmentStatus: String
 
+  """
+  The job this salary record belongs to.
+  """
   job: Job!
+
+  """
+  The country where the employee is located.
+  """
   employeeCountry: Country
+
+  """
+  The country where the company is located.
+  """
   companyCountry: Country
+
+  """
+  The company this salary record belongs to.
+  """
   company: Company
 
+  """
+  When this record was created.
+  """
   createdAt: String!
+
+  """
+  When this record was last updated.
+  """
   updatedAt: String!
 }
 
 type SalaryRecordPage {
+  """
+  The salary records in this page.
+  """
   records: [SalaryRecord!]!
+
+  """
+  Total number of salary records matching the query.
+  """
   totalCount: Int!
+
+  """
+  Whether there are more records after this page.
+  """
   hasNextPage: Boolean!
 }
 
@@ -107,20 +170,79 @@ input SalaryRecordFilters {
 }
 
 input CreateSalaryRecordInput {
+  """
+  The salary amount. Must be a positive number.
+  """
   salary: Float!
+
+  """
+  Which dataset this record belongs to (e.g. jobs_in_data, salary_extra, software_pro).
+  """
   source: String!
+
+  """
+  Salary converted to USD (optional).
+  """
   salaryInUsd: Float
+
+  """
+  Original currency code (e.g. USD, EUR, GBP).
+  """
   salaryCurrency: String
+
+  """
+  Year the salary data was collected.
+  """
   workYear: Int
+
+  """
+  Experience level: SE, MI, EN, or EX.
+  """
   experienceLevel: String
+
+  """
+  Employment type: FT, PT, CT, or FL.
+  """
   employmentType: String
+
+  """
+  Work setting: Remote, Hybrid, or In-person.
+  """
   workSetting: String
+
+  """
+  Company size: S, M, or L.
+  """
   companySize: String
+
+  """
+  Number of salary responses aggregated into this record.
+  """
   salariesReported: Int
+
+  """
+  Employment status (optional).
+  """
   employmentStatus: String
+
+  """
+  The job this record belongs to. Required.
+  """
   jobId: ID!
+
+  """
+  Country where the employee is located (optional).
+  """
   employeeCountryId: ID
+
+  """
+  Country where the company is located (optional).
+  """
   companyCountryId: ID
+
+  """
+  The company this record belongs to (optional).
+  """
   companyId: ID
 }
 
@@ -128,19 +250,74 @@ input CreateSalaryRecordInput {
 source is intentionally excluded — a record's data origin cannot be changed after creation.
 """
 input UpdateSalaryRecordInput {
+  """
+  Updated salary amount.
+  """
   salary: Float
+
+  """
+  Updated USD salary.
+  """
   salaryInUsd: Float
+
+  """
+  Updated currency code.
+  """
   salaryCurrency: String
+
+  """
+  Updated work year.
+  """
   workYear: Int
+
+  """
+  Updated experience level: SE, MI, EN, or EX.
+  """
   experienceLevel: String
+
+  """
+  Updated employment type: FT, PT, CT, or FL.
+  """
   employmentType: String
+
+  """
+  Updated work setting: Remote, Hybrid, or In-person.
+  """
   workSetting: String
+
+  """
+  Updated company size: S, M, or L.
+  """
   companySize: String
+
+  """
+  Updated number of salary responses.
+  """
   salariesReported: Int
+
+  """
+  Updated employment status.
+  """
   employmentStatus: String
+
+  """
+  Change the job this record belongs to.
+  """
   jobId: ID
+
+  """
+  Change the employee country.
+  """
   employeeCountryId: ID
+
+  """
+  Change the company country.
+  """
   companyCountryId: ID
+
+  """
+  Change the company.
+  """
   companyId: ID
 }
 
