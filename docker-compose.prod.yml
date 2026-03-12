@@ -1,15 +1,27 @@
-# Production API — redeployed by CI/CD on every push.
+# Production API + Caddy reverse proxy.
 # Requires the database to be running: docker compose -f docker-compose.db.yml up -d
 #
 # Deploy:
 #   docker compose -f docker-compose.prod.yml up --build -d
 
 services:
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - /etc/ssl/certs/LNU_FTK_Campus_Root_CA_2025.pem:/etc/ssl/certs/LNU_FTK_Campus_Root_CA_2025.pem:ro
+    networks:
+      - app-network
+
   api:
     build: .
     restart: always
-    ports:
-      - "127.0.0.1:4000:4000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NODE_ENV: production
@@ -27,6 +39,10 @@ services:
 secrets:
   private_key:
     file: ./keys/private.pem
+
+volumes:
+  caddy_data:
+  caddy_config:
 
 networks:
   app-network:

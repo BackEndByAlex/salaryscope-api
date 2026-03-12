@@ -1,0 +1,12 @@
+cu0080.camp.lnu.se {
+	tls {
+		ca https://ca.camp.lnu.se:9000/acme/acme/directory
+		ca_root /etc/ssl/certs/LNU_FTK_Campus_Root_CA_2025.pem
+	}
+
+	reverse_proxy api:4000
+
+	log {
+		output file /data/logs/access.log
+	}
+}
