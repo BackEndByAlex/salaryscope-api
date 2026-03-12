@@ -32,6 +32,7 @@ async function runInChunks(items, fn, chunkSize = 50) {
 // --- Dimension seeding ---
 
 // Upsert countries and return a map of name → id for foreign key references.
+// For simplicity, we treat employee residence and company location as the same "country" dimension.
 async function seedCountries(aRows, bRows, cRows) {
   const names = new Set()
 
