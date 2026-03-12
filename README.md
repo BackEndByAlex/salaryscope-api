@@ -2,7 +2,7 @@
 
 ## Project Name
 
-SalaryScope
+ **SalaryScope**
 
 ## Getting Started
 
@@ -11,11 +11,17 @@ SalaryScope
 - Docker and Docker Compose installed
 - CSV files already downloaded, more instructions below.
 
-**First deploy (includes seeding)**
+**Step 1 — Start the database (once)**
 
-docker compose -f docker-compose.prod.yml up --build -d
+```bash
+docker compose -f docker-compose.db.yml up -d
+```
 
-This will start Postgres, run migrations, seed the database, and start the API.
+This starts Postgres, runs migrations, and seeds the database. You only need to do this once — the database lives in a Docker volume and survives restarts.
+
+To skip seeding: `docker compose -f docker-compose.db.yml up -d --scale seed=0`
+
+To re-seed later: `docker compose -f docker-compose.db.yml run --rm seed`
 
 **OBS:**
 
@@ -36,17 +42,19 @@ file names:
 - data/Salary_Dataset_with_Extra_Features.csv
 - data/Software_Professional_Salaries.csv
 
-**Subsequent deploys (skip seeding)**
+**Step 2 — Start the API**
 
-docker compose -f docker-compose.prod.yml up --build -d --scale seed=0
+Production:
+```bash
+docker compose -f docker-compose.prod.yml up --build -d
+```
 
-**Run seed manually (if needed)**
-
-docker compose -f docker-compose.prod.yml run --rm seed
-
-**Local development**
-
+Local development (with hot reload):
+```bash
 docker compose -f docker-compose.dev.yml up --build
+```
+
+The API connects to the database over a shared Docker network (`salaryscope-network`). CI/CD only rebuilds the API container.
 
 ## Objective
 
@@ -188,7 +196,7 @@ _List the technologies you chose and briefly explain why:_
 **helmet** - Secure HTTP
 **express-rate-limit** - Limits request rate per IP. Used for reduce brute force risks.
 **cors** - Restricts which oridins can call the API in a browser context.
-**docker + docker compose** - Deployment. Postgres, migrations, seeding, and the API all start with a single command.
+**docker + docker compose** - Deployment. Split into separate compose files: `docker-compose.db.yml` (database + migrations + seed) and `docker-compose.prod.yml` (API only). CI/CD only rebuilds the API.
 
 ## Reflection
 

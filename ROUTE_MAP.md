@@ -296,26 +296,34 @@ Use `limit` (default 20, max 100) and `offset` to move through pages.
 
 ## 11. Running the Project
 
+Docker Compose is split into separate files so the database and API can be managed independently.
+
+| File | What it runs |
+|---|---|
+| `docker-compose.db.yml` | PostgreSQL + migrations + seed — started once, never touched by CI/CD |
+| `docker-compose.prod.yml` | API only (production) — rebuilt on every deploy |
+| `docker-compose.dev.yml` | API only (development) — with hot reload via `--watch` |
+
+All three share the same Docker network (`salaryscope-network`), so the API can reach the database across compose files.
+
 ### First-time setup
 
 ```bash
-npm install
-cp .env.example .env          # fill in DATABASE_URL and PORT
-docker compose -f docker-compose.dev.yml up -d postgres
-npm run db:migrate
-npm run generate:keys
-npm run db:seed
+cp .env.example .env                              # fill in credentials
+npm run generate:keys                              # create RSA key pair
+docker compose -f docker-compose.db.yml up -d      # start database, migrate, seed
+docker compose -f docker-compose.dev.yml up --build # start API (dev mode)
 ```
 
 ### Day-to-day commands
 
 | Command | What it does |
 |---|---|
-| `npm run dev` | Start in development mode (auto-restart on changes) |
-| `npm start` | Start in production mode |
-| `npm run db:migrate` | Apply pending schema migrations |
-| `npm run db:seed` | Populate the database from CSV files |
-| `npm run db:reset` | Wipe all data and re-apply migrations (destructive) |
+| `docker compose -f docker-compose.dev.yml up --build` | Start API in dev mode (hot reload) |
+| `docker compose -f docker-compose.prod.yml up --build -d` | Deploy API in production mode |
+| `docker compose -f docker-compose.db.yml up -d` | Start database (if stopped) |
+| `docker compose -f docker-compose.db.yml up -d --scale seed=0` | Start database without re-seeding |
+| `docker compose -f docker-compose.db.yml run --rm seed` | Re-seed the database manually |
 | `npm run db:studio` | Open database browser at `http://localhost:5555` |
 | `npm run generate:keys` | Re-generate RSA keys (invalidates all existing tokens) |
 
