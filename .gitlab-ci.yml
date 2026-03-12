@@ -28,25 +28,23 @@ test:
 
 # ---------------------------------------------------------------
 # BUILD — Build Docker image and push to GitLab Container Registry
+# Uses Kaniko (no privileged mode needed on shared runners)
 # Runs on main only, after tests pass
 # ---------------------------------------------------------------
 build:
   stage: build
-  image: docker:latest
-  services:
-    - docker:dind
-  variables:
-    DOCKER_TLS_CERTDIR: "/certs"
-  before_script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
   script:
-    - docker pull "$CI_REGISTRY_IMAGE:latest" || true
-    - docker build
-        --cache-from "$CI_REGISTRY_IMAGE:latest"
-        --tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
-        --tag "$CI_REGISTRY_IMAGE:latest"
-        .
-    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
-    - docker push "$CI_REGISTRY_IMAGE:latest"
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}"
+        > /kaniko/.docker/config.json
+    - /kaniko/executor
+        --context "${CI_PROJECT_DIR}"
+        --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+        --destination "${CI_REGISTRY_IMAGE}:${CI_COMMIT_SHA}"
+        --destination "${CI_REGISTRY_IMAGE}:latest"
+        --cache=true
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
