@@ -1,0 +1,52 @@
+# ---------------------------------------------------------------
+# SalaryScope CI/CD Pipeline
+# TEST → BUILD
+#
+# Deployment is handled by Watchtower on the server —
+# it polls the registry and auto-updates the API container.
+# ---------------------------------------------------------------
+
+stages:
+  - test
+  - build
+
+# ---------------------------------------------------------------
+# TEST — Run Newman against the live API
+# Runs on main only (tests mutate production data)
+# ---------------------------------------------------------------
+test:
+  stage: test
+  image:
+    name: postman/newman:latest
+    entrypoint: [""]
+  script:
+    - newman run postman/salary-api.postman_collection.json
+        -e postman/production.postman_environment.json
+        --insecure
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ---------------------------------------------------------------
+# BUILD — Build Docker image and push to GitLab Container Registry
+# Runs on main only, after tests pass
+# ---------------------------------------------------------------
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+  script:
+    - docker pull "$CI_REGISTRY_IMAGE:latest" || true
+    - docker build
+        --cache-from "$CI_REGISTRY_IMAGE:latest"
+        --tag "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
+        --tag "$CI_REGISTRY_IMAGE:latest"
+        .
+    - docker push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHA"
+    - docker push "$CI_REGISTRY_IMAGE:latest"
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

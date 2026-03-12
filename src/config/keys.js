@@ -1,27 +1,31 @@
 import { readFileSync } from "fs"
 import { join } from "path"
 
-const PRIVATE_KEY_PATH =
-  process.env.PRIVATE_KEY_PATH ?? join(import.meta.dirname, "../../keys/private.pem")
-
 function loadPrivateKey() {
-  const remediationHint = process.env.PRIVATE_KEY_PATH
+  if (process.env.RSA_PRIVATE_KEY_B64) {
+    return Buffer.from(process.env.RSA_PRIVATE_KEY_B64, "base64").toString("utf8")
+  }
 
-  return readKeyFromPath(PRIVATE_KEY_PATH, remediationHint)
+  const keyPath =
+    process.env.PRIVATE_KEY_PATH ??
+    join(import.meta.dirname, "../../keys/private.pem")
+
+  return readKeyFromPath(keyPath)
 }
 
 function loadPublicKey() {
-  return readKeyFromPath(
-    join(import.meta.dirname, "../../keys/public.pem"),
-  )
+  if (process.env.RSA_PUBLIC_KEY_B64) {
+    return Buffer.from(process.env.RSA_PUBLIC_KEY_B64, "base64").toString("utf8")
+  }
+
+  return readKeyFromPath(join(import.meta.dirname, "../../keys/public.pem"))
 }
 
-function readKeyFromPath(absolutePath, remediationHint) {
+function readKeyFromPath(absolutePath) {
   try {
     return readFileSync(absolutePath, "utf8")
   } catch {
     console.error(`FATAL: Could not load key from ${absolutePath}.`)
-    console.error(`Expected location: ${remediationHint}`)
     process.exit(1)
   }
 }
