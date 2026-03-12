@@ -20,8 +20,10 @@ services:
       - app-network
 
   api:
-    build: .
+    image: gitlab.lnu.se:5050/1dv027/student/aa227wr/exercises/assignment-api-design:latest
     restart: always
+    labels:
+        - "com.centurylinklabs.watchtower.enable=true"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NODE_ENV: production
