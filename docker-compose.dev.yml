@@ -1,40 +1,10 @@
-# Local development stack
-# Postgres port is exposed so you can run Prisma commands and Studio from the host.
-# Private key is loaded from ./keys/ directly — no Docker secrets needed locally.
+# Local development — API only.
+# Requires the database to be running: docker compose -f docker-compose.db.yml up -d
 #
 # Usage:
 #   docker compose -f docker-compose.dev.yml up --build
-#   docker compose -f docker-compose.dev.yml down
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "127.0.0.1:5432:5432" # exposed so host tools (prisma studio, db:seed, db:migrate) can connect
-    volumes:
-      - postgres_dev_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
-  migrate:
-    build: .
-    restart: "no" # one-shot: runs migrations once then exits
-    command: npx prisma migrate deploy
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-    depends_on:
-      postgres:
-        condition: service_healthy
-
   api:
     build: .
     restart: unless-stopped
@@ -46,14 +16,13 @@ services:
       PORT: 4000
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
     volumes:
-      - ./keys:/app/keys:ro  # mount local PEM files directly
-      - ./src:/app/src        # hot reload — changes reflect without rebuilding
+      - ./keys:/app/keys:ro
+      - ./src:/app/src
     command: node --watch src/server.js
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
-      postgres:
-        condition: service_healthy
+    networks:
+      - app-network
 
-volumes:
-  postgres_dev_data:
+networks:
+  app-network:
+    external: true
+    name: salaryscope-network

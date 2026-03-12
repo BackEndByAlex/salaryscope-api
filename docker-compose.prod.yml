@@ -1,56 +1,15 @@
-# Production deployment (Cumulus)
-# Postgres is NOT exposed to the host — only reachable within the Docker network.
-# Private key is injected via Docker secret so it never appears in environment dumps.
-# Caddy on the host reverse-proxies public traffic to 127.0.0.1:4000.
+# Production API — redeployed by CI/CD on every push.
+# Requires the database to be running: docker compose -f docker-compose.db.yml up -d
 #
-# First deploy (includes seeding):
+# Deploy:
 #   docker compose -f docker-compose.prod.yml up --build -d
-#
-# Subsequent deploys (skip seeding):
-#   docker compose -f docker-compose.prod.yml up --build -d --scale seed=0
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    restart: always
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-
-  migrate:
-    build: .
-    restart: "no" # one-shot: runs migrations once then exits
-    command: npx prisma migrate deploy
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  seed:
-    build: .
-    restart: "no" # one-shot: seeds the database once then exits
-    command: node prisma/seed.js
-    environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
-
   api:
     build: .
     restart: always
     ports:
-      - "127.0.0.1:4000:4000" # loopback only — Caddy on the host proxies to this port
+      - "127.0.0.1:4000:4000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NODE_ENV: production
@@ -59,18 +18,17 @@ services:
       PRIVATE_KEY_PATH: /run/secrets/private_key
     secrets:
       - source: private_key
-        mode: 0444 # readable by the non-root appuser inside the container
+        mode: 0444
     volumes:
       - ./keys/public.pem:/app/keys/public.pem:ro
-    depends_on:
-      migrate:
-        condition: service_completed_successfully
-      postgres:
-        condition: service_healthy
+    networks:
+      - app-network
 
 secrets:
   private_key:
-    file: ./keys/private.pem # never committed — lives on the server only
+    file: ./keys/private.pem
 
-volumes:
-  postgres_data:
+networks:
+  app-network:
+    external: true
+    name: salaryscope-network
