@@ -531,6 +531,263 @@
           }
         }
       ]
+    },
+    {
+      "name": "03 - CRUD Sequence",
+      "item": [
+        {
+          "name": "Create record",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns created record', function () {",
+                  "  pm.expect(json.data.createSalaryRecord.id).to.be.a('string');",
+                  "  pm.expect(json.data.createSalaryRecord.salary).to.eql(75000);",
+                  "  pm.expect(json.data.createSalaryRecord.source).to.eql('newman_test');",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set('recordId', json.data.createSalaryRecord.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateSalaryRecord($input: CreateSalaryRecordInput!) {\n  createSalaryRecord(input: $input) {\n    id\n    salary\n    source\n    job { title }\n  }\n}",
+                "variables": "{ \"input\": { \"salary\": 75000, \"source\": \"newman_test\", \"jobId\": \"{{jobId}}\" } }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Create record - no auth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns UNAUTHENTICATED error', function () {",
+                  "  pm.expect(json.errors).to.be.an('array');",
+                  "  pm.expect(json.errors[0].extensions.code).to.eql('UNAUTHENTICATED');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateSalaryRecord($input: CreateSalaryRecordInput!) {\n  createSalaryRecord(input: $input) {\n    id\n  }\n}",
+                "variables": "{ \"input\": { \"salary\": 50000, \"source\": \"test\", \"jobId\": \"{{jobId}}\" } }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Create record - missing fields",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns error for missing fields', function () {",
+                  "  pm.expect(json.errors).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation CreateSalaryRecord($input: CreateSalaryRecordInput!) {\n  createSalaryRecord(input: $input) {\n    id\n  }\n}",
+                "variables": "{ \"input\": { \"salary\": 50000 } }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Get created record",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns the created record', function () {",
+                  "  pm.expect(json.data.salaryRecord.id).to.eql(pm.collectionVariables.get('recordId'));",
+                  "  pm.expect(json.data.salaryRecord.salary).to.eql(75000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query SalaryRecord($id: ID!) {\n  salaryRecord(id: $id) {\n    id\n    salary\n    source\n  }\n}",
+                "variables": "{ \"id\": \"{{recordId}}\" }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Update record",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns updated salary', function () {",
+                  "  pm.expect(json.data.updateSalaryRecord.salary).to.eql(90000);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation UpdateSalaryRecord($id: ID!, $input: UpdateSalaryRecordInput!) {\n  updateSalaryRecord(id: $id, input: $input) {\n    id\n    salary\n  }\n}",
+                "variables": "{ \"id\": \"{{recordId}}\", \"input\": { \"salary\": 90000 } }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Update record - no auth",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns UNAUTHENTICATED error', function () {",
+                  "  pm.expect(json.errors).to.be.an('array');",
+                  "  pm.expect(json.errors[0].extensions.code).to.eql('UNAUTHENTICATED');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation UpdateSalaryRecord($id: ID!, $input: UpdateSalaryRecordInput!) {\n  updateSalaryRecord(id: $id, input: $input) {\n    id\n  }\n}",
+                "variables": "{ \"id\": \"{{recordId}}\", \"input\": { \"salary\": 99999 } }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete record",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns true', function () {",
+                  "  pm.expect(json.data.deleteSalaryRecord).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation DeleteSalaryRecord($id: ID!) {\n  deleteSalaryRecord(id: $id)\n}",
+                "variables": "{ \"id\": \"{{recordId}}\" }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Get deleted record",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "",
+                  "pm.test('Returns NOT_FOUND error', function () {",
+                  "  pm.expect(json.errors).to.be.an('array');",
+                  "  pm.expect(json.errors[0].extensions.code).to.eql('NOT_FOUND');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "query SalaryRecord($id: ID!) {\n  salaryRecord(id: $id) {\n    id\n  }\n}",
+                "variables": "{ \"id\": \"{{recordId}}\" }"
+              }
+            }
+          }
+        }
+      ]
     }
   ]
 }
