@@ -52,7 +52,17 @@ try {
 
   app.set("trust proxy", 1)
 
-  app.use(helmet({ contentSecurityPolicy: false }))
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://embeddable-sandbox.cdn.apollographql.com"],
+        frameSrc: ["'self'", "https://sandbox.embed.apollographql.com"],
+        connectSrc: ["'self'", "https://*.apollographql.com"],
+        imgSrc: ["'self'", "data:", "https://apollo-server-landing-page.cdn.apollographql.com"],
+      },
+    },
+  }))
   app.use(cors({ origin: corsOriginValidator }))
   app.use(express.json({ limit: "100kb" }))
   app.use(rateLimit({ windowMs: RATE_LIMIT_WINDOW_MS, max: GENERAL_RATE_LIMIT_MAX, standardHeaders: true, legacyHeaders: false }))
