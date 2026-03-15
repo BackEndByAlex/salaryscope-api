@@ -1,44 +1,22 @@
-# Database + migrations + seed — started once, never touched by CI/CD.
+# Migrate + seed — run once after the server compose is up.
 #
-# Fresh start (includes seeding):
-#   docker compose -f docker-compose.db.yml up -d
+# Prerequisites:
+#   - Postgres already running on salaryscope-network (from server compose)
+#   - CSV files in ./data/
 #
-# Without seeding:
-#   docker compose -f docker-compose.db.yml up -d --scale seed=0
+# Run:
+#   docker compose -f docker-compose.db.yml up
 #
 # Re-seed later:
 #   docker compose -f docker-compose.db.yml run --rm seed
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    restart: always
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "127.0.0.1:5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    networks:
-      - app-network
-
   migrate:
     build: .
     restart: "no"
     command: npx prisma migrate deploy
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - app-network
 
@@ -48,6 +26,8 @@ services:
     command: node prisma/seed.js
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    volumes:
+      - ./data:/app/data:ro
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -56,7 +36,5 @@ services:
 
 networks:
   app-network:
+    external: true
     name: salaryscope-network
-
-volumes:
-  postgres_data:

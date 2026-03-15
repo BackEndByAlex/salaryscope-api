@@ -2,18 +2,38 @@
 # Does NOT require the project repo to be cloned.
 #
 # Prerequisites:
-#   - Postgres already running on salaryscope-network (from docker-compose.db.yml)
-#   - RSA keys at ~/keys/private.pem and ~/keys/public.pem
+#   - RSA keys at /home/ubuntu/keys/private.pem and public.pem
 #   - Caddyfile in the same folder as this file
 #   - .env in the same folder with POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB, ALLOWED_ORIGINS
 #   - GitLab registry credentials in ~/.docker/config.json
 #
-# Deploy:
+# First-time setup:
 #   cd ~/salaryscope && docker compose up -d
+#   Then clone the project to /tmp, run docker-compose.db.yml to migrate and seed.
 #
-# The API image is pulled from GitLab registry — Watchtower auto-updates it.
+# Day-to-day:
+#   cd ~/salaryscope && docker compose up -d
 
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - app-network
+
   caddy:
     image: caddy:2-alpine
     restart: always
@@ -25,6 +45,8 @@ services:
       - caddy_data:/data
       - caddy_config:/config
       - /etc/ssl/certs/LNU_FTK_Campus_Root_CA_2025.pem:/etc/ssl/certs/LNU_FTK_Campus_Root_CA_2025.pem:ro
+    depends_on:
+      - api
     networks:
       - app-network
 
@@ -44,6 +66,9 @@ services:
         mode: 0400
     volumes:
       - /home/ubuntu/keys/public.pem:/app/keys/public.pem:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
     networks:
       - app-network
 
@@ -65,10 +90,10 @@ secrets:
     file: /home/ubuntu/keys/private.pem
 
 volumes:
+  postgres_data:
   caddy_data:
   caddy_config:
 
 networks:
   app-network:
-    external: true
     name: salaryscope-network
