@@ -180,7 +180,7 @@ Prisma translates repository calls into SQL and manages the connection pool. Pos
 
 ## 5. Authentication
 
-JWT-based authentication using RS256 (asymmetric — two keys: private to sign, public to verify). Tokens are valid for 24 hours.
+JWT-based authentication using RS256 (asymmetric — two keys: private to sign, public to verify). Tokens are valid for 24 hours and include `issuer` and `audience` claims to scope them to this API.
 
 ```
 Register / Login
@@ -204,12 +204,16 @@ Subsequent requests
 
 | Protection | What it does |
 |---|---|
-| **Helmet** | Sets HTTP security headers (XSS, clickjacking, HTTPS enforcement) |
+| **Helmet + CSP** | Sets HTTP security headers (XSS, clickjacking, HTTPS enforcement). Content Security Policy allows Apollo Studio while blocking all other external scripts. |
 | **CORS** | Only allows origins listed in `ALLOWED_ORIGINS`. Postman/curl always allowed. |
 | **Global rate limit** | 200 requests per IP per 15 minutes |
-| **Auth rate limit** | 10 requests per IP per 15 minutes on `login` and `register` |
+| **Auth rate limit** | 10 requests per IP per 15 minutes on `login` and `register`. Detects auth operations by both `operationName` and query body to prevent bypass. |
+| **Query depth limit** | Rejects GraphQL queries deeper than 5 levels to prevent nested query abuse |
 | **Batch blocker** | Rejects any request body that is a JSON array |
 | **Body size limit** | 100 KB max per request |
+| **Password length** | Minimum 8, maximum 128 characters. Prevents bcrypt truncation issues and large-payload abuse. |
+| **Pagination caps** | All paginated queries (including nested fields) are capped at 100 records per page |
+| **JWT scoping** | Tokens include `issuer` and `audience` claims, scoping them to this API only |
 | **Introspection** | Enabled in all environments (for Postman and Apollo Sandbox) |
 | **Error sanitization** | In production, unexpected errors are replaced with "Internal server error" |
 

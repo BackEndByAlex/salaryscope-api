@@ -19,8 +19,8 @@ Each repository wraps one database table and exposes named methods. Services cal
 - `findAll` — paginated list of countries, each with aggregate counts (employee records, company records, companies)
 - `findById` — single country by ID
 - `findByName` — single country by name
-- `findEmployeeRecords` — paginated salary records where employees live in a given country
-- `findCompanyRecords` — paginated salary records where companies are based in a given country
+- `findEmployeeRecords` — paginated salary records where employees live in a given country (limit capped at 100)
+- `findCompanyRecords` — paginated salary records where companies are based in a given country (limit capped at 100)
 
 ---
 
@@ -36,7 +36,7 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 - `findAll` — paginated list of jobs, with an optional category filter
 - `findById` — single job by ID
-- `findRecordsByJob` — paginated salary records for a given job
+- `findRecordsByJob` — paginated salary records for a given job (limit capped at 100)
 
 ---
 
@@ -45,7 +45,7 @@ Each repository wraps one database table and exposes named methods. Services cal
 - `findAll` — paginated list of companies, with an optional country filter
 - `findById` — single company by ID
 - `findByName` — single company by name
-- `findRecordsByCompany` — paginated salary records for a given company
+- `findRecordsByCompany` — paginated salary records for a given company (limit capped at 100)
 
 ---
 

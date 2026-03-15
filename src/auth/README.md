@@ -9,20 +9,21 @@ Everything that handles who a user is and whether they are allowed to do somethi
 Handles registering and logging in users.
 
 **Register:**
-1. Checks that email and password are provided
-2. Checks that the email is not already taken
-3. Hashes the password (never stores it in plain text)
-4. Creates the user in the database
-5. Returns a signed token and the new user
+1. Checks that the email is not already taken (returns a vague error message to prevent user enumeration)
+2. Hashes the password (never stores it in plain text)
+3. Creates the user in the database
+4. Strips sensitive fields with `#toPublicUser` before returning
+5. Returns a signed token and the safe user object
 
 **Login:**
-1. Checks that email and password are provided
-2. Looks up the user by email
-3. Compares the provided password against the stored hash
-4. If it matches — returns a signed token and the user
-5. If it doesn't — throws an "Invalid credentials" error (same message whether the email or password is wrong, intentionally)
+1. Looks up the user by email
+2. Compares the provided password against the stored hash
+3. If it matches — strips sensitive fields with `#toPublicUser` and returns a signed token and the user
+4. If it doesn't — throws an "Invalid credentials" error (same message whether the email or password is wrong, intentionally)
 
-Tokens are signed with the private RSA key from `config/keys.js`, use the RS256 algorithm, and expire after 24 hours.
+Input validation (email/password required, format, length) is handled by `authValidator.js` in the resolver layer before the service is called. AuthService does not duplicate those checks.
+
+Tokens are signed with the private RSA key from `config/keys.js`, use the RS256 algorithm, expire after 24 hours, and include `issuer` and `audience` claims to scope them to this API.
 
 ---
 
@@ -32,7 +33,7 @@ Runs on every incoming request before anything else.
 
 1. Reads the `Authorization` header
 2. If it starts with `Bearer `, extracts the token
-3. Verifies the token using the public RSA key
+3. Verifies the token using the public RSA key (checks algorithm, issuer, and audience)
 4. If valid — attaches `{ id, email }` to the request context so resolvers know who is making the request
 5. If missing or invalid — sets `user: null` and continues without throwing
 

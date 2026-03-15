@@ -108,7 +108,7 @@ The API uses JWT with RS256.
 
 User registers or logs in, the server signs a token with a private RSA key. Every request inclues the token in the **Authorization: Bearer <token>** header. Then the server verifies it, using the public key.
 
-Passowrds are hashed with bcryt at 12 salt rounds before storage, then the token expires after 24 hours.
+Passowrds are hashed with bcryt at 12 salt rounds before storage, then the token expires after 24 hours. Each token also includes `issuer` and `audience` claims, scoping it to this API only. This prevents tokens from being accepted by other services that might share the same RSA keys.
 
 **Why RS256 over HS256 and Ed25519 ?**
 
@@ -193,8 +193,9 @@ _List the technologies you chose and briefly explain why:_
 **PostgresSQL** - Relational database, suited for my structured salary data with relations between jobs, companies and countries.
 **jsonwebtoken** - JWT signing and verification. RS256 for stateless authentication
 **bcryptjs** - Password hasing with configurable salt rounds.
-**helmet** - Secure HTTP
-**express-rate-limit** - Limits request rate per IP. Used for reduce brute force risks.
+**helmet** - Secure HTTP headers with a targeted Content Security Policy that allows Apollo Studio while blocking everything else.
+**express-rate-limit** - Limits request rate per IP. General limit of 200 requests and a stricter limit of 10 for auth operations (login/register), with query body detection to prevent bypass.
+**graphql-depth-limit** - Prevents deeply nested query abuse by rejecting queries deeper than 5 levels.
 **cors** - Restricts which oridins can call the API in a browser context.
 **docker + docker compose** - Deployment. Split into separate compose files: `docker-compose.db.yml` (database + migrations + seed) and `docker-compose.prod.yml` (API only). CI/CD only rebuilds the API.
 

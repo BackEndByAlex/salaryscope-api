@@ -17,7 +17,8 @@ Creates all repositories and services and returns them as a single object. Calle
 Builds and returns the Apollo Server instance. It:
 1. Loads all `.graphql` schema files from `schema/`
 2. Registers all resolver files
-3. Configures the embedded sandbox (Apollo Studio in production, local sandbox in development)
+3. Applies a query depth limit of 5 levels to prevent deeply nested query abuse
+4. Configures the embedded sandbox (Apollo Studio in production, local sandbox in development)
 
 ---
 
