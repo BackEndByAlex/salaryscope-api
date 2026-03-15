@@ -28,7 +28,7 @@ export class AuthService {
       passwordHash: hashedPassword,
     })
 
-    return { token: this.#generateToken(user), user }
+    return { token: this.#generateToken(user), user: this.#toPublicUser(user) }
   }
 
   async login({ email, password }) {
