@@ -33,7 +33,12 @@ function blockBatchedRequests(req, res, next) {
 function applyAuthRateLimit(authRateLimit) {
   return (req, res, next) => {
     const op = req.body?.operationName
-    if (AUTH_OPERATIONS.includes(op)) return authRateLimit(req, res, next)
+    const query = req.body?.query ?? ""
+
+    const isAuthOperation = AUTH_OPERATIONS.includes(op)
+      || /\b(login|register)\b/i.test(query)
+
+    if (isAuthOperation) return authRateLimit(req, res, next)
     next()
   }
 }
