@@ -2,6 +2,7 @@ import { readFileSync } from "fs"
 import { join, dirname } from "path"
 import { fileURLToPath } from "url"
 import { ApolloServer } from "@apollo/server"
+import depthLimit from "graphql-depth-limit"
 import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault,
@@ -79,6 +80,7 @@ export function buildApolloServer() {
       companyResolvers,
       salaryRecordResolvers,
     ],
+    validationRules: [depthLimit(5)],
     introspection: true,
     plugins: [
       process.env.NODE_ENV === "production"
