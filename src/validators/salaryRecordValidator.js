@@ -20,6 +20,14 @@ export function validateUpdateInput(data) {
       "At least one field must be provided to update.",
     )
   }
+
+  if (data.salary != null && !(Number(data.salary) > 0)) {
+    throw new BadUserInputError("salary must be a positive number.")
+  }
+
+  if (data.source != null && data.source.length > 200) {
+    throw new BadUserInputError("source must not exceed 200 characters.")
+  }
 }
 
 export function validateFilters({ limit, offset } = {}) {
