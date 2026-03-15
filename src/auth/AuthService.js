@@ -14,9 +14,6 @@ export class AuthService {
   }
 
   async register({ email, password }) {
-    if (!email || !password)
-      throw new BadUserInputError("Email and password are required.")
-
     const existingUser = await this.#userRepository.findByEmail(email)
     if (existingUser) {
       throw new BadUserInputError("Registration failed. Please try a different email or log in.")
@@ -32,9 +29,6 @@ export class AuthService {
   }
 
   async login({ email, password }) {
-    if (!email || !password)
-      throw new BadUserInputError("Email and password are required.")
-
     const user = await this.#userRepository.findByEmail(email)
     const passwordMatches =
       user && (await bcrypt.compare(password, user.passwordHash))
