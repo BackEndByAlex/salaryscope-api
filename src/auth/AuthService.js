@@ -47,6 +47,8 @@ export class AuthService {
     return jwt.sign({ userId: user.id, email: user.email }, this.#privateKey, {
       algorithm: "RS256",
       expiresIn: "1d",
+      issuer: "salaryscope-api",
+      audience: "salaryscope-client",
     })
   }
 

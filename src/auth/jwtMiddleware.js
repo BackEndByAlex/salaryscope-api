@@ -11,7 +11,11 @@ export function buildContext({ req }) {
   const token = authHeader.slice("Bearer ".length)
 
   try {
-    const payload = jwt.verify(token, publicKey, { algorithms: ["RS256"] })
+    const payload = jwt.verify(token, publicKey, {
+      algorithms: ["RS256"],
+      issuer: "salaryscope-api",
+      audience: "salaryscope-client",
+    })
     if (typeof payload !== "object" || payload === null) return { user: null }
     return { user: { id: payload.userId, email: payload.email } }
   } catch {
