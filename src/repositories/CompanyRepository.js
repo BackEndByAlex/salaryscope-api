@@ -43,6 +43,8 @@ export class CompanyRepository {
   }
 
   async findRecordsByCompany(companyId, { limit = 20, offset = 0 } = {}) {
+    const cappedLimit = Math.min(Math.max(limit, 1), 100)
+    const safeOffset = Math.max(offset, 0)
     const where = { companyId }
 
     const [totalCount, records] = await this.#prisma.$transaction([
@@ -50,8 +52,8 @@ export class CompanyRepository {
       this.#prisma.salaryRecord.findMany({
         where,
         include: SALARY_RECORD_INCLUDE,
-        take: limit,
-        skip: offset,
+        take: cappedLimit,
+        skip: safeOffset,
         orderBy: { id: "asc" },
       }),
     ])
