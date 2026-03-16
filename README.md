@@ -11,30 +11,34 @@
 - Docker and Docker Compose installed
 - CSV files already downloaded, more instructions below.
 
-**Step 1 — Start the database (once)**
+**Step 1 — Set up environment and keys**
 
 ```bash
-docker compose -f docker-compose.db.yml up -d
+cp .env.example .env
 ```
 
-This starts Postgres, runs migrations, and seeds the database. You only need to do this once — the database lives in a Docker volume and survives restarts.
+Fill in the credentials in `.env` (database user, password, allowed origins).
 
-To skip seeding: `docker compose -f docker-compose.db.yml up -d --scale seed=0`
+Then generate the RSA key pair used for JWT authentication:
 
-To re-seed later: `docker compose -f docker-compose.db.yml run --rm seed`
+```bash
+npm run generate:keys
+```
 
-**OBS:**
+This creates `keys/private.pem` and `keys/public.pem` at the project root.
 
-To download the CSV files:
+**Step 2 — Download CSV files**
+
+Download the datasets from Kaggle:
 
 - https://www.kaggle.com/datasets/murilozangari/jobs-and-salaries-in-data-field-2024
 - https://www.kaggle.com/code/lucasgalanti/jobs-in-data
 - https://www.kaggle.com/code/iamsouravbanerjee/software-professional-salaries/input
 - https://www.kaggle.com/code/iamsouravbanerjee/software-professional-salaries/input
 
-Then make sure you create a /data folder in the root of the project (outside /src) and add the CSV
-files into it. The /data folder is not included in the repository, you need to create it locally.
-Check that the file names match exactly as shown below, the reason is the seed script has hardcoded
+Then create a `/data` folder in the root of the project (outside `/src`) and add the CSV
+files into it. The `/data` folder is not included in the repository, you need to create it locally.
+Check that the file names match exactly as shown below, the seed script has hardcoded
 file names:
 
 - data/jobs_in_data_2024.csv
@@ -42,13 +46,28 @@ file names:
 - data/Salary_Dataset_with_Extra_Features.csv
 - data/Software_Professional_Salaries.csv
 
-**Step 2 — Start the API**
+**Step 3 — Start Postgres**
 
-Production:
+The database runs inside the server compose stack. For local development, create the shared Docker network and start Postgres:
 
 ```bash
-docker compose -f docker-compose.prod.yml up --build -d
+docker network create salaryscope-network
+docker compose -f docker-compose.server.yml up -d postgres
 ```
+
+The database lives in a Docker volume and survives restarts.
+
+**Step 4 — Run migrations and seed (once)**
+
+```bash
+docker compose -f docker-compose.db.yml up
+```
+
+This runs Prisma migrations and seeds the database with CSV data (~68,000 rows). Postgres must already be running on the `salaryscope-network`.
+
+To re-seed later: `docker compose -f docker-compose.db.yml run --rm seed`
+
+**Step 5 — Start the API**
 
 Local development (with hot reload):
 
@@ -56,11 +75,22 @@ Local development (with hot reload):
 docker compose -f docker-compose.dev.yml up --build
 ```
 
-The API connects to the database over a shared Docker network (`salaryscope-network`). CI/CD only rebuilds the API container.
+The API connects to the database over the shared Docker network (`salaryscope-network`). Open `http://localhost:4000/graphql` to access the Apollo Sandbox.
 
 ## Objective
 
 _Describe your API in a few sentences: what dataset does it serve, what are its main resources, and what can users do with it?_
+
+--- 
+
+SalaryScope is a GraphQL API that serves salary data from the tech industry, combined from four
+Kaggle datasets with around 68,000 records. The main resources are salary records, jobs, job
+categories, companies, and countries. Users can browse and filter salary data without logging
+in. Registered users can also create, update, and delete their own salary records. The API
+includes JWT authentication, pagination, nested queries, and is deployed with full documentation
+on a cloud server.
+
+---
 
 ## Implementation Type
 
@@ -73,15 +103,15 @@ GraphQL
 | **Production API**                    | https://cu0080.camp.lnu.se/graphql    |
 | **API Documentation**                 | [ROUTE_MAP](/ROUTE_MAP.md)            |
 | **GraphQL Playground** (GraphQL only) | https://cu0080.camp.lnu.se/graphql    |
-| **Postman Collection**                | `*salary-api.postman_collection.json` |
-| **Production Environment**            | `production.postman_environment.json` |
+| **Postman Collection**                | `postman/salary-api.postman_collection.json` |
+| **Production Environment**            | `postman/production.postman_environment.json` |
 
 **Examiner can verify tests in one of the following ways:**
 
 1. **CI/CD pipeline** — check the pipeline output in GitLab for test results.
 2. **Run manually** — no setup needed:
    ```
-   npx newman run <collection.json> -e production.postman_environment.json
+   npx newman run postman/salary-api.postman_collection.json -e postman/production.postman_environment.json
    ```
 
 ## Dataset

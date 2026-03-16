@@ -286,19 +286,22 @@ Docker Compose is split into separate files so the database and API can be manag
 
 | File | What it runs |
 |---|---|
-| `docker-compose.db.yml` | PostgreSQL + migrations + seed -- started once, never touched by CI/CD |
-| `docker-compose.prod.yml` | API only (production) -- rebuilt on every deploy |
+| `docker-compose.server.yml` | Postgres + Caddy + API + Watchtower -- production server only |
+| `docker-compose.db.yml` | Migrations + seed -- expects Postgres already running on the network |
 | `docker-compose.dev.yml` | API only (development) -- with hot reload via `--watch` |
+| `docker-compose.prod.yml` | API + Caddy (production) -- rebuilt on every deploy |
 
-All three share the same Docker network (`salaryscope-network`), so the API can reach the database across compose files.
+All compose files share the same Docker network (`salaryscope-network`), so the API can reach the database across compose files.
 
 ### First-time setup
 
 ```bash
-cp .env.example .env                              # fill in credentials
-npm run generate:keys                              # create RSA key pair
-docker compose -f docker-compose.db.yml up -d      # start database, migrate, seed
-docker compose -f docker-compose.dev.yml up --build # start API (dev mode)
+cp .env.example .env                                        # fill in credentials
+npm run generate:keys                                        # create RSA key pair
+docker network create salaryscope-network                    # create shared network
+docker compose -f docker-compose.server.yml up -d postgres   # start Postgres
+docker compose -f docker-compose.db.yml up                   # run migrations + seed
+docker compose -f docker-compose.dev.yml up --build          # start API (dev mode)
 ```
 
 ### Day-to-day commands
@@ -306,11 +309,8 @@ docker compose -f docker-compose.dev.yml up --build # start API (dev mode)
 | Command | What it does |
 |---|---|
 | `docker compose -f docker-compose.dev.yml up --build` | Start API in dev mode (hot reload) |
-| `docker compose -f docker-compose.prod.yml up --build -d` | Deploy API in production mode |
-| `docker compose -f docker-compose.db.yml up -d` | Start database (if stopped) |
-| `docker compose -f docker-compose.db.yml up -d --scale seed=0` | Start database without re-seeding |
 | `docker compose -f docker-compose.db.yml run --rm seed` | Re-seed the database manually |
 | `npm run db:studio` | Open database browser at `http://localhost:5555` |
 | `npm run generate:keys` | Re-generate RSA keys (invalidates all existing tokens) |
 
-After starting, open `http://localhost:PORT/graphql` to access the Apollo Sandbox.
+After starting, open `http://localhost:4000/graphql` to access the Apollo Sandbox.
