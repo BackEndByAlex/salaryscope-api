@@ -1,0 +1,39 @@
+---
+title: Server
+sidebar_position: 1
+---
+
+The entry point for the entire application. This file sets up Express, applies security middleware, and mounts Apollo Server on the `/graphql` endpoint.
+
+---
+
+## What it does
+
+`server.js` creates an Express app with Apollo Server (via `@as-integrations/express5`) and exposes a single GraphQL endpoint. It loads environment variables from `.env`, builds the Apollo Server instance, creates all services, and wires everything together before starting the HTTP server.
+
+---
+
+## Middleware chain
+
+Middleware is applied in this order — each request passes through every layer before reaching Apollo Server:
+
+1. **Helmet** — sets security headers (Content-Security-Policy configured to allow Apollo Sandbox)
+2. **CORS** — validates the request origin against `ALLOWED_ORIGINS` from the environment
+3. **JSON body parser** — parses incoming JSON with a 100kb size limit
+4. **General rate limiter** — 200 requests per 15-minute window per IP
+5. **Batch request blocker** — rejects any request where the body is an array (no batched queries allowed)
+6. **Auth rate limiter** — stricter limit (10 requests per 15-minute window) applied only to `Login` and `Register` operations
+7. **Apollo Server middleware** — handles the actual GraphQL request, builds the context (JWT auth + services), and returns the response
+
+---
+
+## How it starts up
+
+1. `dotenv/config` loads environment variables
+2. `buildApolloServer()` creates the Apollo Server instance and starts it
+3. `createServices()` builds all repositories and services (called once, shared across requests)
+4. Express app is created with `trust proxy` enabled (for running behind a reverse proxy)
+5. All middleware is applied in the order above
+6. The server listens on the port from `process.env.PORT`
+
+If anything fails during startup, the error is logged and the process exits with code 1.

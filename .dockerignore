@@ -29,3 +29,9 @@ README.md
 ISSUES.md
 ROUTE_MAP.md
 TESTING.md
+
+# Docs build artifacts — excluded from API image context.
+# Note: docs/ itself is NOT excluded because Dockerfile.docs needs it.
+docs/node_modules
+docs/build
+docs/.docusaurus

@@ -47,6 +47,7 @@ services:
       - /etc/ssl/certs/LNU_FTK_Campus_Root_CA_2025.pem:/etc/ssl/certs/LNU_FTK_Campus_Root_CA_2025.pem:ro
     depends_on:
       - api
+      - docs
     networks:
       - app-network
 
@@ -69,6 +70,15 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - app-network
+
+  docs:
+    image: gitlab.lnu.se:5050/1dv027/student/aa227wr/exercises/assignment-api-design/docs:latest
+    container_name: salaryscope-docs
+    restart: unless-stopped
+    labels:
+      - "com.centurylinklabs.watchtower.enable=true"
     networks:
       - app-network
 
