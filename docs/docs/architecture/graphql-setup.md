@@ -27,7 +27,7 @@ Builds and returns the Apollo Server instance. It:
 
 ## schema/
 
-Type definitions for the entire API — one file per domain.
+Type definitions for the entire API, one file per domain.
 
 > See [Type Definitions](../graphql-schema/type-definitions.md)
 
@@ -35,6 +35,6 @@ Type definitions for the entire API — one file per domain.
 
 ## resolvers/
 
-Resolver functions that handle incoming queries and mutations — one file per domain.
+Resolver functions that handle incoming queries and mutations, one file per domain.
 
 > See [Resolver Reference](../resolvers/resolver-reference.md)

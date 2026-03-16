@@ -15,7 +15,7 @@ The entry point for the entire application. This file sets up Express, applies s
 
 ## Middleware chain
 
-Middleware is applied in this order — each request passes through every layer before reaching Apollo Server:
+Middleware is applied in this order. Each request passes through every layer before reaching Apollo Server:
 
 1. **Helmet** — sets security headers (Content-Security-Policy configured to allow Apollo Sandbox)
 2. **CORS** — validates the request origin against `ALLOWED_ORIGINS` from the environment

@@ -1,6 +1,6 @@
 # utils/
 
-Small shared functions used across the entire codebase. No business logic — just helpers that solve one specific problem each.
+Small shared functions used across the entire codebase. No business logic, just helpers that solve one specific problem each.
 
 ---
 
@@ -23,4 +23,4 @@ Custom error classes used across the entire API. Each one maps to a specific sit
 | `ForbiddenError` | `FORBIDDEN` | 403 | The user is logged in but not allowed to perform this action |
 | `BadUserInputError` | `BAD_USER_INPUT` | 400 | The input provided is invalid (missing fields, bad ID, etc.) |
 
-All four extend `GraphQLError` — so Apollo Server handles them correctly and includes the code and status in the response automatically.
+All four extend `GraphQLError`, so Apollo Server handles them correctly and includes the code and status in the response automatically.

@@ -3,7 +3,7 @@ title: Route Map
 sidebar_position: 2
 ---
 
-# Route Map -- SalaryScope GraphQL API
+# Route Map - SalaryScope GraphQL API
 
 A plain-language guide to what this API is, where a request goes, and how the pieces fit together.
 
@@ -24,7 +24,7 @@ A **read-and-write API** for tech industry salary data. It combines four CSV dat
 
 ---
 
-## 2. The Big Picture -- One Endpoint
+## 2. The Big Picture - One Endpoint
 
 Unlike REST, this API has a single URL:
 
@@ -32,7 +32,7 @@ Unlike REST, this API has a single URL:
 POST http://localhost:PORT/graphql
 ```
 
-Every request -- whether fetching a list, looking up a record, or creating one -- goes to this address. The GraphQL query in the body tells the server what you want.
+Every request, whether fetching a list, looking up a record, or creating one, goes to this address. The GraphQL query in the body tells the server what you want.
 
 A browser-based sandbox is also available at `GET http://localhost:PORT/graphql`.
 
@@ -94,27 +94,27 @@ Your client (browser, app, etc.)
 
 ## 4. Each Layer Explained
 
-### Layer 1 -- The Server (`src/server.js`)
+### Layer 1 - The Server (`src/server.js`)
 
 The entry point. Starts Express, mounts Apollo, and applies all middleware in order: security headers, CORS, body parser, rate limiters, batch blocker.
 
-**Analogy:** The building's entrance -- opens the doors, checks everything is ready, and directs visitors to the right floor.
+**Analogy:** The building's entrance. Opens the doors, checks everything is ready, and directs visitors to the right floor.
 
 ---
 
-### Layer 2 -- Authentication Middleware (`src/auth/jwtMiddleware.js`)
+### Layer 2 - Authentication Middleware (`src/auth/jwtMiddleware.js`)
 
-Runs on every request. Reads the `Authorization` header, verifies the token, and sets `context.user`. Never blocks a request -- that decision happens in the resolver.
+Runs on every request. Reads the `Authorization` header, verifies the token, and sets `context.user`. Never blocks a request. That decision happens in the resolver.
 
-**Analogy:** The doorman who checks IDs. Valid ID -- your name goes on the visitor list. No ID -- "anonymous" goes on the list. They don't turn you away; that happens upstairs.
+**Analogy:** The doorman who checks IDs. Valid ID, your name goes on the visitor list. No ID, "anonymous" goes on the list. They don't turn you away, that happens upstairs.
 
 > See [Authentication](../auth/authentication.md)
 
 ---
 
-### Layer 3 -- The GraphQL Schema (`src/graphql/schema/`)
+### Layer 3 - The GraphQL Schema (`src/graphql/schema/`)
 
-Defines every type, query, and mutation the API supports. Apollo enforces it -- requests for anything not in the schema are rejected before any code runs.
+Defines every type, query, and mutation the API supports. Apollo enforces it, requests for anything not in the schema are rejected before any code runs.
 
 **Analogy:** The menu. It tells clients exactly what they can order and in what format.
 
@@ -122,31 +122,31 @@ Defines every type, query, and mutation the API supports. Apollo enforces it -- 
 
 ---
 
-### Layer 4 -- Resolvers (`src/graphql/resolvers/`)
+### Layer 4 - Resolvers (`src/graphql/resolvers/`)
 
 One function per query or mutation. Guards access, validates input, and hands off to the service. No business logic, no database calls.
 
-**Analogy:** The waiter -- takes your order, checks it looks right, passes it to the kitchen.
+**Analogy:** The waiter. Takes your order, checks it looks right, passes it to the kitchen.
 
 > See [Resolver Reference](../resolvers/resolver-reference.md)
 
 ---
 
-### Layer 5 -- Services (`src/services/`)
+### Layer 5 - Services (`src/services/`)
 
 The business logic layer. Converts IDs, checks ownership, throws meaningful errors, and coordinates repository calls.
 
-**Analogy:** The kitchen -- does the actual work. Decides what to cook, how to prepare it, and what to do if an ingredient is missing.
+**Analogy:** The kitchen. Does the actual work. Decides what to cook, how to prepare it, and what to do if an ingredient is missing.
 
 > See [Services](../data-layer/services.md)
 
 ---
 
-### Layer 6 -- Repositories (`src/repositories/`)
+### Layer 6 - Repositories (`src/repositories/`)
 
 The only layer that talks to the database. Builds Prisma queries and returns raw data. Nothing else in the app queries the database directly.
 
-**Analogy:** The pantry and the person who fetches ingredients. The kitchen says "get me all salary records from Germany" -- the repository gets exactly that, no more, no less.
+**Analogy:** The pantry and the person who fetches ingredients. The kitchen says "get me all salary records from Germany", the repository gets exactly that, no more, no less.
 
 > See [Repositories](../data-layer/repositories.md)
 
@@ -162,7 +162,7 @@ Prisma translates repository calls into SQL and manages the connection pool. Pos
 
 ## 5. Authentication
 
-JWT-based authentication using RS256 (asymmetric -- two keys: private to sign, public to verify). Tokens are valid for 24 hours and include `issuer` and `audience` claims to scope them to this API.
+JWT-based authentication using RS256 (asymmetric, two keys: private to sign, public to verify). Tokens are valid for 24 hours and include `issuer` and `audience` claims to scope them to this API.
 
 ```
 Register / Login

@@ -25,7 +25,7 @@ Input validation that runs before any service or database call. If the input is 
 - `source` must not exceed 200 characters
 
 **`validateUpdateInput`**
-- At least one field must be included in the update — an empty update is rejected
+- At least one field must be included in the update, an empty update is rejected
 - If `salary` is provided, it must be a positive number
 - If `source` is provided, it must not exceed 200 characters
 

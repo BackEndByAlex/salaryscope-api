@@ -24,7 +24,7 @@ Builds and returns the Apollo Server instance. It:
 
 ## schema/
 
-Type definitions for the entire API — one file per domain.
+Type definitions for the entire API, one file per domain.
 
 → See [schema/README.md](schema/README.md)
 
@@ -32,6 +32,6 @@ Type definitions for the entire API — one file per domain.
 
 ## resolvers/
 
-Resolver functions that handle incoming queries and mutations — one file per domain.
+Resolver functions that handle incoming queries and mutations, one file per domain.
 
 → See [resolvers/README.md](resolvers/README.md)

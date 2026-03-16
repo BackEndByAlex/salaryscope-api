@@ -15,7 +15,7 @@ Creates a single database connection and exports it so the whole app shares it.
 2. Creates a Prisma client using the Postgres driver
 3. Exports one shared instance
 
-> Only one instance is created — this avoids opening multiple database connection pools by accident.
+> Only one instance is created. This avoids opening multiple database connection pools by accident.
 
 ---
 

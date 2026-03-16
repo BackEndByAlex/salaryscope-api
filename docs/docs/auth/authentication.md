@@ -21,8 +21,8 @@ Handles registering and logging in users.
 **Login:**
 1. Looks up the user by email
 2. Compares the provided password against the stored hash
-3. If it matches — strips sensitive fields with `#toPublicUser` and returns a signed token and the user
-4. If it doesn't — throws an "Invalid credentials" error (same message whether the email or password is wrong, intentionally)
+3. If it matches, strips sensitive fields with `#toPublicUser` and returns a signed token and the user
+4. If it doesn't, throws an "Invalid credentials" error (same message whether the email or password is wrong, intentionally)
 
 Input validation (email/password required, format, length) is handled by `authValidator.js` in the resolver layer before the service is called. AuthService does not duplicate those checks.
 
@@ -37,8 +37,8 @@ Runs on every incoming request before anything else.
 1. Reads the `Authorization` header
 2. If it starts with `Bearer `, extracts the token
 3. Verifies the token using the public RSA key (checks algorithm, issuer, and audience)
-4. If valid — attaches `{ id, email }` to the request context so resolvers know who is making the request
-5. If missing or invalid — sets `user: null` and continues without throwing
+4. If valid, attaches `{ id, email }` to the request context so resolvers know who is making the request
+5. If missing or invalid, sets `user: null` and continues without throwing
 
 Resolvers decide what to do with an unauthenticated request. This middleware never blocks a request on its own.
 

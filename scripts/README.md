@@ -1,6 +1,6 @@
 # Scripts
 
-One-time utility scripts that help set up the project. These are not part of the running API — you run them manually when needed.
+One-time utility scripts that help set up the project. These are not part of the running API, you run them manually when needed.
 
 ---
 

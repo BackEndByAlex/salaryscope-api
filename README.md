@@ -2,7 +2,7 @@
 
 ## Project Name
 
- **SalaryScope**
+**SalaryScope**
 
 ## Getting Started
 
@@ -45,11 +45,13 @@ file names:
 **Step 2 — Start the API**
 
 Production:
+
 ```bash
 docker compose -f docker-compose.prod.yml up --build -d
 ```
 
 Local development (with hot reload):
+
 ```bash
 docker compose -f docker-compose.dev.yml up --build
 ```
@@ -57,10 +59,6 @@ docker compose -f docker-compose.dev.yml up --build
 The API connects to the database over a shared Docker network (`salaryscope-network`). CI/CD only rebuilds the API container.
 
 ## Objective
-
-Design and develop a robust, well-documented API (REST or GraphQL) that allows users to retrieve and manage information from a dataset of your choice. The API must include JWT authentication, automated testing via Postman/Newman in a CI/CD pipeline, and be publicly deployed.
-
-Choose a dataset (10000+ data points) that interests you — it should include at least one primary CRUD resource and two additional read-only resources. Sources like [Kaggle](https://www.kaggle.com/datasets), public APIs, or CSV files work well. Pick something you find interesting, as you will reuse this API in the next assignment (WT dashboard).
 
 _Describe your API in a few sentences: what dataset does it serve, what are its main resources, and what can users do with it?_
 
@@ -75,7 +73,7 @@ GraphQL
 | **Production API**                    | https://cu0080.camp.lnu.se/graphql    |
 | **API Documentation**                 | [ROUTE_MAP](/ROUTE_MAP.md)            |
 | **GraphQL Playground** (GraphQL only) | https://cu0080.camp.lnu.se/graphql    |
-| **Postman Collection**                | `*.postman_collection.json`           |
+| **Postman Collection**                | `*salary-api.postman_collection.json` |
 | **Production Environment**            | `production.postman_environment.json` |
 
 **Examiner can verify tests in one of the following ways:**
@@ -203,47 +201,59 @@ _List the technologies you chose and briefly explain why:_
 
 _What was hard? What did you learn? What would you do differently?_
 
+It was hard starting a project with the ambition of creating something real, not only
+a school project that will be left aside. My goal was and is to create something useful and
+interesting to me.
+
+After a lot of research I stumbled on salary CSV files that track the salaries from worldwide
+companies embedded with information about the job, country, type of work remote, on site or
+hybrid. Then using the new techniques was hard:
+
+- GraphQL
+- PostgreSQL
+- New architecture
+- New dependencies
+- Migration and seeding a database
+- Security
+- Rate limiting
+- Nested queries
+- Prisma
+- Apollo
+- Postman collections and tests
+- Docusaurus
+- Caddy
+
+And beside those, we have learned before about clean code and applying it on this level of
+coding was hard.
+
+It was hard to adapt myself to this environment of programming where everything needs to work
+otherwise everything will break down. But with time the project was growing like a wall brick by
+brick and the understanding of everything was possible, maybe not on the deeper side but
+generally and how it is used and works on this API.
+
+Next time I create an API that will use GraphQL the architecture will not be as hard anymore.
+I needed to research a lot, watching online how other companies and developers structure their
+code for this type of API. It took some time but in the end the API gott "complete" and the
+documentation is on point with help of Docusaurus. It helped a lot because at the size of the
+API remembering everything was not an option and updating documentation after every major update
+was a "must" otherwise I could lose myself through the files.
+
 ## Acknowledgements
 
 _Resources, attributions, or shoutouts._
 
-## Requirements
-
-See [all requirements in Issues](../../issues/). Close issues as you implement them. Create additional issues for any custom functionality. See [TESTING.md](TESTING.md) for detailed testing requirements.
-
-### Functional Requirements — Common
-
-| Requirement                                                          | Issue                  | Status               |
-| -------------------------------------------------------------------- | ---------------------- | -------------------- |
-| Data acquisition — choose and document a dataset (1000+ data points) | [#1](../../issues/1)   | :white_large_square: |
-| Full CRUD for primary resource, read-only for secondary resources    | [#2](../../issues/2)   | :white_large_square: |
-| JWT authentication for write operations                              | [#3](../../issues/3)   | :white_large_square: |
-| Error handling (400, 401, 404 with consistent format)                | [#4](../../issues/4)   | :white_large_square: |
-| Filtering and pagination for large result sets                       | [#17](../../issues/17) | :white_large_square: |
-
-### Functional Requirements — REST
-
-| Requirement                                                 | Issue                  | Status               |
-| ----------------------------------------------------------- | ---------------------- | -------------------- |
-| RESTful endpoints with proper HTTP methods and status codes | [#12](../../issues/12) | :white_large_square: |
-| HATEOAS (hypermedia links in responses)                     | [#13](../../issues/13) | :white_large_square: |
-
-### Functional Requirements — GraphQL
-
-| Requirement                                          | Issue                  | Status               |
-| ---------------------------------------------------- | ---------------------- | -------------------- |
-| Queries and mutations via single `/graphql` endpoint | [#14](../../issues/14) | :white_large_square: |
-| At least one nested query                            | [#15](../../issues/15) | :white_large_square: |
-| GraphQL Playground available                         | [#16](../../issues/16) | :white_large_square: |
-
-### Non-Functional Requirements
-
-| Requirement                                                 | Issue                  | Status               |
-| ----------------------------------------------------------- | ---------------------- | -------------------- |
-| API documentation (Swagger/OpenAPI or Postman)              | [#6](../../issues/6)   | :white_large_square: |
-| Automated Postman tests (20+ test cases, success + failure) | [#7](../../issues/7)   | :white_large_square: |
-| CI/CD pipeline running tests on every commit/MR             | [#8](../../issues/8)   | :white_large_square: |
-| Seed script for sample data                                 | [#5](../../issues/5)   | :white_large_square: |
-| Code quality (consistent standard, modular, documented)     | [#10](../../issues/10) | :white_large_square: |
-| Deployed and publicly accessible                            | [#9](../../issues/9)   | :white_large_square: |
-| Peer review reflection submitted on merge request           | [#11](../../issues/11) | :white_large_square: |
+- https://www.kaggle.com/ for the salary datasets
+- https://graphql.org/learn/
+- https://www.apollographql.com/docs/apollo-server/
+- https://www.prisma.io/docs
+- https://www.postgresql.org/docs/
+- https://expressjs.com/
+- https://caddyserver.com/docs/
+- https://docusaurus.io/docs
+- https://www.postman.com/ and course lectures for API testing and Newman CI/CD integration
+- Security hardening was done through research into OWASP best practices, covering query depth
+  limiting, rate limiter bypass prevention, JWT issuer/audience claims, Content Security Policy,
+  password length validation, user enumeration prevention, and nested pagination caps
+- course lectures about API
+- gitlab exemples
+- moodle documentation

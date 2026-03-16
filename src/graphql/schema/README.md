@@ -1,6 +1,6 @@
 # graphql/schema/
 
-This folder defines the shape of the entire API — what types exist, what queries and mutations are available, and what fields each type has.
+This folder defines the shape of the entire API, what types exist, what queries and mutations are available, and what fields each type has.
 
 Each file covers one domain. Apollo Server merges them all together at startup into one complete schema.
 
@@ -74,7 +74,7 @@ Types and operations for companies.
 
 ## salaryRecord.graphql
 
-Types and operations for salary records — the main resource of the API.
+Types and operations for salary records, the main resource of the API.
 
 - `SalaryRecord` — all salary fields plus relations to job, company, and countries. Some fields are only present for certain data sources (noted inline in the schema).
 - `SalaryRecordPage` — paginated result wrapper

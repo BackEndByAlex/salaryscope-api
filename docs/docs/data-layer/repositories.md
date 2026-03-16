@@ -64,4 +64,4 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 ## salaryRecordInclude.js
 
-A shared Prisma `include` configuration used by every salary record query. Tells Prisma to always fetch the related job (with its category), employee country, company country, and company alongside each record — so resolvers never have to request them separately.
+A shared Prisma `include` configuration used by every salary record query. Tells Prisma to always fetch the related job (with its category), employee country, company country, and company alongside each record, so resolvers never have to request them separately.
