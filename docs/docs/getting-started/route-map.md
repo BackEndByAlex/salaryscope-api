@@ -16,6 +16,7 @@ For deeper documentation on each layer, follow the links to the folder README fi
 A **read-and-write API** for tech industry salary data. It combines four CSV datasets (~68,000 rows) into one database and exposes them over a single GraphQL endpoint.
 
 **What you can do:**
+
 - Browse and filter salary records, jobs, countries, companies, and job categories -- no login required
 - Create, update, and delete salary records -- requires login
 - Register an account and log in
@@ -184,20 +185,20 @@ Subsequent requests
 
 ## 6. Security Hardening
 
-| Protection | What it does |
-|---|---|
-| **Helmet + CSP** | Sets HTTP security headers (XSS, clickjacking, HTTPS enforcement). Content Security Policy allows Apollo Studio while blocking all other external scripts. |
-| **CORS** | Only allows origins listed in `ALLOWED_ORIGINS`. Postman/curl always allowed. |
-| **Global rate limit** | 200 requests per IP per 15 minutes |
-| **Auth rate limit** | 10 requests per IP per 15 minutes on `login` and `register`. Detects auth operations by both `operationName` and query body to prevent bypass. |
-| **Query depth limit** | Rejects GraphQL queries deeper than 5 levels to prevent nested query abuse |
-| **Batch blocker** | Rejects any request body that is a JSON array |
-| **Body size limit** | 100 KB max per request |
-| **Password length** | Minimum 8, maximum 128 characters. Prevents bcrypt truncation issues and large-payload abuse. |
-| **Pagination caps** | All paginated queries (including nested fields) are capped at 100 records per page |
-| **JWT scoping** | Tokens include `issuer` and `audience` claims, scoping them to this API only |
-| **Introspection** | Enabled in all environments (for Postman and Apollo Sandbox) |
-| **Error sanitization** | In production, unexpected errors are replaced with "Internal server error" |
+| Protection             | What it does                                                                                                                                               |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Helmet + CSP**       | Sets HTTP security headers (XSS, clickjacking, HTTPS enforcement). Content Security Policy allows Apollo Studio while blocking all other external scripts. |
+| **CORS**               | Only allows origins listed in `ALLOWED_ORIGINS`. Postman/curl always allowed.                                                                              |
+| **Global rate limit**  | 200 requests per IP per 15 minutes                                                                                                                         |
+| **Auth rate limit**    | 10 requests per IP per 15 minutes on `login` and `register`. Detects auth operations by both `operationName` and query body to prevent bypass.             |
+| **Query depth limit**  | Rejects GraphQL queries deeper than 5 levels to prevent nested query abuse                                                                                 |
+| **Batch blocker**      | Rejects any request body that is a JSON array                                                                                                              |
+| **Body size limit**    | 100 KB max per request                                                                                                                                     |
+| **Password length**    | Minimum 8, maximum 128 characters. Prevents bcrypt truncation issues and large-payload abuse.                                                              |
+| **Pagination caps**    | All paginated queries (including nested fields) are capped at 100 records per page                                                                         |
+| **JWT scoping**        | Tokens include `issuer` and `audience` claims, scoping them to this API only                                                                               |
+| **Introspection**      | Enabled in all environments (for Postman and Apollo Sandbox)                                                                                               |
+| **Error sanitization** | In production, unexpected errors are replaced with "Internal server error"                                                                                 |
 
 ---
 
@@ -205,25 +206,25 @@ Subsequent requests
 
 ### Public (no login required)
 
-| Operation | What it does |
-|---|---|
-| `register(input)` | Creates an account, returns a token |
-| `login(input)` | Checks credentials, returns a token |
-| `countries` / `country` / `countryByName` | List or look up countries |
-| `jobCategories` / `jobCategory` / `jobCategoryByName` | List or look up job categories |
-| `jobs` / `job` | List or look up jobs (filterable by category) |
-| `companies` / `company` / `companyByName` | List or look up companies (filterable by country) |
-| `salaryRecords(filters)` | Paginated salary records with up to 10 filters |
-| `salaryRecord(id)` | Single salary record by ID |
+| Operation                                             | What it does                                      |
+| ----------------------------------------------------- | ------------------------------------------------- |
+| `register(input)`                                     | Creates an account, returns a token               |
+| `login(input)`                                        | Checks credentials, returns a token               |
+| `countries` / `country` / `countryByName`             | List or look up countries                         |
+| `jobCategories` / `jobCategory` / `jobCategoryByName` | List or look up job categories                    |
+| `jobs` / `job`                                        | List or look up jobs (filterable by category)     |
+| `companies` / `company` / `companyByName`             | List or look up companies (filterable by country) |
+| `salaryRecords(filters)`                              | Paginated salary records with up to 10 filters    |
+| `salaryRecord(id)`                                    | Single salary record by ID                        |
 
 ### Protected (login required)
 
-| Operation | What it does |
-|---|---|
-| `me` | Returns the currently logged-in user's profile |
-| `createSalaryRecord(input)` | Adds a new salary record |
-| `updateSalaryRecord(id, input)` | Updates a salary record (owner only) |
-| `deleteSalaryRecord(id)` | Deletes a salary record (owner only) |
+| Operation                       | What it does                                   |
+| ------------------------------- | ---------------------------------------------- |
+| `me`                            | Returns the currently logged-in user's profile |
+| `createSalaryRecord(input)`     | Adds a new salary record                       |
+| `updateSalaryRecord(id, input)` | Updates a salary record (owner only)           |
+| `deleteSalaryRecord(id)`        | Deletes a salary record (owner only)           |
 
 ### Available filters on `salaryRecords`
 
@@ -237,10 +238,10 @@ Subsequent requests
 
 Every record created through the API is stamped with the user's ID in `createdBy`.
 
-| `createdBy` | Who can modify |
-|---|---|
-| `null` | Nobody -- public dataset records, seeded from CSV |
-| A user ID | Only that user |
+| `createdBy` | Who can modify                                    |
+| ----------- | ------------------------------------------------- |
+| `null`      | Nobody -- public dataset records, seeded from CSV |
+| A user ID   | Only that user                                    |
 
 Attempting to modify a seeded record returns `403 FORBIDDEN`.
 
@@ -268,13 +269,14 @@ Use `limit` (default 20, max 100) and `offset` to move through pages.
 
 ## 10. Error Handling
 
-| Error | HTTP | Code | When |
-|---|---|---|---|
-| `UnauthenticatedError` | 401 | `UNAUTHENTICATED` | No valid token on a protected operation |
-| `ForbiddenError` | 403 | `FORBIDDEN` | Modifying a record you don't own |
-| `NotFoundError` | 404 | `NOT_FOUND` | Record doesn't exist |
-| `BadUserInputError` | 400 | `BAD_USER_INPUT` | Invalid input, bad ID, duplicate email |
-| Unexpected | 500 | `INTERNAL_SERVER_ERROR` | Anything else -- details hidden in production |
+|                                       | URL / File                                    |
+| ------------------------------------- | --------------------------------------------- |
+| **Production API**                    | https://cu0080.camp.lnu.se/graphql            |
+| **API Documentation**                 | [ROUTE_MAP](/ROUTE_MAP.md)                    |
+| **API Documentation with docusaurus** | https://cu0080.camp.lnu.se/docs               |
+| **GraphQL Playground** (GraphQL only) | https://cu0080.camp.lnu.se/graphql            |
+| **Postman Collection**                | `postman/salary-api.postman_collection.json`  |
+| **Production Environment**            | `postman/production.postman_environment.json` |
 
 > See [Helpers](../utilities/helpers.md) for the error classes.
 
@@ -284,12 +286,12 @@ Use `limit` (default 20, max 100) and `offset` to move through pages.
 
 Docker Compose is split into separate files so the database and API can be managed independently.
 
-| File | What it runs |
-|---|---|
-| `docker-compose.server.yml` | Postgres + Caddy + API + Watchtower -- production server only |
-| `docker-compose.db.yml` | Migrations + seed -- expects Postgres already running on the network |
-| `docker-compose.dev.yml` | API only (development) -- with hot reload via `--watch` |
-| `docker-compose.prod.yml` | API + Caddy (production) -- rebuilt on every deploy |
+| File                        | What it runs                                                         |
+| --------------------------- | -------------------------------------------------------------------- |
+| `docker-compose.server.yml` | Postgres + Caddy + API + Watchtower -- production server only        |
+| `docker-compose.db.yml`     | Migrations + seed -- expects Postgres already running on the network |
+| `docker-compose.dev.yml`    | API only (development) -- with hot reload via `--watch`              |
+| `docker-compose.prod.yml`   | API + Caddy (production) -- rebuilt on every deploy                  |
 
 All compose files share the same Docker network (`salaryscope-network`), so the API can reach the database across compose files.
 
@@ -306,11 +308,11 @@ docker compose -f docker-compose.dev.yml up --build          # start API (dev mo
 
 ### Day-to-day commands
 
-| Command | What it does |
-|---|---|
-| `docker compose -f docker-compose.dev.yml up --build` | Start API in dev mode (hot reload) |
-| `docker compose -f docker-compose.db.yml run --rm seed` | Re-seed the database manually |
-| `npm run db:studio` | Open database browser at `http://localhost:5555` |
-| `npm run generate:keys` | Re-generate RSA keys (invalidates all existing tokens) |
+| Command                                                 | What it does                                           |
+| ------------------------------------------------------- | ------------------------------------------------------ |
+| `docker compose -f docker-compose.dev.yml up --build`   | Start API in dev mode (hot reload)                     |
+| `docker compose -f docker-compose.db.yml run --rm seed` | Re-seed the database manually                          |
+| `npm run db:studio`                                     | Open database browser at `http://localhost:5555`       |
+| `npm run generate:keys`                                 | Re-generate RSA keys (invalidates all existing tokens) |
 
 After starting, open `http://localhost:4000/graphql` to access the Apollo Sandbox.

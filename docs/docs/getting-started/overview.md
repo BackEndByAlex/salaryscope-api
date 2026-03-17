@@ -104,12 +104,12 @@ GraphQL
 
 ## Links and Testing
 
-|                                       | URL / File                            |
-| ------------------------------------- | ------------------------------------- |
-| **Production API**                    | https://cu0080.camp.lnu.se/graphql    |
-| **API Documentation**                 | [Route Map](./route-map.md)           |
-| **GraphQL Playground** (GraphQL only) | https://cu0080.camp.lnu.se/graphql    |
-| **Postman Collection**                | `postman/salary-api.postman_collection.json` |
+|                                       | URL / File                                    |
+| ------------------------------------- | --------------------------------------------- |
+| **Production API**                    | https://cu0080.camp.lnu.se/graphql            |
+| **API Documentation**                 | [Route Map](./route-map.md)                   |
+| **GraphQL Playground** (GraphQL only) | https://cu0080.camp.lnu.se/graphql            |
+| **Postman Collection**                | `postman/salary-api.postman_collection.json`  |
 | **Production Environment**            | `postman/production.postman_environment.json` |
 
 **Examiner can verify tests in one of the following ways:**
@@ -117,7 +117,7 @@ GraphQL
 1. **CI/CD pipeline** — check the pipeline output in GitLab for test results.
 2. **Run manually** — no setup needed:
    ```
-   npx newman run postman/salary-api.postman_collection.json -e postman/production.postman_environment.json
+   npx newman run postman/salary-api.postman_collection.json -e postman/production.postman_environment.json --unsecure
    ```
 
 ## Dataset

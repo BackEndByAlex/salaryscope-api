@@ -6,6 +6,7 @@ sidebar_position: 2
 The business logic layer. Services sit between resolvers and repositories, they handle what should happen, not how the database is queried.
 
 Every service follows the same pattern:
+
 - Converts string IDs from GraphQL into integers before passing them to the repository
 - Throws a `NotFoundError` if a record doesn't exist instead of returning null
 - Throws a `ForbiddenError` if a user tries to modify something they don't own
@@ -64,6 +65,7 @@ Used by the `me` query to return the currently logged-in user's profile.
 - `delete` — finds the record, checks ownership, then deletes it
 
 Ownership rules:
+
 - Records from the public dataset (`createdBy` is null) cannot be modified by anyone
 - Records created by a user can only be modified by that same user
 - Any violation throws a `ForbiddenError`

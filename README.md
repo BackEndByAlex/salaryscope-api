@@ -81,7 +81,7 @@ The API connects to the database over the shared Docker network (`salaryscope-ne
 
 _Describe your API in a few sentences: what dataset does it serve, what are its main resources, and what can users do with it?_
 
---- 
+---
 
 SalaryScope is a GraphQL API that serves salary data from the tech industry, combined from four
 Kaggle datasets with around 68,000 records. The main resources are salary records, jobs, job
@@ -98,12 +98,13 @@ GraphQL
 
 ## Links and Testing
 
-|                                       | URL / File                            |
-| ------------------------------------- | ------------------------------------- |
-| **Production API**                    | https://cu0080.camp.lnu.se/graphql    |
-| **API Documentation**                 | [ROUTE_MAP](/ROUTE_MAP.md)            |
-| **GraphQL Playground** (GraphQL only) | https://cu0080.camp.lnu.se/graphql    |
-| **Postman Collection**                | `postman/salary-api.postman_collection.json` |
+|                                       | URL / File                                    |
+| ------------------------------------- | --------------------------------------------- |
+| **Production API**                    | https://cu0080.camp.lnu.se/graphql            |
+| **API Documentation**                 | [ROUTE_MAP](/ROUTE_MAP.md)                    |
+| **API Documentation with docusaurus** | https://cu0080.camp.lnu.se/docs               |
+| **GraphQL Playground** (GraphQL only) | https://cu0080.camp.lnu.se/graphql            |
+| **Postman Collection**                | `postman/salary-api.postman_collection.json`  |
 | **Production Environment**            | `postman/production.postman_environment.json` |
 
 **Examiner can verify tests in one of the following ways:**
@@ -111,7 +112,7 @@ GraphQL
 1. **CI/CD pipeline** — check the pipeline output in GitLab for test results.
 2. **Run manually** — no setup needed:
    ```
-   npx newman run postman/salary-api.postman_collection.json -e postman/production.postman_environment.json
+   npx newman run postman/salary-api.postman_collection.json -e postman/production.postman_environment.json --unsecure
    ```
 
 ## Dataset

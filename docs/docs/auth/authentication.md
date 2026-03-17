@@ -12,6 +12,7 @@ Everything that handles who a user is and whether they are allowed to do somethi
 Handles registering and logging in users.
 
 **Register:**
+
 1. Checks that the email is not already taken (returns a vague error message to prevent user enumeration)
 2. Hashes the password (never stores it in plain text)
 3. Creates the user in the database
@@ -19,6 +20,7 @@ Handles registering and logging in users.
 5. Returns a signed token and the safe user object
 
 **Login:**
+
 1. Looks up the user by email
 2. Compares the provided password against the stored hash
 3. If it matches, strips sensitive fields with `#toPublicUser` and returns a signed token and the user
