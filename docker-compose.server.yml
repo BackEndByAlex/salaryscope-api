@@ -54,9 +54,6 @@ services:
   api:
     image: gitlab.lnu.se:5050/1dv027/student/aa227wr/exercises/assignment-api-design:latest
     restart: always
-    labels:
-      - "com.centurylinklabs.watchtower=true"
-      - "com.centurylinklabs.watchtower.enable=true"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NODE_ENV: production
@@ -78,22 +75,6 @@ services:
     image: gitlab.lnu.se:5050/1dv027/student/aa227wr/exercises/assignment-api-design/docs:latest
     container_name: salaryscope-docs
     restart: unless-stopped
-    labels:
-      - "com.centurylinklabs.watchtower=true"
-      - "com.centurylinklabs.watchtower.enable=true"
-    networks:
-      - app-network
-
-  watchtower:
-    image: nickfedor/watchtower
-    restart: always
-    environment:
-      WATCHTOWER_LABEL_ENABLE: "true"
-      WATCHTOWER_POLL_INTERVAL: 300
-      WATCHTOWER_CLEANUP: "true"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /home/ubuntu/.docker/config.json:/config.json:ro
     networks:
       - app-network
 
