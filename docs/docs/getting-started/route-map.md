@@ -269,14 +269,13 @@ Use `limit` (default 20, max 100) and `offset` to move through pages.
 
 ## 10. Error Handling
 
-|                                       | URL / File                                    |
-| ------------------------------------- | --------------------------------------------- |
-| **Production API**                    | https://cu0080.camp.lnu.se/graphql            |
-| **API Documentation**                 | [ROUTE_MAP](/ROUTE_MAP.md)                    |
-| **API Documentation with docusaurus** | https://cu0080.camp.lnu.se/docs               |
-| **GraphQL Playground** (GraphQL only) | https://cu0080.camp.lnu.se/graphql            |
-| **Postman Collection**                | `postman/salary-api.postman_collection.json`  |
-| **Production Environment**            | `postman/production.postman_environment.json` |
+| Error                  | HTTP | Code                    | When                                          |
+| ---------------------- | ---- | ----------------------- | --------------------------------------------- |
+| `UnauthenticatedError` | 401  | `UNAUTHENTICATED`       | No valid token on a protected operation       |
+| `ForbiddenError`       | 403  | `FORBIDDEN`             | Modifying a record you don't own              |
+| `NotFoundError`        | 404  | `NOT_FOUND`             | Record doesn't exist                          |
+| `BadUserInputError`    | 400  | `BAD_USER_INPUT`        | Invalid input, bad ID, duplicate email        |
+| Unexpected             | 500  | `INTERNAL_SERVER_ERROR` | Anything else -- details hidden in production |
 
 > See [Helpers](../utilities/helpers.md) for the error classes.
 

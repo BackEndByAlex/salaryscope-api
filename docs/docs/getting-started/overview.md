@@ -108,6 +108,7 @@ GraphQL
 | ------------------------------------- | --------------------------------------------- |
 | **Production API**                    | https://cu0080.camp.lnu.se/graphql            |
 | **API Documentation**                 | [Route Map](./route-map.md)                   |
+| **API Documentation with docusaurus** | https://cu0080.camp.lnu.se/docs/              |
 | **GraphQL Playground** (GraphQL only) | https://cu0080.camp.lnu.se/graphql            |
 | **Postman Collection**                | `postman/salary-api.postman_collection.json`  |
 | **Production Environment**            | `postman/production.postman_environment.json` |
