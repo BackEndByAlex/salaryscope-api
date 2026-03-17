@@ -1,8 +1,3 @@
----
-title: Testing
-sidebar_position: 3
----
-
 # Postman Tests
 
 Automated API tests for SalaryScope using Postman and Newman.
@@ -17,7 +12,7 @@ Automated API tests for SalaryScope using Postman and Newman.
 No setup needed. Just run:
 
 ```bash
-npx newman run postman/salary-api.postman_collection.json -e postman/production.postman_environment.json --unsecure
+npx newman run postman/salary-api.postman_collection.json -e postman/production.postman_environment.json
 ```
 
 Tests also run automatically in the GitLab CI/CD pipeline on every push.
