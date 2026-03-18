@@ -21,3 +21,33 @@ Here's what it does:
 ```bash
 node scripts/generate-keys.js
 ```
+
+---
+
+## convert-h1b-xlsx.js
+
+Converts the H-1B LCA disclosure data from the US Department of Labor (a large xlsx file) into a filtered CSV that the seed script can import.
+
+Here's what it does:
+
+1. Streams through the xlsx file row by row (the file is ~83 MB with 600k+ rows, so it uses ExcelJS streaming to avoid running out of memory)
+2. Filters for rows that match all three conditions:
+   - `CASE_STATUS` is "Certified"
+   - `SOC_CODE` starts with "15-" (computer and IT occupations)
+   - `WAGE_UNIT_OF_PAY` is "Year" (annual salaries only, for consistency)
+3. Title-cases city names (the original data is all uppercase)
+4. Writes a clean CSV with these columns: `soc_code`, `soc_title`, `job_title`, `employer_name`, `city`, `state`, `salary`, `salary_max`, `full_time`, `worker_positions`, `wage_level`
+
+The output file (`data/h1b_tech_2024.csv`) typically contains around 68,000 records.
+
+> Run this once after downloading the xlsx file from the DOL website. The seed script expects the output CSV to already exist.
+
+```bash
+node scripts/convert-h1b-xlsx.js
+```
+
+You can also pass custom input and output paths:
+
+```bash
+node scripts/convert-h1b-xlsx.js data/some-other-file.xlsx data/output.csv
+```
