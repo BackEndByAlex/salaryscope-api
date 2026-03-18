@@ -88,6 +88,7 @@ export function buildApolloServer() {
       salaryRecordResolvers,
     ],
     validationRules: [depthLimit(5)],
+    includeStacktraceInErrorResponses: process.env.NODE_ENV !== "production",
     introspection: true,
     plugins: [
       process.env.NODE_ENV === "production"
