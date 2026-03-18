@@ -31,7 +31,7 @@ For deeper documentation on each layer, follow the links to the folder README fi
 
 ## 1. What Is This API?
 
-A **read-and-write API** for tech industry salary data. It combines five CSV datasets (~136,000 rows) into one database and exposes them over a single GraphQL endpoint.
+A **read-and-write API** for tech industry salary data. It combines six CSV datasets (~137,000 rows) into one database and exposes them over a single GraphQL endpoint.
 
 **What you can do:**
 - Browse and filter salary records, jobs, countries, cities, companies, and job categories — no login required

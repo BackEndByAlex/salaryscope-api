@@ -33,7 +33,7 @@ async function runInChunks(items, fn, chunkSize = 50) {
 
 // Upsert countries and return a map of name → id for foreign key references.
 // For simplicity, we treat employee residence and company location as the same "country" dimension.
-async function seedCountries(aRows, bRows, cRows, dRows) {
+async function seedCountries(aRows, bRows, cRows, dRows, eRows) {
   const names = new Set()
 
   for (const row of aRows) {
@@ -44,6 +44,7 @@ async function seedCountries(aRows, bRows, cRows, dRows) {
     if (row.Location) names.add(row.Location)
   }
   if (dRows.length > 0) names.add("United States")
+  if (eRows.length > 0) names.add("Germany")
 
   console.log(`Upserting ${names.size} countries...`)
 
@@ -74,16 +75,24 @@ async function seedCategories(aRows) {
 }
 
 // Upsert jobs and return a map of "title|categoryName" → id for foreign key references.
-async function seedCities(dRows, countryMap) {
+async function seedCities(dRows, eRows, countryMap) {
   const citySet = new Map()
   const usCountryId = countryMap.get("United States")
+  const deCountryId = countryMap.get("Germany")
 
   for (const row of dRows) {
     const name = row.city?.trim()
     const state = row.state?.trim() || null
     if (!name) continue
-    const key = `${name}|${state}`
+    const key = `${name}|${state}|US`
     if (!citySet.has(key)) citySet.set(key, { name, state, countryId: usCountryId })
+  }
+
+  for (const row of eRows) {
+    const name = row.City?.trim()
+    if (!name) continue
+    const key = `${name}|null|EU`
+    if (!citySet.has(key)) citySet.set(key, { name, state: null, countryId: deCountryId })
   }
 
   console.log(`Upserting ${citySet.size} cities...`)
@@ -104,7 +113,7 @@ async function seedCities(dRows, countryMap) {
   return new Map(entries)
 }
 
-async function seedJobs(aRows, bRows, cRows, dRows, categoryMap) {
+async function seedJobs(aRows, bRows, cRows, dRows, eRows, categoryMap) {
   const jobMap = new Map()
 
   for (const row of aRows) {
@@ -126,6 +135,13 @@ async function seedJobs(aRows, bRows, cRows, dRows, categoryMap) {
 
   for (const row of dRows) {
     const title = row.soc_title?.trim()
+    if (!title) continue
+    const key = `${title}|null`
+    if (!jobMap.has(key)) jobMap.set(key, { title, categoryId: null, roles: null })
+  }
+
+  for (const row of eRows) {
+    const title = row["Position "]?.trim() || row.Position?.trim()
     if (!title) continue
     const key = `${title}|null`
     if (!jobMap.has(key)) jobMap.set(key, { title, categoryId: null, roles: null })
@@ -257,7 +273,7 @@ function mapH1bRecord(row, countryMap, jobMap, companyMap, cityMap) {
   if (!jobId) return null
 
   const employerName = row.employer_name?.trim()
-  const cityKey = `${row.city?.trim()}|${row.state?.trim() || null}`
+  const cityKey = `${row.city?.trim()}|${row.state?.trim() || null}|US`
   const usCountryId = countryMap.get("United States") ?? null
 
   return {
@@ -270,6 +286,50 @@ function mapH1bRecord(row, countryMap, jobMap, companyMap, cityMap) {
     employeeCountryId: usCountryId,
     companyCountryId: usCountryId,
     companyId: companyMap.get(employerName) ?? null,
+    cityId: cityMap.get(cityKey) ?? null,
+  }
+}
+
+function mapEuSurveyRecord(row, countryMap, jobMap, cityMap) {
+  const salaryStr = row["Yearly brutto salary (without bonus and stocks) in EUR"]?.trim()
+  if (!salaryStr || isNaN(Number(salaryStr))) return null
+
+  const title = row["Position "]?.trim() || row.Position?.trim()
+  const jobId = jobMap.get(`${title}|null`)
+  if (!jobId) return null
+
+  const cityName = row.City?.trim()
+  const cityKey = `${cityName}|null|EU`
+  const deCountryId = countryMap.get("Germany") ?? null
+
+  const seniority = row["Seniority level"]?.trim()
+  const experienceLevel = seniority === "Senior" ? "SE"
+    : seniority === "Middle" || seniority === "Mid" ? "MI"
+    : seniority === "Junior" ? "EN"
+    : seniority === "Lead" || seniority === "Principal" || seniority === "Staff" ? "EX"
+    : null
+
+  const empStatus = row["Employment status"]?.trim()
+  const employmentType = empStatus === "Full-time employee" ? "FT"
+    : empStatus === "Part-time employee" ? "PT"
+    : empStatus === "Freelancer" ? "FL"
+    : empStatus === "Contractor" ? "CT"
+    : null
+
+  const companySize = row["Company size"]?.trim()
+
+  return {
+    salary: salaryStr,
+    salaryCurrency: "EUR",
+    workYear: 2020,
+    experienceLevel,
+    employmentType,
+    companySize: companySize || null,
+    source: "eu_survey_2020",
+    jobId,
+    employeeCountryId: deCountryId,
+    companyCountryId: null,
+    companyId: null,
     cityId: cityMap.get(cityKey) ?? null,
   }
 }
@@ -311,15 +371,16 @@ async function main() {
   const bRows = loadAndParseCsv("Salary_Dataset_with_Extra_Features.csv")
   const cRows = loadAndParseCsv("Software_Professional_Salaries.csv")
   const dRows = loadAndParseCsv("h1b_tech_2024.csv")
+  const eRows = loadAndParseCsv("2020.csv")
   console.log(
-    `Loaded: ${aRows.length} (A) + ${bRows.length} (B) + ${cRows.length} (C) + ${dRows.length} (D/H-1B) rows.`,
+    `Loaded: ${aRows.length} (A) + ${bRows.length} (B) + ${cRows.length} (C) + ${dRows.length} (D/H-1B) + ${eRows.length} (E/EU-2020) rows.`,
   )
 
-  const countryMap = await seedCountries(aRows, bRows, cRows, dRows)
+  const countryMap = await seedCountries(aRows, bRows, cRows, dRows, eRows)
   const categoryMap = await seedCategories(aRows)
-  const jobMap = await seedJobs(aRows, bRows, cRows, dRows, categoryMap)
+  const jobMap = await seedJobs(aRows, bRows, cRows, dRows, eRows, categoryMap)
   const companyMap = await seedCompanies(bRows, cRows, dRows, countryMap)
-  const cityMap = await seedCities(dRows, countryMap)
+  const cityMap = await seedCities(dRows, eRows, countryMap)
 
   const aRecords = aRows.map((row) => {
     const record = mapDatasetARecord(row, countryMap, jobMap)
@@ -361,11 +422,19 @@ async function main() {
     return record
   })
 
+  const eRecords = eRows.map((row) => {
+    const record = mapEuSurveyRecord(row, countryMap, jobMap, cityMap)
+    if (!record)
+      console.warn(`Skipping invalid EU-2020 row: ${JSON.stringify(row)}`)
+    return record
+  })
+
   const totalInserted = await insertAllBatches([
     ...aRecords,
     ...bRecords,
     ...cRecords,
     ...dRecords,
+    ...eRecords,
   ])
   console.log(`Seeding complete. Total rows inserted: ${totalInserted}.`)
 }

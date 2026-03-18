@@ -37,11 +37,11 @@ When deploying to production, Prisma reads these files and applies any that have
 
 ## seed.js
 
-This script fills the database with real-world salary data from five CSV files (~136,000 rows total).
+This script fills the database with real-world salary data from six CSV files (~137,000 rows total).
 
 Here's what it does, step by step:
 
-1. Reads all five CSV files from the `data/` folder
+1. Reads all six CSV files from the `data/` folder
 2. Collects all unique countries, categories, jobs, companies, and cities and inserts them first (these are the lookup tables that salary records reference)
 3. Maps each CSV row to a salary record and links it to the right job, company, countries, and city using the IDs from step 2
 4. Inserts all salary records in batches of 500 to avoid overloading the database

@@ -7,6 +7,16 @@ CREATE TABLE "Country" (
 );
 
 -- CreateTable
+CREATE TABLE "City" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "state" TEXT,
+    "countryId" INTEGER NOT NULL,
+
+    CONSTRAINT "City_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "JobCategory" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
@@ -52,6 +62,7 @@ CREATE TABLE "SalaryRecord" (
     "employeeCountryId" INTEGER,
     "companyCountryId" INTEGER,
     "companyId" INTEGER,
+    "cityId" INTEGER,
     "createdBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -71,6 +82,9 @@ CREATE TABLE "User" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Country_name_key" ON "Country"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "City_name_state_countryId_key" ON "City"("name", "state", "countryId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "JobCategory_name_key" ON "JobCategory"("name");
@@ -94,6 +108,9 @@ CREATE INDEX "SalaryRecord_companyCountryId_idx" ON "SalaryRecord"("companyCount
 CREATE INDEX "SalaryRecord_companyId_idx" ON "SalaryRecord"("companyId");
 
 -- CreateIndex
+CREATE INDEX "SalaryRecord_cityId_idx" ON "SalaryRecord"("cityId");
+
+-- CreateIndex
 CREATE INDEX "SalaryRecord_workYear_idx" ON "SalaryRecord"("workYear");
 
 -- CreateIndex
@@ -101,6 +118,9 @@ CREATE INDEX "SalaryRecord_experienceLevel_idx" ON "SalaryRecord"("experienceLev
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- AddForeignKey
+ALTER TABLE "City" ADD CONSTRAINT "City_countryId_fkey" FOREIGN KEY ("countryId") REFERENCES "Country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Job" ADD CONSTRAINT "Job_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "JobCategory"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -119,6 +139,9 @@ ALTER TABLE "SalaryRecord" ADD CONSTRAINT "SalaryRecord_companyCountryId_fkey" F
 
 -- AddForeignKey
 ALTER TABLE "SalaryRecord" ADD CONSTRAINT "SalaryRecord_companyId_fkey" FOREIGN KEY ("companyId") REFERENCES "Company"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SalaryRecord" ADD CONSTRAINT "SalaryRecord_cityId_fkey" FOREIGN KEY ("cityId") REFERENCES "City"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "SalaryRecord" ADD CONSTRAINT "SalaryRecord_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;

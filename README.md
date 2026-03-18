@@ -36,6 +36,7 @@ Download the datasets from Kaggle:
 - https://www.kaggle.com/code/iamsouravbanerjee/software-professional-salaries/input
 - https://www.kaggle.com/code/iamsouravbanerjee/software-professional-salaries/input
 - https://www.dol.gov/agencies/eta/foreign-labor/performance (H-1B LCA disclosure data — convert with `node scripts/convert-h1b-xlsx.js`)
+- European IT salary survey (2020, Germany-focused) — included as `data/2020.csv`
 
 Then create a `/data` folder in the root of the project (outside `/src`) and add the CSV
 files into it. The `/data` folder is not included in the repository, you need to create it locally.
@@ -47,6 +48,7 @@ file names:
 - data/Salary_Dataset_with_Extra_Features.csv
 - data/Software_Professional_Salaries.csv
 - data/h1b_tech_2024.csv (generated from H-1B xlsx via conversion script)
+- data/2020.csv (European IT salary survey 2020)
 
 **Step 3 — Start Postgres**
 
@@ -65,7 +67,7 @@ The database lives in a Docker volume and survives restarts.
 docker compose -f docker-compose.db.yml up
 ```
 
-This runs Prisma migrations and seeds the database with CSV data (~136,000 rows). Postgres must already be running on the `salaryscope-network`.
+This runs Prisma migrations and seeds the database with CSV data (~137,000 rows). Postgres must already be running on the `salaryscope-network`.
 
 To re-seed later: `docker compose -f docker-compose.db.yml run --rm seed`
 
@@ -85,9 +87,9 @@ _Describe your API in a few sentences: what dataset does it serve, what are its 
 
 ---
 
-SalaryScope is a GraphQL API that serves salary data from the tech industry, combined from five
-datasets (four from Kaggle, one from the US Department of Labor H-1B visa program) with around
-136,000 records. The main resources are salary records, jobs, job categories, companies, countries,
+SalaryScope is a GraphQL API that serves salary data from the tech industry, combined from six
+datasets (four from Kaggle, one from the US Department of Labor H-1B visa program, and one from the European IT salary survey 2020) with around
+137,000 records. The main resources are salary records, jobs, job categories, companies, countries,
 and cities. Users can browse and filter salary data without logging
 in. Registered users can also create, update, and delete their own salary records. The API
 includes JWT authentication, pagination, nested queries, and is deployed with full documentation
