@@ -3,4 +3,5 @@ export const SALARY_RECORD_INCLUDE = {
   employeeCountry: true,
   companyCountry: true,
   company: true,
+  city: { include: { country: true } },
 }

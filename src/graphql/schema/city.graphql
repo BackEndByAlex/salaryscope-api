@@ -1,0 +1,60 @@
+type City {
+  """
+  Unique city ID.
+  """
+  id: ID!
+
+  """
+  City name (e.g. "San Francisco", "Bangalore").
+  """
+  name: String!
+
+  """
+  State or region code (e.g. "CA", "TX"). Present for US cities.
+  """
+  state: String
+
+  """
+  The country this city belongs to.
+  """
+  country: Country!
+
+  """
+  Number of salary records in this city.
+  """
+  recordCount: Int
+
+  """
+  Paginated salary records for this city.
+  """
+  records(limit: Int, offset: Int): SalaryRecordPage!
+}
+
+type CityPage {
+  """
+  The cities in this page.
+  """
+  cities: [City!]!
+
+  """
+  Total number of cities matching the query.
+  """
+  totalCount: Int!
+
+  """
+  Whether there are more cities after this page.
+  """
+  hasNextPage: Boolean!
+}
+
+extend type Query {
+  """
+  Returns a paginated list of cities, optionally filtered by country.
+  """
+  cities(countryId: ID, limit: Int, offset: Int): CityPage!
+
+  """
+  Returns a single city by its numeric ID.
+  """
+  city(id: ID!): City!
+}

@@ -48,13 +48,14 @@ function parseOptionalId(value) {
   return value != null ? parseId(value) : undefined
 }
 
-function normalizeFilters({ jobId, categoryId, countryId, companyId, ...rest }) {
+function normalizeFilters({ jobId, categoryId, countryId, companyId, cityId, ...rest }) {
   return {
     ...rest,
     jobId: parseOptionalId(jobId),
     categoryId: parseOptionalId(categoryId),
     countryId: parseOptionalId(countryId),
     companyId: parseOptionalId(companyId),
+    cityId: parseOptionalId(cityId),
   }
 }
 

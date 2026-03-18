@@ -80,6 +80,11 @@ type SalaryRecord {
   company: Company
 
   """
+  The city where this salary record is located.
+  """
+  city: City
+
+  """
   When this record was created.
   """
   createdAt: String!
@@ -139,7 +144,12 @@ input SalaryRecordFilters {
   companyId: ID
 
   """
-  Filter by data source: jobs_in_data | salary_extra | software_pro
+  Filter by city ID.
+  """
+  cityId: ID
+
+  """
+  Filter by data source: jobs_in_data | salary_extra | software_pro | h1b_visa
   """
   source: String
 

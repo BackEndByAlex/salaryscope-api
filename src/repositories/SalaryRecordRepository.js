@@ -13,6 +13,7 @@ export class SalaryRecordRepository {
     categoryId,
     countryId,
     companyId,
+    cityId,
     experienceLevel,
     employmentType,
     workSetting,
@@ -27,6 +28,7 @@ export class SalaryRecordRepository {
       categoryId,
       countryId,
       companyId,
+      cityId,
       experienceLevel,
       employmentType,
       workSetting,
@@ -85,6 +87,7 @@ function buildSalaryRecordWhere({
   categoryId,
   countryId,
   companyId,
+  cityId,
   experienceLevel,
   employmentType,
   workSetting,
@@ -99,6 +102,7 @@ function buildSalaryRecordWhere({
   else if (categoryId != null) where.job = { categoryId }
   if (countryId != null) where.employeeCountryId = countryId
   if (companyId != null) where.companyId = companyId
+  if (cityId != null) where.cityId = cityId
   if (experienceLevel != null) where.experienceLevel = experienceLevel
   if (employmentType != null) where.employmentType = employmentType
   if (workSetting != null) where.workSetting = workSetting

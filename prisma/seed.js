@@ -33,7 +33,7 @@ async function runInChunks(items, fn, chunkSize = 50) {
 
 // Upsert countries and return a map of name → id for foreign key references.
 // For simplicity, we treat employee residence and company location as the same "country" dimension.
-async function seedCountries(aRows, bRows, cRows) {
+async function seedCountries(aRows, bRows, cRows, dRows) {
   const names = new Set()
 
   for (const row of aRows) {
@@ -43,6 +43,7 @@ async function seedCountries(aRows, bRows, cRows) {
   for (const row of [...bRows, ...cRows]) {
     if (row.Location) names.add(row.Location)
   }
+  if (dRows.length > 0) names.add("United States")
 
   console.log(`Upserting ${names.size} countries...`)
 
@@ -73,7 +74,37 @@ async function seedCategories(aRows) {
 }
 
 // Upsert jobs and return a map of "title|categoryName" → id for foreign key references.
-async function seedJobs(aRows, bRows, cRows, categoryMap) {
+async function seedCities(dRows, countryMap) {
+  const citySet = new Map()
+  const usCountryId = countryMap.get("United States")
+
+  for (const row of dRows) {
+    const name = row.city?.trim()
+    const state = row.state?.trim() || null
+    if (!name) continue
+    const key = `${name}|${state}`
+    if (!citySet.has(key)) citySet.set(key, { name, state, countryId: usCountryId })
+  }
+
+  console.log(`Upserting ${citySet.size} cities...`)
+
+  const entries = await runInChunks(
+    [...citySet.entries()],
+    async ([key, { name, state, countryId }]) => {
+      const existing = await prisma.city.findFirst({
+        where: { name, state, countryId },
+      })
+      const city =
+        existing ??
+        (await prisma.city.create({ data: { name, state, countryId } }))
+      return [key, city.id]
+    },
+  )
+
+  return new Map(entries)
+}
+
+async function seedJobs(aRows, bRows, cRows, dRows, categoryMap) {
   const jobMap = new Map()
 
   for (const row of aRows) {
@@ -91,6 +122,13 @@ async function seedJobs(aRows, bRows, cRows, categoryMap) {
     if (!title) continue
     const key = `${title}|null`
     if (!jobMap.has(key)) jobMap.set(key, { title, categoryId: null, roles })
+  }
+
+  for (const row of dRows) {
+    const title = row.soc_title?.trim()
+    if (!title) continue
+    const key = `${title}|null`
+    if (!jobMap.has(key)) jobMap.set(key, { title, categoryId: null, roles: null })
   }
 
   console.log(`Upserting ${jobMap.size} jobs...`)
@@ -112,7 +150,7 @@ async function seedJobs(aRows, bRows, cRows, categoryMap) {
   return new Map(entries)
 }
 
-async function seedCompanies(bRows, cRows, countryMap) {
+async function seedCompanies(bRows, cRows, dRows, countryMap) {
   const companyByName = new Map()
 
   for (const row of [...bRows, ...cRows]) {
@@ -124,6 +162,13 @@ async function seedCompanies(bRows, cRows, countryMap) {
       rating: isNaN(rating) ? null : rating,
       countryId,
     })
+  }
+
+  const usCountryId = countryMap.get("United States") ?? null
+  for (const row of dRows) {
+    const name = row.employer_name?.trim()
+    if (!name || companyByName.has(name)) continue
+    companyByName.set(name, { rating: null, countryId: usCountryId })
   }
 
   console.log(`Upserting ${companyByName.size} companies...`)
@@ -203,6 +248,32 @@ function mapDatasetBCRecord(row, countryMap, jobMap, companyMap, source) {
   }
 }
 
+function mapH1bRecord(row, countryMap, jobMap, companyMap, cityMap) {
+  const salary = row.salary?.trim()
+  if (!salary || isNaN(Number(salary))) return null
+
+  const title = row.soc_title?.trim()
+  const jobId = jobMap.get(`${title}|null`)
+  if (!jobId) return null
+
+  const employerName = row.employer_name?.trim()
+  const cityKey = `${row.city?.trim()}|${row.state?.trim() || null}`
+  const usCountryId = countryMap.get("United States") ?? null
+
+  return {
+    salary,
+    salaryInUsd: salary,
+    salaryCurrency: "USD",
+    employmentType: row.full_time === "Y" ? "FT" : "PT",
+    source: "h1b_visa",
+    jobId,
+    employeeCountryId: usCountryId,
+    companyCountryId: usCountryId,
+    companyId: companyMap.get(employerName) ?? null,
+    cityId: cityMap.get(cityKey) ?? null,
+  }
+}
+
 // --- Batch insertion ---
 
 async function insertAllBatches(records) {
@@ -239,14 +310,16 @@ async function main() {
   ]
   const bRows = loadAndParseCsv("Salary_Dataset_with_Extra_Features.csv")
   const cRows = loadAndParseCsv("Software_Professional_Salaries.csv")
+  const dRows = loadAndParseCsv("h1b_tech_2024.csv")
   console.log(
-    `Loaded: ${aRows.length} (A) + ${bRows.length} (B) + ${cRows.length} (C) rows.`,
+    `Loaded: ${aRows.length} (A) + ${bRows.length} (B) + ${cRows.length} (C) + ${dRows.length} (D/H-1B) rows.`,
   )
 
-  const countryMap = await seedCountries(aRows, bRows, cRows)
+  const countryMap = await seedCountries(aRows, bRows, cRows, dRows)
   const categoryMap = await seedCategories(aRows)
-  const jobMap = await seedJobs(aRows, bRows, cRows, categoryMap)
-  const companyMap = await seedCompanies(bRows, cRows, countryMap)
+  const jobMap = await seedJobs(aRows, bRows, cRows, dRows, categoryMap)
+  const companyMap = await seedCompanies(bRows, cRows, dRows, countryMap)
+  const cityMap = await seedCities(dRows, countryMap)
 
   const aRecords = aRows.map((row) => {
     const record = mapDatasetARecord(row, countryMap, jobMap)
@@ -281,10 +354,18 @@ async function main() {
     return record
   })
 
+  const dRecords = dRows.map((row) => {
+    const record = mapH1bRecord(row, countryMap, jobMap, companyMap, cityMap)
+    if (!record)
+      console.warn(`Skipping invalid H-1B row: ${JSON.stringify(row)}`)
+    return record
+  })
+
   const totalInserted = await insertAllBatches([
     ...aRecords,
     ...bRecords,
     ...cRecords,
+    ...dRecords,
   ])
   console.log(`Seeding complete. Total rows inserted: ${totalInserted}.`)
 }

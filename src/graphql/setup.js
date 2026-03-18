@@ -16,6 +16,7 @@ import { CountryRepository } from "../repositories/CountryRepository.js"
 import { JobCategoryRepository } from "../repositories/JobCategoryRepository.js"
 import { JobRepository } from "../repositories/JobRepository.js"
 import { CompanyRepository } from "../repositories/CompanyRepository.js"
+import { CityRepository } from "../repositories/CityRepository.js"
 import { SalaryRecordRepository } from "../repositories/SalaryRecordRepository.js"
 
 import { AuthService } from "../auth/AuthService.js"
@@ -24,6 +25,7 @@ import { CountryService } from "../services/CountryService.js"
 import { JobCategoryService } from "../services/JobCategoryService.js"
 import { JobService } from "../services/JobService.js"
 import { CompanyService } from "../services/CompanyService.js"
+import { CityService } from "../services/CityService.js"
 import { SalaryRecordService } from "../services/SalaryRecordService.js"
 
 import { authResolvers } from "../auth/authResolvers.js"
@@ -31,6 +33,7 @@ import { countryResolvers } from "./resolvers/countryResolvers.js"
 import { jobCategoryResolvers } from "./resolvers/jobCategoryResolvers.js"
 import { jobResolvers } from "./resolvers/jobResolvers.js"
 import { companyResolvers } from "./resolvers/companyResolvers.js"
+import { cityResolvers } from "./resolvers/cityResolvers.js"
 import { salaryRecordResolvers } from "./resolvers/salaryRecordResolvers.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -44,6 +47,7 @@ function loadTypeDefs() {
     "jobCategory.graphql",
     "job.graphql",
     "company.graphql",
+    "city.graphql",
     "salaryRecord.graphql",
   ].map((filename) => readFileSync(join(schemaDir, filename), "utf8"))
 }
@@ -54,6 +58,7 @@ function createServices() {
   const jobCategoryRepository = new JobCategoryRepository(prisma)
   const jobRepository = new JobRepository(prisma)
   const companyRepository = new CompanyRepository(prisma)
+  const cityRepository = new CityRepository(prisma)
   const salaryRecordRepository = new SalaryRecordRepository(prisma)
 
   return {
@@ -63,6 +68,7 @@ function createServices() {
     jobCategoryService: new JobCategoryService(jobCategoryRepository),
     jobService: new JobService(jobRepository),
     companyService: new CompanyService(companyRepository),
+    cityService: new CityService(cityRepository),
     salaryRecordService: new SalaryRecordService(salaryRecordRepository),
   }
 }
@@ -78,6 +84,7 @@ export function buildApolloServer() {
       jobCategoryResolvers,
       jobResolvers,
       companyResolvers,
+      cityResolvers,
       salaryRecordResolvers,
     ],
     validationRules: [depthLimit(5)],

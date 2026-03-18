@@ -16,6 +16,18 @@ model Country {
   employeeRecords SalaryRecord[] @relation("EmployeeCountry")
   companyRecords  SalaryRecord[] @relation("CompanyCountry")
   companies       Company[]
+  cities          City[]
+}
+
+model City {
+  id        Int            @id @default(autoincrement())
+  name      String
+  state     String?
+  countryId Int
+  country   Country        @relation(fields: [countryId], references: [id])
+  records   SalaryRecord[]
+
+  @@unique([name, state, countryId])
 }
 
 model JobCategory {
@@ -79,6 +91,9 @@ model SalaryRecord {
   companyId          Int?
   company            Company? @relation(fields: [companyId], references: [id])
 
+  cityId             Int?
+  city               City?    @relation(fields: [cityId], references: [id])
+
   createdBy          Int?
   createdByUser      User?    @relation(fields: [createdBy], references: [id])
 
@@ -89,6 +104,7 @@ model SalaryRecord {
   @@index([employeeCountryId])
   @@index([companyCountryId])
   @@index([companyId])
+  @@index([cityId])
   @@index([workYear])
   @@index([experienceLevel])
 }
