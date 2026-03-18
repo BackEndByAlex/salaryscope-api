@@ -72,13 +72,25 @@ Types and operations for companies.
 
 ---
 
+## city.graphql
+
+Types and operations for cities.
+
+- `City` — id, name, optional state, and the country it belongs to
+- `CityPage` — paginated result wrapper
+- `cities` — paginated list of cities, filterable by country
+- `city` — single city by ID
+- Nested `records` field on `City` to fetch paginated salary records for that city
+
+---
+
 ## salaryRecord.graphql
 
 Types and operations for salary records, the main resource of the API.
 
 - `SalaryRecord` — all salary fields plus relations to job, company, and countries. Some fields are only present for certain data sources (noted inline in the schema).
 - `SalaryRecordPage` — paginated result wrapper
-- `SalaryRecordFilters` — all available filters: job, category, country, company, source, work year, experience level, employment type, work setting, company size
+- `SalaryRecordFilters` — all available filters: job, category, country, company, city, source, work year, experience level, employment type, work setting, company size
 - `CreateSalaryRecordInput` — fields required and optional when creating a new record
 - `UpdateSalaryRecordInput` — same fields but all optional. Source cannot be changed after creation.
 - `salaryRecords` — paginated list with filters

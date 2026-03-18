@@ -14,7 +14,8 @@ The tables in this project are:
 - **JobCategory** — groups jobs into categories like "Data Science" or "Machine Learning".
 - **Job** — stores job titles. Each job can belong to a category.
 - **Company** — stores company names, ratings, and their country.
-- **SalaryRecord** — the main table. Every salary entry links to a job, and optionally to a company and two countries (where the employee lives, where the company is). Salary records also track things like work year, experience level, employment type, and work setting.
+- **City** — stores city names with an optional state and a link to a country. Used to track city-level location for salary records (e.g. US cities from H-1B visa data, Indian cities from salary datasets).
+- **SalaryRecord** — the main table. Every salary entry links to a job, and optionally to a company, two countries (where the employee lives, where the company is), and a city. Salary records also track things like work year, experience level, employment type, and work setting.
 - **User** — stores registered users. Used only for authentication, users can create and manage their own salary records.
 
 When you change `schema.prisma`, you always create a migration afterwards to apply those changes to the database.
@@ -33,13 +34,13 @@ When deploying to production, Prisma reads these files and applies any that have
 
 ## seed.js
 
-This script fills the database with real-world salary data from four CSV files (~68,000 rows total).
+This script fills the database with real-world salary data from five CSV files (~136,000 rows total).
 
 Here's what it does, step by step:
 
-1. Reads all four CSV files from the `data/` folder
-2. Collects all unique countries, categories, jobs, and companies and inserts them first (these are the lookup tables that salary records reference)
-3. Maps each CSV row to a salary record and links it to the right job, company, and countries using the IDs from step 2
+1. Reads all five CSV files from the `data/` folder
+2. Collects all unique countries, categories, jobs, companies, and cities and inserts them first (these are the lookup tables that salary records reference)
+3. Maps each CSV row to a salary record and links it to the right job, company, countries, and city using the IDs from step 2
 4. Inserts all salary records in batches of 500 to avoid overloading the database
 
 The script uses `skipDuplicates`, so it's safe to run more than once. Rows that already exist are skipped, not duplicated.

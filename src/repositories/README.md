@@ -49,9 +49,17 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 ---
 
+## CityRepository.js
+
+- `findAll` — paginated list of cities, with an optional country filter
+- `findById` — single city by ID
+- `findRecords` — paginated salary records for a given city (limit capped at 100)
+
+---
+
 ## SalaryRecordRepository.js
 
-- `findAll` — paginated list of salary records with up to ten optional filters (job, category, country, company, experience level, employment type, work setting, company size, source, work year)
+- `findAll` — paginated list of salary records with up to eleven optional filters (job, category, country, company, city, experience level, employment type, work setting, company size, source, work year)
 - `findById` — single salary record by ID
 - `create` — creates a new salary record
 - `update` — updates an existing salary record by ID
@@ -61,4 +69,4 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 ## salaryRecordInclude.js
 
-A shared Prisma `include` configuration used by every salary record query. Tells Prisma to always fetch the related job (with its category), employee country, company country, and company alongside each record, so resolvers never have to request them separately.
+A shared Prisma `include` configuration used by every salary record query. Tells Prisma to always fetch the related job (with its category), employee country, company country, company, and city (with its country) alongside each record, so resolvers never have to request them separately.

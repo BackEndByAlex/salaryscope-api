@@ -13,11 +13,11 @@ For deeper documentation on each layer, follow the links to the folder README fi
 
 ## 1. What Is This API?
 
-A **read-and-write API** for tech industry salary data. It combines four CSV datasets (~68,000 rows) into one database and exposes them over a single GraphQL endpoint.
+A **read-and-write API** for tech industry salary data. It combines five CSV datasets (~136,000 rows) into one database and exposes them over a single GraphQL endpoint.
 
 **What you can do:**
 
-- Browse and filter salary records, jobs, countries, companies, and job categories -- no login required
+- Browse and filter salary records, jobs, countries, cities, companies, and job categories -- no login required
 - Create, update, and delete salary records -- requires login
 - Register an account and log in
 
@@ -214,7 +214,8 @@ Subsequent requests
 | `jobCategories` / `jobCategory` / `jobCategoryByName` | List or look up job categories                    |
 | `jobs` / `job`                                        | List or look up jobs (filterable by category)     |
 | `companies` / `company` / `companyByName`             | List or look up companies (filterable by country) |
-| `salaryRecords(filters)`                              | Paginated salary records with up to 10 filters    |
+| `cities` / `city`                                     | List or look up cities (filterable by country)    |
+| `salaryRecords(filters)`                              | Paginated salary records with up to 11 filters    |
 | `salaryRecord(id)`                                    | Single salary record by ID                        |
 
 ### Protected (login required)
@@ -228,7 +229,7 @@ Subsequent requests
 
 ### Available filters on `salaryRecords`
 
-`jobId`, `categoryId`, `countryId`, `companyId`, `workYear`, `experienceLevel`, `employmentType`, `workSetting`, `companySize`, `source`
+`jobId`, `categoryId`, `countryId`, `companyId`, `cityId`, `workYear`, `experienceLevel`, `employmentType`, `workSetting`, `companySize`, `source`
 
 > See [Type Definitions](../graphql-schema/type-definitions.md) for full type definitions.
 

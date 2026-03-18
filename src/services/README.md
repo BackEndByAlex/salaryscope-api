@@ -52,6 +52,14 @@ Used by the `me` query to return the currently logged-in user's profile.
 
 ---
 
+## CityService.js
+
+- `getAll` — returns a paginated list of cities, with an optional country filter
+- `getById` — returns a city by ID, or throws `NotFoundError`
+- `getRecords` — returns paginated salary records for a given city
+
+---
+
 ## SalaryRecordService.js
 
 - `getAll` — returns a paginated list of salary records with optional filters

@@ -49,9 +49,18 @@ Each file covers one domain. Resolvers are kept thin on purpose, they guard acce
 
 ---
 
+## cityResolvers.js
+
+- `cities` — returns a paginated list of cities, with an optional country filter
+- `city` — returns a single city by ID
+- `City.recordCount` — total salary records in this city
+- `City.records` — returns paginated salary records for that city
+
+---
+
 ## salaryRecordResolvers.js
 
-- `salaryRecords` — returns a paginated list of salary records, with optional filters (job, category, country, company, experience level, etc.)
+- `salaryRecords` — returns a paginated list of salary records, with optional filters (job, category, country, company, city, experience level, etc.)
 - `salaryRecord` — returns a single salary record by ID
 - `createSalaryRecord` — creates a new salary record. Requires login.
 - `updateSalaryRecord` — updates a salary record. Requires login. Only the owner can update.
