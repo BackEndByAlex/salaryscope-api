@@ -36,13 +36,22 @@ Tokens are signed with the private RSA key from `config/keys.js`, use the RS256 
 
 Runs on every incoming request before anything else.
 
-1. Reads the `Authorization` header
-2. If it starts with `Bearer `, extracts the token
-3. Verifies the token using the public RSA key (checks algorithm, issuer, and audience)
-4. If valid, attaches `{ id, email }` to the request context so resolvers know who is making the request
-5. If missing or invalid, sets `user: null` and continues without throwing
+Token extraction checks two places in order:
+
+1. `Authorization: Bearer <token>` header
+2. `token` cookie (set automatically on login/register)
+
+After extracting the token, it verifies it using the public RSA key (checks algorithm, issuer, and audience). If valid, attaches `{ id, email }` to the request context so resolvers know who is making the request. If missing or invalid, sets `user: null` and continues without throwing.
 
 Resolvers decide what to do with an unauthenticated request. This middleware never blocks a request on its own.
+
+---
+
+## Logout and token revocation
+
+The API exposes `POST /auth/logout`. It clears the `token` cookie on the client side.
+
+**Known tradeoff:** JWTs are stateless — there is no server-side revocation. A token copied before logout remains valid until it expires (24 hours). This is an accepted limitation of the stateless JWT model. A production system requiring immediate revocation would add a server-side blocklist (e.g. a Redis set keyed by `jti`) that the middleware checks on every request.
 
 ---
 
@@ -58,8 +67,8 @@ Called at the top of any resolver that requires a logged-in user. If `user` is n
 
 The GraphQL entry points for authentication.
 
-- `register` — validates input, then calls `AuthService.register`
-- `login` — validates input, then calls `AuthService.login`
+- `register` — validates input, calls `AuthService.register`, sets the `token` cookie on the response
+- `login` — validates input, calls `AuthService.login`, sets the `token` cookie on the response
 - `me` — checks that the user is logged in, then returns their profile from `UserService`
 
 Input validation happens before the service layer is touched.
@@ -70,10 +79,14 @@ Input validation happens before the service layer is touched.
 
 ```
 Incoming request
-  └── jwtMiddleware — reads token, sets context.user (or null)
+  └── jwtMiddleware — reads token (header or cookie), sets context.user (or null)
         └── Resolver
               ├── mutations (create/update/delete) — assertAuthenticated(user) → blocks if not logged in
               └── queries (read) — no guard, public access
+
+POST /auth/logout
+  └── clears token cookie on the client
+      (token remains valid server-side until expiry — known tradeoff)
 ```
 
 ---

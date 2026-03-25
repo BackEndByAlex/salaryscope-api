@@ -105,7 +105,7 @@ The entry point. Starts Express, mounts Apollo, and applies all middleware in or
 
 ### Layer 2 - Authentication Middleware (`src/auth/jwtMiddleware.js`)
 
-Runs on every request. Reads the `Authorization` header, verifies the token, and sets `context.user`. Never blocks a request. That decision happens in the resolver.
+Runs on every request. Reads the token from the `Authorization: Bearer` header or the `token` cookie (checked in that order), verifies it, and sets `context.user`. Never blocks a request. That decision happens in the resolver.
 
 **Analogy:** The doorman who checks IDs. Valid ID, your name goes on the visitor list. No ID, "anonymous" goes on the list. They don't turn you away, that happens upstairs.
 
@@ -170,13 +170,19 @@ Register / Login
   -> validate input
   -> hash password (bcrypt, 12 rounds)
   -> sign JWT with private key
+  -> set HttpOnly token cookie on response
   -> return { token, user }
 
 Subsequent requests
-  -> send: Authorization: Bearer <token>
+  -> send: Authorization: Bearer <token>  (or cookie is sent automatically)
   -> middleware verifies token with public key
   -> context.user = { id, email } or null
   -> protected resolvers call assertAuthenticated(user) -- throws 401 if null
+
+Logout
+  -> POST /auth/logout
+  -> clears token cookie
+  -> token remains valid until natural expiry (known tradeoff of stateless JWT)
 ```
 
 > See [Authentication](../auth/authentication.md) for the full flow.
@@ -189,12 +195,14 @@ Subsequent requests
 | ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Helmet + CSP**       | Sets HTTP security headers (XSS, clickjacking, HTTPS enforcement). Content Security Policy allows Apollo Studio while blocking all other external scripts. |
 | **CORS**               | Only allows origins listed in `ALLOWED_ORIGINS`. Postman/curl always allowed.                                                                              |
-| **Global rate limit**  | 200 requests per IP per 15 minutes                                                                                                                         |
+| **Cookie-based auth**  | Login and register set an HttpOnly `token` cookie. Middleware reads from header or cookie.                                                                 |
+| **Global rate limit**  | 500 requests per IP per 15 minutes                                                                                                                         |
 | **Auth rate limit**    | 10 requests per IP per 15 minutes on `login` and `register`. Detects auth operations by both `operationName` and query body to prevent bypass.             |
 | **Query depth limit**  | Rejects GraphQL queries deeper than 5 levels to prevent nested query abuse                                                                                 |
 | **Batch blocker**      | Rejects any request body that is a JSON array                                                                                                              |
 | **Body size limit**    | 100 KB max per request                                                                                                                                     |
 | **Password length**    | Minimum 8, maximum 128 characters. Prevents bcrypt truncation issues and large-payload abuse.                                                              |
+| **Input length caps**  | `countryByName`, `companyByName`, `jobCategoryByName` reject name arguments over 255 characters                                                            |
 | **Pagination caps**    | All paginated queries (including nested fields) are capped at 100 records per page                                                                         |
 | **JWT scoping**        | Tokens include `issuer` and `audience` claims, scoping them to this API only                                                                               |
 | **Introspection**      | Enabled in all environments (for Postman and Apollo Sandbox)                                                                                               |
@@ -208,8 +216,9 @@ Subsequent requests
 
 | Operation                                             | What it does                                      |
 | ----------------------------------------------------- | ------------------------------------------------- |
-| `register(input)`                                     | Creates an account, returns a token               |
-| `login(input)`                                        | Checks credentials, returns a token               |
+| `register(input)`                                     | Creates an account, returns a token and sets cookie |
+| `login(input)`                                        | Checks credentials, returns a token and sets cookie |
+| `POST /auth/logout`                                   | Clears the token cookie (REST endpoint, not GraphQL) |
 | `countries` / `country` / `countryByName`             | List or look up countries                         |
 | `jobCategories` / `jobCategory` / `jobCategoryByName` | List or look up job categories                    |
 | `jobs` / `job`                                        | List or look up jobs (filterable by category)     |

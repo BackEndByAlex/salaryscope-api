@@ -230,7 +230,8 @@ _List the technologies you chose and briefly explain why:_
 **jsonwebtoken** - JWT signing and verification. RS256 for stateless authentication
 **bcryptjs** - Password hasing with configurable salt rounds.
 **helmet** - Secure HTTP headers with a targeted Content Security Policy that allows Apollo Studio while blocking everything else.
-**express-rate-limit** - Limits request rate per IP. General limit of 200 requests and a stricter limit of 10 for auth operations (login/register), with query body detection to prevent bypass.
+**cookie-parser** - Parses the `Cookie` header so the JWT middleware can read the `token` cookie set on login/register.
+**express-rate-limit** - Limits request rate per IP. General limit of 500 requests and a stricter limit of 10 for auth operations (login/register), with query body detection to prevent bypass.
 **graphql-depth-limit** - Prevents deeply nested query abuse by rejecting queries deeper than 5 levels.
 **cors** - Restricts which oridins can call the API in a browser context.
 **docker + docker compose** - Deployment. Split into separate compose files: `docker-compose.db.yml` (database + migrations + seed) and `docker-compose.prod.yml` (API only). CI/CD only rebuilds the API.
@@ -291,7 +292,8 @@ _Resources, attributions, or shoutouts._
 - https://www.postman.com/ and course lectures for API testing and Newman CI/CD integration
 - Security hardening was done through research into OWASP best practices, covering query depth
   limiting, rate limiter bypass prevention, JWT issuer/audience claims, Content Security Policy,
-  password length validation, user enumeration prevention, and nested pagination caps
+  password length validation, user enumeration prevention, nested pagination caps, input length
+  validation on query arguments, and cookie-based auth with HttpOnly secure flags
 - course lectures about API
 - gitlab exemples
 - moodle documentation

@@ -13,7 +13,7 @@ Each file covers one domain. Resolvers are kept thin on purpose, they guard acce
 
 - `companies` — returns a paginated list of companies, with an optional country filter
 - `company` — returns a single company by ID
-- `companyByName` — returns a company by name
+- `companyByName` — returns a company by name (name argument validated: max 255 characters)
 - `Company.rating` — converts the rating from a Prisma Decimal to a regular number before sending it to the client
 - `Company.records` — returns paginated salary records that belong to that company
 
@@ -23,7 +23,7 @@ Each file covers one domain. Resolvers are kept thin on purpose, they guard acce
 
 - `countries` — returns a paginated list of countries
 - `country` — returns a single country by ID
-- `countryByName` — returns a country by name
+- `countryByName` — returns a country by name (name argument validated: max 255 characters)
 - `Country.employeeRecordCount` — total salary records where employees live in this country
 - `Country.companyRecordCount` — total salary records where companies are based in this country
 - `Country.companyCount` — total companies based in this country
@@ -36,7 +36,7 @@ Each file covers one domain. Resolvers are kept thin on purpose, they guard acce
 
 - `jobCategories` — returns a paginated list of job categories
 - `jobCategory` — returns a single category by ID
-- `jobCategoryByName` — returns a category by name
+- `jobCategoryByName` — returns a category by name (name argument validated: max 255 characters)
 - `JobCategory.jobCount` — total number of jobs that belong to this category
 
 ---

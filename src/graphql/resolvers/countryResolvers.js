@@ -1,10 +1,14 @@
+import { validateNameArg } from "../../validators/queryValidator.js"
+
 export const countryResolvers = {
   Query: {
     countries: (_, { limit, offset }, { countryService }) =>
       countryService.getAll({ limit, offset }),
     country: (_, { id }, { countryService }) => countryService.getById(id),
-    countryByName: (_, { name }, { countryService }) =>
-      countryService.getByName(name),
+    countryByName: (_, { name }, { countryService }) => {
+      validateNameArg(name)
+      return countryService.getByName(name)
+    },
   },
   Country: {
     employeeRecordCount: (parent) => parent._count?.employeeRecords ?? null,

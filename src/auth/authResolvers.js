@@ -4,10 +4,18 @@ import {
 } from "../validators/authValidator.js"
 import { assertAuthenticated } from "./authGuard.js"
 
-// This file defines the GraphQL resolvers for 
-// authentication-related operations, 
-// including user registration, 
-// login, and fetching the current user's profile.
+const TOKEN_MAX_AGE_MS = 24 * 60 * 60 * 1000
+
+function setAuthCookie(res, token) {
+  res.cookie("token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "strict",
+    maxAge: TOKEN_MAX_AGE_MS,
+    path: "/",
+  })
+}
+
 export const authResolvers = {
   Query: {
     me: (_, __, { user, userService }) => {
@@ -16,13 +24,17 @@ export const authResolvers = {
     },
   },
   Mutation: {
-    register: (_, { input }, { authService }) => {
+    register: async (_, { input }, { authService, res }) => {
       validateRegisterInput(input)
-      return authService.register(input)
+      const result = await authService.register(input)
+      setAuthCookie(res, result.token)
+      return result
     },
-    login: (_, { input }, { authService }) => {
+    login: async (_, { input }, { authService, res }) => {
       validateLoginInput(input)
-      return authService.login(input)
+      const result = await authService.login(input)
+      setAuthCookie(res, result.token)
+      return result
     },
   },
 }

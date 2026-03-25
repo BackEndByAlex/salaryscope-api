@@ -2,6 +2,7 @@ import "dotenv/config"
 import express from "express"
 import cors from "cors"
 import helmet from "helmet"
+import cookieParser from "cookie-parser"
 import rateLimit from "express-rate-limit"
 import { expressMiddleware } from "@as-integrations/express5"
 import { buildContext } from "./auth/jwtMiddleware.js"
@@ -9,7 +10,7 @@ import { buildApolloServer, createServices } from "./graphql/setup.js"
 
 const PORT = process.env.PORT
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
-const GENERAL_RATE_LIMIT_MAX = 200
+const GENERAL_RATE_LIMIT_MAX = 500
 const AUTH_RATE_LIMIT_MAX = 10
 const AUTH_OPERATIONS = ["Login", "Register"]
 
@@ -63,9 +64,15 @@ try {
       },
     },
   }))
-  app.use(cors({ origin: corsOriginValidator }))
+  app.use(cors({ origin: corsOriginValidator, credentials: true }))
+  app.use(cookieParser())
   app.use(express.json({ limit: "100kb" }))
   app.use(rateLimit({ windowMs: RATE_LIMIT_WINDOW_MS, max: GENERAL_RATE_LIMIT_MAX, standardHeaders: true, legacyHeaders: false }))
+
+  app.post("/auth/logout", (req, res) => {
+    res.clearCookie("token", { path: "/" })
+    res.json({ ok: true })
+  })
 
   app.use("/graphql", blockBatchedRequests)
   app.use("/graphql", applyAuthRateLimit(
@@ -75,8 +82,9 @@ try {
   app.use(
     "/graphql",
     expressMiddleware(apolloServer, {
-      context: async ({ req }) => ({
+      context: async ({ req, res }) => ({
         ...buildContext({ req }),
+        res,
         ...services,
       }),
     }),

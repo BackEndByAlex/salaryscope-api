@@ -1,4 +1,5 @@
 import { parseId } from "../../utils/parseId.js"
+import { validateNameArg } from "../../validators/queryValidator.js"
 
 export const companyResolvers = {
   Query: {
@@ -9,8 +10,10 @@ export const companyResolvers = {
         offset,
       }),
     company: (_, { id }, { companyService }) => companyService.getById(id),
-    companyByName: (_, { name }, { companyService }) =>
-      companyService.getByName(name),
+    companyByName: (_, { name }, { companyService }) => {
+      validateNameArg(name)
+      return companyService.getByName(name)
+    },
   },
   Company: {
     rating: (parent) =>

@@ -24,6 +24,8 @@ Builds and returns the Apollo Server instance. It:
 3. Applies a query depth limit of 5 levels to prevent deeply nested query abuse
 4. Configures the embedded sandbox (Apollo Studio in production, local sandbox in development)
 
+**Known tradeoff — query complexity:** Depth limiting is in place, but there is no query complexity limit. A shallow but wide query (many fields at depth ≤ 5) could still be expensive. A future improvement would add `graphql-query-complexity` as an Apollo plugin to assign a cost per field and reject queries that exceed a total complexity budget.
+
 ---
 
 ## schema/
