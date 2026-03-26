@@ -49,7 +49,7 @@ Resolvers decide what to do with an unauthenticated request. This middleware nev
 
 ## Logout and token revocation
 
-The API exposes `POST /auth/logout`. It clears the `token` cookie on the client side.
+Logout is handled by the `logout` GraphQL mutation. It clears the `token` cookie server-side via `res.clearCookie()`.
 
 **Known tradeoff:** JWTs are stateless — there is no server-side revocation. A token copied before logout remains valid until it expires (24 hours). This is an accepted limitation of the stateless JWT model. A production system requiring immediate revocation would add a server-side blocklist (e.g. a Redis set keyed by `jti`) that the middleware checks on every request.
 
@@ -69,6 +69,7 @@ The GraphQL entry points for authentication.
 
 - `register` — validates input, calls `AuthService.register`, sets the `token` cookie on the response
 - `login` — validates input, calls `AuthService.login`, sets the `token` cookie on the response
+- `logout` — clears the `token` cookie server-side, returns `true`
 - `me` — checks that the user is logged in, then returns their profile from `UserService`
 
 Input validation happens before the service layer is touched.
@@ -84,8 +85,8 @@ Incoming request
               ├── mutations (create/update/delete) — assertAuthenticated(user) → blocks if not logged in
               └── queries (read) — no guard, public access
 
-POST /auth/logout
-  └── clears token cookie on the client
+mutation logout
+  └── clears token cookie on the client via res.clearCookie()
       (token remains valid server-side until expiry — known tradeoff)
 ```
 
@@ -93,4 +94,4 @@ POST /auth/logout
 
 ## GraphQL schema
 
-The types and operations (`User`, `AuthPayload`, `register`, `login`, `me`) are defined in `src/graphql/schema/auth.graphql`.
+The types and operations (`User`, `AuthPayload`, `register`, `login`, `logout`, `me`) are defined in `src/graphql/schema/auth.graphql`.

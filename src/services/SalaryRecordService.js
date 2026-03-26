@@ -31,7 +31,8 @@ export class SalaryRecordService {
   async update(id, data, userId) {
     const numericId = parseId(id)
     const record = await this.#repository.findById(numericId)
-    if (!record) throw new NotFoundError(`Salary record with id ${id} was not found.`)
+    if (!record)
+      throw new NotFoundError(`Salary record with id ${id} was not found.`)
     this.#assertOwnership(record, userId, id)
     return this.#repository.update(numericId, data)
   }
@@ -39,7 +40,8 @@ export class SalaryRecordService {
   async delete(id, userId) {
     const numericId = parseId(id)
     const record = await this.#repository.findById(numericId)
-    if (!record) throw new NotFoundError(`Salary record with id ${id} was not found.`)
+    if (!record)
+      throw new NotFoundError(`Salary record with id ${id} was not found.`)
     this.#assertOwnership(record, userId, id)
     return this.#repository.delete(numericId)
   }

@@ -85,14 +85,16 @@ async function seedCities(dRows, eRows, countryMap) {
     const state = row.state?.trim() || null
     if (!name) continue
     const key = `${name}|${state}|US`
-    if (!citySet.has(key)) citySet.set(key, { name, state, countryId: usCountryId })
+    if (!citySet.has(key))
+      citySet.set(key, { name, state, countryId: usCountryId })
   }
 
   for (const row of eRows) {
     const name = row.City?.trim()
     if (!name) continue
     const key = `${name}|null|EU`
-    if (!citySet.has(key)) citySet.set(key, { name, state: null, countryId: deCountryId })
+    if (!citySet.has(key))
+      citySet.set(key, { name, state: null, countryId: deCountryId })
   }
 
   console.log(`Upserting ${citySet.size} cities...`)
@@ -137,14 +139,16 @@ async function seedJobs(aRows, bRows, cRows, dRows, eRows, categoryMap) {
     const title = row.soc_title?.trim()
     if (!title) continue
     const key = `${title}|null`
-    if (!jobMap.has(key)) jobMap.set(key, { title, categoryId: null, roles: null })
+    if (!jobMap.has(key))
+      jobMap.set(key, { title, categoryId: null, roles: null })
   }
 
   for (const row of eRows) {
     const title = row["Position "]?.trim() || row.Position?.trim()
     if (!title) continue
     const key = `${title}|null`
-    if (!jobMap.has(key)) jobMap.set(key, { title, categoryId: null, roles: null })
+    if (!jobMap.has(key))
+      jobMap.set(key, { title, categoryId: null, roles: null })
   }
 
   console.log(`Upserting ${jobMap.size} jobs...`)
@@ -238,7 +242,7 @@ function mapDatasetARecord(row, countryMap, jobMap) {
   }
 }
 
-// Datasets B and C have the same structure, so we can use one mapping function for both. 
+// Datasets B and C have the same structure, so we can use one mapping function for both.
 // The "source" parameter allows us to handle any source-specific fields (e.g. "Employment Status" only exists in Dataset B).
 function mapDatasetBCRecord(row, countryMap, jobMap, companyMap, source) {
   const salary = row.Salary?.trim()
@@ -291,7 +295,8 @@ function mapH1bRecord(row, countryMap, jobMap, companyMap, cityMap) {
 }
 
 function mapEuSurveyRecord(row, countryMap, jobMap, cityMap) {
-  const salaryStr = row["Yearly brutto salary (without bonus and stocks) in EUR"]?.trim()
+  const salaryStr =
+    row["Yearly brutto salary (without bonus and stocks) in EUR"]?.trim()
   if (!salaryStr || isNaN(Number(salaryStr))) return null
 
   const title = row["Position "]?.trim() || row.Position?.trim()
@@ -303,18 +308,30 @@ function mapEuSurveyRecord(row, countryMap, jobMap, cityMap) {
   const deCountryId = countryMap.get("Germany") ?? null
 
   const seniority = row["Seniority level"]?.trim()
-  const experienceLevel = seniority === "Senior" ? "SE"
-    : seniority === "Middle" || seniority === "Mid" ? "MI"
-    : seniority === "Junior" ? "EN"
-    : seniority === "Lead" || seniority === "Principal" || seniority === "Staff" ? "EX"
-    : null
+  const experienceLevel =
+    seniority === "Senior"
+      ? "SE"
+      : seniority === "Middle" || seniority === "Mid"
+        ? "MI"
+        : seniority === "Junior"
+          ? "EN"
+          : seniority === "Lead" ||
+              seniority === "Principal" ||
+              seniority === "Staff"
+            ? "EX"
+            : null
 
   const empStatus = row["Employment status"]?.trim()
-  const employmentType = empStatus === "Full-time employee" ? "FT"
-    : empStatus === "Part-time employee" ? "PT"
-    : empStatus === "Freelancer" ? "FL"
-    : empStatus === "Contractor" ? "CT"
-    : null
+  const employmentType =
+    empStatus === "Full-time employee"
+      ? "FT"
+      : empStatus === "Part-time employee"
+        ? "PT"
+        : empStatus === "Freelancer"
+          ? "FL"
+          : empStatus === "Contractor"
+            ? "CT"
+            : null
 
   const companySize = row["Company size"]?.trim()
 

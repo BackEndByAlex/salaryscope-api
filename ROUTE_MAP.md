@@ -197,8 +197,8 @@ Subsequent requests
   → protected resolvers call assertAuthenticated(user) — throws 401 if null
 
 Logout
-  → POST /auth/logout
-  → clears token cookie
+  → mutation logout
+  → clears token cookie via res.clearCookie()
   → token remains valid until natural expiry (known tradeoff of stateless JWT)
 ```
 
@@ -235,7 +235,7 @@ Logout
 |---|---|
 | `register(input)` | Creates an account, returns a token and sets cookie |
 | `login(input)` | Checks credentials, returns a token and sets cookie |
-| `POST /auth/logout` | Clears the token cookie (REST endpoint, not GraphQL) |
+| `logout` | Clears the token cookie server-side via GraphQL mutation |
 | `countries` / `country` / `countryByName` | List or look up countries |
 | `jobCategories` / `jobCategory` / `jobCategoryByName` | List or look up job categories |
 | `jobs` / `job` | List or look up jobs (filterable by category) |

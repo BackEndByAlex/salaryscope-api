@@ -36,5 +36,9 @@ export const authResolvers = {
       setAuthCookie(res, result.token)
       return result
     },
+    logout: (_, __, { res }) => {
+      res.clearCookie("token", { path: "/" })
+      return true
+    },
   },
 }

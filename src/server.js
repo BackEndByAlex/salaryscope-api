@@ -36,8 +36,8 @@ function applyAuthRateLimit(authRateLimit) {
     const op = req.body?.operationName
     const query = req.body?.query ?? ""
 
-    const isAuthOperation = AUTH_OPERATIONS.includes(op)
-      || /\b(login|register)\b/i.test(query)
+    const isAuthOperation =
+      AUTH_OPERATIONS.includes(op) || /\b(login|register)\b/i.test(query)
 
     if (isAuthOperation) return authRateLimit(req, res, next)
     next()
@@ -53,31 +53,52 @@ try {
 
   app.set("trust proxy", 1)
 
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://embeddable-sandbox.cdn.apollographql.com"],
-        frameSrc: ["'self'", "https://sandbox.embed.apollographql.com"],
-        connectSrc: ["'self'", "https://*.apollographql.com"],
-        imgSrc: ["'self'", "data:", "https://apollo-server-landing-page.cdn.apollographql.com"],
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: [
+            "'self'",
+            "'unsafe-inline'",
+            "https://embeddable-sandbox.cdn.apollographql.com",
+          ],
+          frameSrc: ["'self'", "https://sandbox.embed.apollographql.com"],
+          connectSrc: ["'self'", "https://*.apollographql.com"],
+          imgSrc: [
+            "'self'",
+            "data:",
+            "https://apollo-server-landing-page.cdn.apollographql.com",
+          ],
+        },
       },
-    },
-  }))
+    }),
+  )
   app.use(cors({ origin: corsOriginValidator, credentials: true }))
   app.use(cookieParser())
   app.use(express.json({ limit: "100kb" }))
-  app.use(rateLimit({ windowMs: RATE_LIMIT_WINDOW_MS, max: GENERAL_RATE_LIMIT_MAX, standardHeaders: true, legacyHeaders: false }))
+  app.use(
+    rateLimit({
+      windowMs: RATE_LIMIT_WINDOW_MS,
+      max: GENERAL_RATE_LIMIT_MAX,
+      standardHeaders: true,
+      legacyHeaders: false,
+    }),
+  )
 
-  app.post("/auth/logout", (req, res) => {
-    res.clearCookie("token", { path: "/" })
-    res.json({ ok: true })
-  })
 
   app.use("/graphql", blockBatchedRequests)
-  app.use("/graphql", applyAuthRateLimit(
-    rateLimit({ windowMs: RATE_LIMIT_WINDOW_MS, max: AUTH_RATE_LIMIT_MAX, standardHeaders: true, legacyHeaders: false })
-  ))
+  app.use(
+    "/graphql",
+    applyAuthRateLimit(
+      rateLimit({
+        windowMs: RATE_LIMIT_WINDOW_MS,
+        max: AUTH_RATE_LIMIT_MAX,
+        standardHeaders: true,
+        legacyHeaders: false,
+      }),
+    ),
+  )
 
   app.use(
     "/graphql",

@@ -22,10 +22,18 @@ export const salaryRecordResolvers = {
       validateCreateInput(input)
       return salaryRecordService.create(normalizeCreateInput(input), user.id)
     },
-    updateSalaryRecord: async (_, { id, input }, { user, salaryRecordService }) => {
+    updateSalaryRecord: async (
+      _,
+      { id, input },
+      { user, salaryRecordService },
+    ) => {
       assertAuthenticated(user)
       validateUpdateInput(input)
-      return salaryRecordService.update(id, normalizeUpdateInput(input), user.id)
+      return salaryRecordService.update(
+        id,
+        normalizeUpdateInput(input),
+        user.id,
+      )
     },
     deleteSalaryRecord: async (_, { id }, { user, salaryRecordService }) => {
       assertAuthenticated(user)
@@ -36,7 +44,9 @@ export const salaryRecordResolvers = {
   SalaryRecord: {
     salary: (parent) => toFloatFromDecimal(parent.salary),
     salaryInUsd: (parent) =>
-      parent.salaryInUsd != null ? toFloatFromDecimal(parent.salaryInUsd) : null,
+      parent.salaryInUsd != null
+        ? toFloatFromDecimal(parent.salaryInUsd)
+        : null,
   },
 }
 
@@ -48,7 +58,14 @@ function parseOptionalId(value) {
   return value != null ? parseId(value) : undefined
 }
 
-function normalizeFilters({ jobId, categoryId, countryId, companyId, cityId, ...rest }) {
+function normalizeFilters({
+  jobId,
+  categoryId,
+  countryId,
+  companyId,
+  cityId,
+  ...rest
+}) {
   return {
     ...rest,
     jobId: parseOptionalId(jobId),
@@ -77,13 +94,24 @@ function normalizeCreateInput({
   }
 }
 
-function normalizeUpdateInput({ jobId, employeeCountryId, companyCountryId, companyId, salary, ...rest }) {
+function normalizeUpdateInput({
+  jobId,
+  employeeCountryId,
+  companyCountryId,
+  companyId,
+  salary,
+  ...rest
+}) {
   return {
     ...rest,
     ...(salary != null && { salary: String(salary) }),
     ...(jobId != null && { jobId: parseOptionalId(jobId) }),
-    ...(employeeCountryId != null && { employeeCountryId: parseOptionalId(employeeCountryId) }),
-    ...(companyCountryId != null && { companyCountryId: parseOptionalId(companyCountryId) }),
+    ...(employeeCountryId != null && {
+      employeeCountryId: parseOptionalId(employeeCountryId),
+    }),
+    ...(companyCountryId != null && {
+      companyCountryId: parseOptionalId(companyCountryId),
+    }),
     ...(companyId != null && { companyId: parseOptionalId(companyId) }),
   }
 }

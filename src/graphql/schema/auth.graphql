@@ -68,4 +68,9 @@ extend type Mutation {
   Log in with email and password. Returns a JWT token valid for 24 hours.
   """
   login(input: LoginInput!): AuthPayload!
+
+  """
+  Log out the current user. Clears the HttpOnly auth cookie server-side. Returns true on success.
+  """
+  logout: Boolean!
 }
