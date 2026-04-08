@@ -13,6 +13,16 @@ type User {
   When the account was created.
   """
   createdAt: String!
+
+  """
+  Whether this account has a GitHub OAuth connection.
+  """
+  githubConnected: Boolean!
+
+  """
+  Whether this account has a Google OAuth connection.
+  """
+  googleConnected: Boolean!
 }
 
 type AuthPayload {

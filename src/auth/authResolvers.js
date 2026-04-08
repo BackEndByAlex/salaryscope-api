@@ -17,6 +17,10 @@ function setAuthCookie(res, token) {
 }
 
 export const authResolvers = {
+  User: {
+    githubConnected: (parent) => parent.githubId != null,
+    googleConnected: (parent) => parent.googleId != null,
+  },
   Query: {
     me: (_, __, { user, userService }) => {
       assertAuthenticated(user)
