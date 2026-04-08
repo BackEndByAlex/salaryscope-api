@@ -112,7 +112,8 @@ model SalaryRecord {
 model User {
   id            Int            @id @default(autoincrement())
   email         String         @unique
-  passwordHash  String
+  passwordHash  String?
+  githubId      String?        @unique
   createdAt     DateTime       @default(now())
   salaryRecords SalaryRecord[]
 }

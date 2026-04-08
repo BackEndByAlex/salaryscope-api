@@ -36,6 +36,11 @@ export const authResolvers = {
       setAuthCookie(res, result.token)
       return result
     },
+    githubLogin: async (_, { input }, { githubOAuthService, res }) => {
+      const result = await githubOAuthService.login(input)
+      setAuthCookie(res, result.token)
+      return result
+    },
     logout: (_, __, { res }) => {
       res.clearCookie("token", { path: "/" })
       return true

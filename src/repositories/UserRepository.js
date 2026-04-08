@@ -22,4 +22,23 @@ export class UserRepository {
       omit: { passwordHash: true },
     })
   }
+
+  async findByGithubId(githubId) {
+    return this.#prisma.user.findUnique({ where: { githubId } })
+  }
+
+  async createGithubUser({ email, githubId }) {
+    return this.#prisma.user.create({
+      data: { email, githubId },
+      omit: { passwordHash: true },
+    })
+  }
+
+  async linkGithubId(userId, githubId) {
+    return this.#prisma.user.update({
+      where: { id: userId },
+      data: { githubId },
+      omit: { passwordHash: true },
+    })
+  }
 }
