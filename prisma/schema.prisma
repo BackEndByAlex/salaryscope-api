@@ -114,6 +114,7 @@ model User {
   email         String         @unique
   passwordHash  String?
   githubId      String?        @unique
+  googleId      String?        @unique
   createdAt     DateTime       @default(now())
   salaryRecords SalaryRecord[]
 }

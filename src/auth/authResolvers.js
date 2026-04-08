@@ -36,6 +36,11 @@ export const authResolvers = {
       setAuthCookie(res, result.token)
       return result
     },
+    googleLogin: async (_, { input }, { googleOAuthService, res }) => {
+      const result = await googleOAuthService.login(input)
+      setAuthCookie(res, result.token)
+      return result
+    },
     githubLogin: async (_, { input }, { githubOAuthService, res }) => {
       const result = await githubOAuthService.login(input)
       setAuthCookie(res, result.token)

@@ -21,6 +21,7 @@ import { SalaryRecordRepository } from "../repositories/SalaryRecordRepository.j
 
 import { AuthService } from "../auth/AuthService.js"
 import { GitHubOAuthService } from "../auth/GitHubOAuthService.js"
+import { GoogleOAuthService } from "../auth/GoogleOAuthService.js"
 import { UserService } from "../services/UserService.js"
 import { CountryService } from "../services/CountryService.js"
 import { JobCategoryService } from "../services/JobCategoryService.js"
@@ -65,6 +66,7 @@ function createServices() {
   return {
     authService: new AuthService(userRepository, privateKey),
     githubOAuthService: new GitHubOAuthService(userRepository, privateKey),
+    googleOAuthService: new GoogleOAuthService(userRepository, privateKey),
     userService: new UserService(userRepository),
     countryService: new CountryService(countryRepository),
     jobCategoryService: new JobCategoryService(jobCategoryRepository),
