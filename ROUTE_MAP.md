@@ -216,6 +216,7 @@ Logout
 | **Global rate limit** | 500 requests per IP per 15 minutes |
 | **Auth rate limit** | 10 requests per IP per 15 minutes on `login` and `register`. Detects auth operations by both `operationName` and query body to prevent bypass. |
 | **Query depth limit** | Rejects GraphQL queries deeper than 5 levels to prevent nested query abuse |
+| **Query complexity limit** | Rejects queries that exceed a total complexity budget of 200 to prevent resource exhaustion |
 | **Batch blocker** | Rejects any request body that is a JSON array |
 | **Body size limit** | 100 KB max per request |
 | **Password length** | Minimum 8, maximum 128 characters. Prevents bcrypt truncation issues and large-payload abuse. |
@@ -233,14 +234,17 @@ Logout
 
 | Operation | What it does |
 |---|---|
-| `register(input)` | Creates an account, returns a token and sets cookie |
-| `login(input)` | Checks credentials, returns a token and sets cookie |
+| `register(input)` | Creates an account, sets HttpOnly token cookie |
+| `login(input)` | Checks credentials, sets HttpOnly token cookie |
+| `googleLogin(input)` | Log in or register via Google OAuth (PKCE). Sets token cookie |
+| `githubLogin(input)` | Log in or register via GitHub OAuth (PKCE). Sets token cookie |
 | `logout` | Clears the token cookie server-side via GraphQL mutation |
 | `countries` / `country` / `countryByName` | List or look up countries |
 | `jobCategories` / `jobCategory` / `jobCategoryByName` | List or look up job categories |
 | `jobs` / `job` | List or look up jobs (filterable by category) |
 | `companies` / `company` / `companyByName` | List or look up companies (filterable by country) |
 | `cities` / `city` | List or look up cities (filterable by country) |
+| `filterOptions(countryId, cityId)` | Returns distinct filter values available globally or for a specific region |
 | `salaryRecords(filters)` | Paginated salary records with up to 11 filters |
 | `salaryRecord(id)` | Single salary record by ID |
 
