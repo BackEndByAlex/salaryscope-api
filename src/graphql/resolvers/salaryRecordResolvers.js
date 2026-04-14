@@ -15,6 +15,12 @@ export const salaryRecordResolvers = {
     salaryRecord: async (_, { id }, { salaryRecordService }) => {
       return salaryRecordService.getById(id)
     },
+    filterOptions: async (_, { countryId, cityId }, { salaryRecordService }) => {
+      return salaryRecordService.getFilterOptions({
+        countryId: parseOptionalId(countryId),
+        cityId: parseOptionalId(cityId),
+      })
+    },
   },
   Mutation: {
     createSalaryRecord: async (_, { input }, { user, salaryRecordService }) => {

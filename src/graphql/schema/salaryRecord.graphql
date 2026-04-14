@@ -331,6 +331,33 @@ input UpdateSalaryRecordInput {
   companyId: ID
 }
 
+type FilterOptions {
+  """
+  Distinct experience levels present in the matched records.
+  """
+  experienceLevels: [String!]!
+
+  """
+  Distinct work settings present in the matched records.
+  """
+  workSettings: [String!]!
+
+  """
+  Distinct employment types present in the matched records.
+  """
+  employmentTypes: [String!]!
+
+  """
+  Distinct company sizes present in the matched records.
+  """
+  companySizes: [String!]!
+
+  """
+  Distinct work years present in the matched records, sorted descending.
+  """
+  workYears: [Int!]!
+}
+
 extend type Query {
   """
   Returns a paginated list of salary records.
@@ -341,6 +368,12 @@ extend type Query {
   Returns a single salary record by its numeric ID.
   """
   salaryRecord(id: ID!): SalaryRecord!
+
+  """
+  Returns the distinct filter values available for a given country or city.
+  Pass neither to get global distinct values.
+  """
+  filterOptions(countryId: ID, cityId: ID): FilterOptions!
 }
 
 extend type Mutation {

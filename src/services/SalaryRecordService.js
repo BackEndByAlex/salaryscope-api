@@ -8,6 +8,10 @@ export class SalaryRecordService {
     this.#repository = repository
   }
 
+  async getFilterOptions({ countryId, cityId } = {}) {
+    return this.#repository.getFilterOptions({ countryId, cityId })
+  }
+
   async getAll(filters) {
     const { records, totalCount, hasNextPage } =
       await this.#repository.findAll(filters)
