@@ -2,12 +2,8 @@ import { readFileSync } from "fs"
 import { join, dirname } from "path"
 import { fileURLToPath } from "url"
 import { ApolloServer } from "@apollo/server"
+import { GraphQLError } from "graphql"
 import depthLimit from "graphql-depth-limit"
-import {
-  createComplexityRule,
-  simpleEstimator,
-  fieldExtensionsEstimator,
-} from "graphql-query-complexity"
 import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault,
@@ -44,6 +40,7 @@ import { cityResolvers } from "./resolvers/cityResolvers.js"
 import { salaryRecordResolvers } from "./resolvers/salaryRecordResolvers.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+const MAX_QUERY_COMPLEXITY = 200
 
 function loadTypeDefs() {
   const schemaDir = join(__dirname, "schema")
@@ -84,6 +81,43 @@ function createServices() {
 
 export { createServices }
 
+function createQueryComplexityRule({
+  maximumComplexity,
+  defaultComplexity = 1,
+  onComplete,
+}) {
+  return function queryComplexityRule(context) {
+    let complexity = 0
+
+    return {
+      Field() {
+        const field = context.getFieldDef()
+        if (!field || field.name.startsWith("__")) return
+
+        const configuredComplexity =
+          typeof field.extensions?.complexity === "number"
+            ? field.extensions.complexity
+            : defaultComplexity
+
+        complexity += configuredComplexity
+      },
+      Document: {
+        leave() {
+          onComplete?.(complexity)
+
+          if (complexity > maximumComplexity) {
+            context.reportError(
+              new GraphQLError(
+                `Query complexity ${complexity} exceeds the maximum allowed complexity of ${maximumComplexity}.`,
+              ),
+            )
+          }
+        },
+      },
+    }
+  }
+}
+
 export function buildApolloServer() {
   return new ApolloServer({
     typeDefs: loadTypeDefs(),
@@ -98,12 +132,8 @@ export function buildApolloServer() {
     ],
     validationRules: [
       depthLimit(7),
-      createComplexityRule({
-        maximumComplexity: 200,
-        estimators: [
-          fieldExtensionsEstimator(),
-          simpleEstimator({ defaultComplexity: 1 }),
-        ],
+      createQueryComplexityRule({
+        maximumComplexity: MAX_QUERY_COMPLEXITY,
         onComplete(complexity) {
           if (process.env.NODE_ENV !== "production") {
             console.log(`Query complexity: ${complexity}`)
