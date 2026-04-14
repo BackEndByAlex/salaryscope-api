@@ -75,7 +75,7 @@ try {
     }),
   )
   app.use(cors({ origin: corsOriginValidator, credentials: true }))
-  app.use(cookieParser())
+  app.use(cookieParser(process.env.COOKIE_SECRET))
   app.use(express.json({ limit: "100kb" }))
   app.use(
     rateLimit({

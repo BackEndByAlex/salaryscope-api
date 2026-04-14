@@ -223,6 +223,7 @@ Logout
 | **Input length caps** | `countryByName`, `companyByName`, `jobCategoryByName` reject name arguments over 255 characters |
 | **Pagination caps** | All paginated queries (including nested fields) are capped at 100 records per page |
 | **JWT scoping** | Tokens include `issuer` and `audience` claims, scoping them to this API only |
+| **OAuth CSRF protection** | `beginGoogleLogin` / `beginGithubLogin` generate a random state, store it in a signed HttpOnly cookie (`oauth_google_state` / `oauth_github_state`, 10-min TTL). The callback mutations verify the returned state against the cookie using `crypto.timingSafeEqual` and clear the cookie immediately — making it single-use |
 | **Introspection** | Enabled in all environments (for Postman and Apollo Sandbox) |
 | **Error sanitization** | In production, unexpected errors are replaced with "Internal server error" |
 
@@ -236,8 +237,10 @@ Logout
 |---|---|
 | `register(input)` | Creates an account, sets HttpOnly token cookie |
 | `login(input)` | Checks credentials, sets HttpOnly token cookie |
-| `googleLogin(input)` | Log in or register via Google OAuth (PKCE). Sets token cookie |
-| `githubLogin(input)` | Log in or register via GitHub OAuth (PKCE). Sets token cookie |
+| `beginGoogleLogin(input)` | Step 1 of Google OAuth — generates server-side state, sets signed cookie, returns the Google auth URL to redirect to |
+| `googleLogin(input)` | Step 2 of Google OAuth — verifies state cookie, exchanges code, sets token cookie |
+| `beginGithubLogin(input)` | Step 1 of GitHub OAuth — same as above for GitHub |
+| `githubLogin(input)` | Step 2 of GitHub OAuth — verifies state cookie, exchanges code, sets token cookie |
 | `logout` | Clears the token cookie server-side via GraphQL mutation |
 | `countries` / `country` / `countryByName` | List or look up countries |
 | `jobCategories` / `jobCategory` / `jobCategoryByName` | List or look up job categories |

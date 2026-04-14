@@ -20,10 +20,7 @@ export class GitHubOAuthService {
     this.#redirectUri = process.env.GITHUB_REDIRECT_URI
   }
 
-  async login({ code, codeVerifier, state }) {
-    if (!state || typeof state !== "string" || state.trim().length === 0) {
-      throw new BadUserInputError("Missing or invalid OAuth state parameter.")
-    }
+  async login({ code, codeVerifier }) {
     const accessToken = await this.#exchangeCode(code, codeVerifier)
     const { githubId, email } = await this.#fetchGithubProfile(accessToken)
 

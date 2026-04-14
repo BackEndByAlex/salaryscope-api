@@ -19,7 +19,7 @@ Middleware is applied in this order. Each request passes through every layer bef
 
 1. **Helmet** — sets security headers (Content-Security-Policy configured to allow Apollo Sandbox)
 2. **CORS** — validates the request origin against `ALLOWED_ORIGINS` from the environment; `credentials: true` allows cookies to be sent cross-origin
-3. **Cookie parser** — parses the `Cookie` header so the JWT middleware can read the `token` cookie
+3. **Cookie parser** — parses the `Cookie` header so the JWT middleware can read the `token` cookie; initialized with `COOKIE_SECRET` to enable signed cookies for OAuth state verification
 4. **JSON body parser** — parses incoming JSON with a 100kb size limit
 5. **General rate limiter** — 500 requests per 15-minute window per IP
 6. **Batch request blocker** — rejects any request where the body is an array (no batched queries allowed)

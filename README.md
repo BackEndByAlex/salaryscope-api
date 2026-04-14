@@ -17,7 +17,13 @@
 cp .env.example .env
 ```
 
-Fill in the credentials in `.env` (database user, password, allowed origins).
+Fill in the credentials in `.env` (database user, password, allowed origins, and `COOKIE_SECRET`).
+
+To generate a secure value for `COOKIE_SECRET`:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
 Then generate the RSA key pair used for JWT authentication:
 
@@ -230,7 +236,7 @@ _List the technologies you chose and briefly explain why:_
 **jsonwebtoken** - JWT signing and verification. RS256 for stateless authentication
 **bcryptjs** - Password hasing with configurable salt rounds.
 **helmet** - Secure HTTP headers with a targeted Content Security Policy that allows Apollo Studio while blocking everything else.
-**cookie-parser** - Parses the `Cookie` header so the JWT middleware can read the `token` cookie set on login/register.
+**cookie-parser** - Parses the `Cookie` header so the JWT middleware can read the `token` cookie set on login/register. Also signs OAuth state cookies (`oauth_google_state`, `oauth_github_state`) using `COOKIE_SECRET` to prevent CSRF forgery.
 **express-rate-limit** - Limits request rate per IP. General limit of 500 requests and a stricter limit of 10 for auth operations (login/register), with query body detection to prevent bypass.
 **graphql-depth-limit** - Prevents deeply nested query abuse by rejecting queries deeper than 5 levels.
 **cors** - Restricts which oridins can call the API in a browser context.
