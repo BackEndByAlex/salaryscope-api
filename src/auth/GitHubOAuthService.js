@@ -20,7 +20,10 @@ export class GitHubOAuthService {
     this.#redirectUri = process.env.GITHUB_REDIRECT_URI
   }
 
-  async login({ code, codeVerifier }) {
+  async login({ code, codeVerifier, state }) {
+    if (!state || typeof state !== "string" || state.trim().length === 0) {
+      throw new BadUserInputError("Missing or invalid OAuth state parameter.")
+    }
     const accessToken = await this.#exchangeCode(code, codeVerifier)
     const { githubId, email } = await this.#fetchGithubProfile(accessToken)
 
@@ -30,7 +33,10 @@ export class GitHubOAuthService {
       const existingByEmail = await this.#userRepository.findByEmail(email)
       if (existingByEmail) {
         // Email already registered — link GitHub to the existing account
-        user = await this.#userRepository.linkGithubId(existingByEmail.id, githubId)
+        user = await this.#userRepository.linkGithubId(
+          existingByEmail.id,
+          githubId,
+        )
       } else {
         user = await this.#userRepository.createGithubUser({ email, githubId })
       }
@@ -50,14 +56,19 @@ export class GitHubOAuthService {
 
     const response = await fetch(GITHUB_TOKEN_URL, {
       method: "POST",
-      headers: { Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded" },
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
       body,
     })
 
     const data = await response.json()
 
     if (data.error) {
-      throw new BadUserInputError(`GitHub OAuth error: ${data.error_description ?? data.error}`)
+      throw new BadUserInputError(
+        `GitHub OAuth error: ${data.error_description ?? data.error}`,
+      )
     }
 
     return data.access_token

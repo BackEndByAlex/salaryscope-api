@@ -20,9 +20,9 @@ Creates a single database connection and exports it so the whole app shares it.
 
 Loads the RSA keys from disk and exports them so auth can use them to sign and verify tokens.
 
-- `privateKey` — loaded from `keys/private.pem` (or the path in `PRIVATE_KEY_PATH` if set). Used to sign JWTs when a user logs in.
-- `publicKey` — loaded from `keys/public.pem`. Used to verify JWTs on incoming requests.
+- `privateKey` — read from the path set in `PRIVATE_KEY_PATH`. Used to sign JWTs when a user logs in.
+- `publicKey` — read from the path set in `PUBLIC_KEY_PATH`. Used to verify JWTs on incoming requests.
 
 If either key file is missing, the app logs an error and exits immediately with a clear message explaining what to do.
 
-> In Docker, the private key is injected as a secret via `PRIVATE_KEY_PATH`. Locally, generate the keys with `npm run generate:keys`.
+> Locally, generate the key files with `npm run generate:keys` and set `PRIVATE_KEY_PATH` / `PUBLIC_KEY_PATH` in your `.env` to point at them. In Docker, the paths are passed in as environment variables and the key files are injected at those locations.

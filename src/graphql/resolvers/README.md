@@ -6,6 +6,18 @@ Each file covers one domain. Resolvers are kept thin on purpose, they guard acce
 
 ---
 
+## authResolvers.js
+
+- `register` — validates input, then calls `AuthService.register`
+- `login` — validates input, then calls `AuthService.login`
+- `githubLogin` — takes a GitHub authorization code and PKCE code verifier, calls `GitHubOAuthService`, and returns a token and user
+- `googleLogin` — takes a Google authorization code and PKCE code verifier, calls `GoogleOAuthService`, and returns a token and user
+- `me` — checks that the user is logged in, then returns their profile
+- `User.githubConnected` — returns `true` if the user has a GitHub ID linked to their account
+- `User.googleConnected` — returns `true` if the user has a Google ID linked to their account
+
+---
+
 ## companyResolvers.js
 
 - `companies` — returns a paginated list of companies, with an optional country filter
@@ -59,6 +71,7 @@ Each file covers one domain. Resolvers are kept thin on purpose, they guard acce
 
 - `salaryRecords` — returns a paginated list of salary records, with optional filters (job, category, country, company, city, experience level, etc.)
 - `salaryRecord` — returns a single salary record by ID
+- `filterOptions` — returns the distinct filter values that exist in the data, optionally scoped to a country or city. No login required.
 - `createSalaryRecord` — creates a new salary record. Requires login.
 - `updateSalaryRecord` — updates a salary record. Requires login. Only the owner can update.
 - `deleteSalaryRecord` — deletes a salary record. Requires login. Only the owner can delete.

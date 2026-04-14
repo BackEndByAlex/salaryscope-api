@@ -22,9 +22,10 @@ Builds and returns the Apollo Server instance. It:
 1. Loads all `.graphql` schema files from `schema/`
 2. Registers all resolver files
 3. Applies a query depth limit of 5 levels to prevent deeply nested query abuse
-4. Configures the embedded sandbox (Apollo Studio in production, local sandbox in development)
+4. Applies a query complexity limit of 200 — each field counts toward the total, and queries that exceed the budget are rejected before execution
+5. Configures the embedded sandbox (Apollo Studio in production, local sandbox in development)
 
-**Known tradeoff — query complexity:** Depth limiting is in place, but there is no query complexity limit. A shallow but wide query (many fields at depth ≤ 5) could still be expensive. A future improvement would add `graphql-query-complexity` as an Apollo plugin to assign a cost per field and reject queries that exceed a total complexity budget.
+Complexity is calculated using `graphql-query-complexity` with a `simpleEstimator` (default cost of 1 per field) and `fieldExtensionsEstimator` for fields that declare a custom cost. In non-production environments the total complexity of every query is logged to the console.
 
 ---
 

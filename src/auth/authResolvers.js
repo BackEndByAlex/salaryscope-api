@@ -30,25 +30,25 @@ export const authResolvers = {
   Mutation: {
     register: async (_, { input }, { authService, res }) => {
       validateRegisterInput(input)
-      const result = await authService.register(input)
-      setAuthCookie(res, result.token)
-      return result
+      const { token, user } = await authService.register(input)
+      setAuthCookie(res, token)
+      return { user }
     },
     login: async (_, { input }, { authService, res }) => {
       validateLoginInput(input)
-      const result = await authService.login(input)
-      setAuthCookie(res, result.token)
-      return result
+      const { token, user } = await authService.login(input)
+      setAuthCookie(res, token)
+      return { user }
     },
     googleLogin: async (_, { input }, { googleOAuthService, res }) => {
-      const result = await googleOAuthService.login(input)
-      setAuthCookie(res, result.token)
-      return result
+      const { token, user } = await googleOAuthService.login(input)
+      setAuthCookie(res, token)
+      return { user }
     },
     githubLogin: async (_, { input }, { githubOAuthService, res }) => {
-      const result = await githubOAuthService.login(input)
-      setAuthCookie(res, result.token)
-      return result
+      const { token, user } = await githubOAuthService.login(input)
+      setAuthCookie(res, token)
+      return { user }
     },
     logout: (_, __, { res }) => {
       res.clearCookie("token", { path: "/" })

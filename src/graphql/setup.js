@@ -4,6 +4,11 @@ import { fileURLToPath } from "url"
 import { ApolloServer } from "@apollo/server"
 import depthLimit from "graphql-depth-limit"
 import {
+  createComplexityRule,
+  simpleEstimator,
+  fieldExtensionsEstimator,
+} from "graphql-query-complexity"
+import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault,
 } from "@apollo/server/plugin/landingPage/default"
@@ -91,7 +96,21 @@ export function buildApolloServer() {
       cityResolvers,
       salaryRecordResolvers,
     ],
-    validationRules: [depthLimit(5)],
+    validationRules: [
+      depthLimit(7),
+      createComplexityRule({
+        maximumComplexity: 200,
+        estimators: [
+          fieldExtensionsEstimator(),
+          simpleEstimator({ defaultComplexity: 1 }),
+        ],
+        onComplete(complexity) {
+          if (process.env.NODE_ENV !== "production") {
+            console.log(`Query complexity: ${complexity}`)
+          }
+        },
+      }),
+    ],
     includeStacktraceInErrorResponses: process.env.NODE_ENV !== "production",
     introspection: true,
     plugins: [

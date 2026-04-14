@@ -11,12 +11,18 @@ Each repository wraps one database table and exposes named methods. Services cal
 - `findByEmail` — looks up a user by email (used during login)
 - `findById` — looks up a user by ID (password hash is never returned)
 - `create` — creates a new user (password hash is never returned)
+- `findByGithubId` — looks up a user by their GitHub ID
+- `createGithubUser` — creates a new user from a GitHub OAuth profile (no password hash)
+- `linkGithubId` — attaches a GitHub ID to an existing user account
+- `findByGoogleId` — looks up a user by their Google ID
+- `createGoogleUser` — creates a new user from a Google OAuth profile (no password hash)
+- `linkGoogleId` — attaches a Google ID to an existing user account
 
 ---
 
 ## CountryRepository.js
 
-- `findAll` — paginated list of countries, each with aggregate counts (employee records, company records, companies)
+- `findAll` — paginated list of countries, each with aggregate counts (employee records, company records, companies). Limit is capped between 1 and 100; offset cannot be negative.
 - `findById` — single country by ID
 - `findByName` — single country by name
 - `findEmployeeRecords` — paginated salary records where employees live in a given country (limit capped at 100)
@@ -26,7 +32,7 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 ## JobCategoryRepository.js
 
-- `findAll` — paginated list of job categories, each with a job count
+- `findAll` — paginated list of job categories, each with a job count. Limit is capped between 1 and 100; offset cannot be negative.
 - `findById` — single category by ID, with job count
 - `findByName` — single category by name, with job count
 
@@ -34,7 +40,7 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 ## JobRepository.js
 
-- `findAll` — paginated list of jobs, with an optional category filter
+- `findAll` — paginated list of jobs, with an optional category filter. Limit is capped between 1 and 100; offset cannot be negative.
 - `findById` — single job by ID
 - `findRecordsByJob` — paginated salary records for a given job (limit capped at 100)
 
@@ -42,7 +48,7 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 ## CompanyRepository.js
 
-- `findAll` — paginated list of companies, with an optional country filter
+- `findAll` — paginated list of companies, with an optional country filter. Limit is capped between 1 and 100; offset cannot be negative.
 - `findById` — single company by ID
 - `findByName` — single company by name
 - `findRecordsByCompany` — paginated salary records for a given company (limit capped at 100)
@@ -64,6 +70,7 @@ Each repository wraps one database table and exposes named methods. Services cal
 - `create` — creates a new salary record
 - `update` — updates an existing salary record by ID
 - `delete` — deletes a salary record by ID
+- `getFilterOptions` — returns the distinct values that actually exist in the data for experience levels, work settings, employment types, company sizes, and work years. Accepts optional `countryId` and `cityId` to scope the results to a region. Runs five queries in parallel using `distinct` to keep it fast.
 
 ---
 

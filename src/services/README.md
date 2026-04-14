@@ -64,6 +64,7 @@ Used by the `me` query to return the currently logged-in user's profile.
 
 - `getAll` — returns a paginated list of salary records with optional filters
 - `getById` — returns a single record by ID, or throws `NotFoundError`
+- `getFilterOptions` — returns the distinct filter values that exist in the data, optionally scoped to a country or city. Passes straight through to the repository.
 - `create` — creates a new record and tags it with the logged-in user's ID
 - `update` — finds the record, checks ownership, then updates it
 - `delete` — finds the record, checks ownership, then deletes it

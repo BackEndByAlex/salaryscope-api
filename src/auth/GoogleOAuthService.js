@@ -19,7 +19,10 @@ export class GoogleOAuthService {
     this.#redirectUri = process.env.GOOGLE_REDIRECT_URI
   }
 
-  async login({ code, codeVerifier }) {
+  async login({ code, codeVerifier, state }) {
+    if (!state || typeof state !== "string" || state.trim().length === 0) {
+      throw new BadUserInputError("Missing or invalid OAuth state parameter.")
+    }
     const accessToken = await this.#exchangeCode(code, codeVerifier)
     const { googleId, email } = await this.#fetchGoogleProfile(accessToken)
 
@@ -28,7 +31,10 @@ export class GoogleOAuthService {
     if (!user) {
       const existingByEmail = await this.#userRepository.findByEmail(email)
       if (existingByEmail) {
-        user = await this.#userRepository.linkGoogleId(existingByEmail.id, googleId)
+        user = await this.#userRepository.linkGoogleId(
+          existingByEmail.id,
+          googleId,
+        )
       } else {
         user = await this.#userRepository.createGoogleUser({ email, googleId })
       }
@@ -56,7 +62,9 @@ export class GoogleOAuthService {
     const data = await response.json()
 
     if (data.error) {
-      throw new BadUserInputError(`Google OAuth error: ${data.error_description ?? data.error}`)
+      throw new BadUserInputError(
+        `Google OAuth error: ${data.error_description ?? data.error}`,
+      )
     }
 
     return data.access_token

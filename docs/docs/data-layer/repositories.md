@@ -64,6 +64,7 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 - `findAll` — paginated list of salary records with up to eleven optional filters (job, category, country, company, city, experience level, employment type, work setting, company size, source, work year)
 - `findById` — single salary record by ID
+- `getFilterOptions(countryId, cityId)` — runs five queries in parallel and returns the distinct values that actually exist in the data for experience levels, work settings, employment types, company sizes, and work years. Both arguments are optional — if a `countryId` is provided the results are scoped to records where the employee country matches, if a `cityId` is provided they are scoped to that city. Null values are excluded from all five lists.
 - `create` — creates a new salary record
 - `update` — updates an existing salary record by ID
 - `delete` — deletes a salary record by ID
