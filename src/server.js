@@ -105,6 +105,7 @@ try {
     expressMiddleware(apolloServer, {
       context: async ({ req, res }) => ({
         ...buildContext({ req }),
+        req,
         res,
         ...services,
       }),
