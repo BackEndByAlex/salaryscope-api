@@ -126,6 +126,14 @@ export class SalaryRecordRepository {
   async delete(id) {
     return this.#prisma.salaryRecord.delete({ where: { id } })
   }
+
+  async findByUser(userId) {
+    return this.#prisma.salaryRecord.findMany({
+      where: { createdBy: userId },
+      include: SALARY_RECORD_INCLUDE,
+      orderBy: { createdAt: "desc" },
+    })
+  }
 }
 
 // Both datasets store the same concept with different string formats.
@@ -190,3 +198,4 @@ function buildSalaryRecordWhere({
 
   return where
 }
+   

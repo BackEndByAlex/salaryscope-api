@@ -236,9 +236,19 @@ input CreateSalaryRecordInput {
   employmentStatus: String
 
   """
-  The job this record belongs to. Required.
+  The job this record belongs to. Use jobId or jobTitle — not both.
   """
-  jobId: ID!
+  jobId: ID
+
+  """
+  Job title text. Used when jobId is not provided — the API will find or create the matching Job record.
+  """
+  jobTitle: String
+
+  """
+  City name text. Combined with employeeCountryId to find or create the City record.
+  """
+  cityName: String
 
   """
   Country where the employee is located (optional).

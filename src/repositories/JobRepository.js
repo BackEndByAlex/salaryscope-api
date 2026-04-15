@@ -30,6 +30,18 @@ export class JobRepository {
     }
   }
 
+  async findOrCreate(title) {
+    const existing = await this.#prisma.job.findFirst({
+      where: { title },
+      include: { category: true },
+    })
+    if (existing) return existing
+    return this.#prisma.job.create({
+      data: { title },
+      include: { category: true },
+    })
+  }
+
   async findById(id) {
     return this.#prisma.job.findUnique({
       where: { id },

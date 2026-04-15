@@ -28,11 +28,16 @@ const ALLOWED_SOURCES = new Set([
   "salary_extra",
   "software_pro",
   "h1b_visa",
+  "user_submitted",
 ])
 
-export function validateCreateInput({ salary, jobId, source }) {
-  if (salary == null || jobId == null || source == null) {
-    throw new BadUserInputError("salary, jobId, and source are required.")
+export function validateCreateInput({ salary, jobId, jobTitle, source }) {
+  if (salary == null || source == null) {
+    throw new BadUserInputError("salary and source are required.")
+  }
+
+  if (jobId == null && !jobTitle) {
+    throw new BadUserInputError("Either jobId or jobTitle is required.")
   }
 
   if (!(Number(salary) > 0)) {

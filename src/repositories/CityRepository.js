@@ -37,6 +37,18 @@ export class CityRepository {
     }
   }
 
+  async findOrCreate(name, countryId) {
+    const existing = await this.#prisma.city.findFirst({
+      where: { name, countryId },
+      include: CITY_INCLUDE,
+    })
+    if (existing) return existing
+    return this.#prisma.city.create({
+      data: { name, countryId },
+      include: CITY_INCLUDE,
+    })
+  }
+
   async findById(id) {
     return this.#prisma.city.findUnique({
       where: { id },

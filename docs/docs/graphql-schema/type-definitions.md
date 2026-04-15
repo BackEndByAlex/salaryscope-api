@@ -19,7 +19,7 @@ The base file. Defines the root `Query` and `Mutation` types with a placeholder 
 
 Types and operations for authentication.
 
-- `User` — id, email, creation date, and two boolean flags: `githubConnected` and `googleConnected` (whether those OAuth providers are linked to the account)
+- `User` — id, email, creation date, two boolean flags (`githubConnected` and `googleConnected`), and `salaryRecords` — the list of salary records that user has submitted
 - `AuthPayload` — what gets returned after login or register: a token and the user
 - `register` — creates a new account, returns a token valid for 24 hours
 - `login` — logs in with email and password, returns a token valid for 24 hours
@@ -97,7 +97,7 @@ Types and operations for salary records, the main resource of the API.
 - `SalaryRecordPage` — paginated result wrapper
 - `SalaryRecordFilters` — all available filters: job, category, country, company, city, source, work year, experience level, employment type, work setting, company size
 - `FilterOptions` — lists the distinct values that actually exist in the data for a given region (experience levels, work settings, employment types, company sizes, and work years). Used to populate filter dropdowns dynamically.
-- `CreateSalaryRecordInput` — fields required and optional when creating a new record
+- `CreateSalaryRecordInput` — fields for creating a new record. `salary` and `source` are required. Either `jobId` or `jobTitle` must be provided — if `jobTitle` is given the API finds or creates the matching job. `cityName` can be provided alongside `employeeCountryId` to find or create a city automatically.
 - `UpdateSalaryRecordInput` — same fields but all optional. Source cannot be changed after creation.
 - `salaryRecords` — paginated list with filters
 - `salaryRecord` — single record by ID

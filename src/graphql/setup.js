@@ -75,7 +75,7 @@ function createServices() {
     jobService: new JobService(jobRepository),
     companyService: new CompanyService(companyRepository),
     cityService: new CityService(cityRepository),
-    salaryRecordService: new SalaryRecordService(salaryRecordRepository),
+    salaryRecordService: new SalaryRecordService(salaryRecordRepository, cityRepository, jobRepository),
   }
 }
 

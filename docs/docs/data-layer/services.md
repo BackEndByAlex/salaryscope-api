@@ -66,9 +66,14 @@ Used by the `me` query to return the currently logged-in user's profile.
 
 ## SalaryRecordService.js
 
+Constructed with three repositories: **`SalaryRecordRepository`**, **`CityRepository`**, and **`JobRepository`**. The extra two are needed to handle city and job creation when a user submits free-text values rather than IDs.
+
 - `getAll` — returns a paginated list of salary records with optional filters
 - `getById` — returns a single record by ID, or throws `NotFoundError`
-- `create` — creates a new record and tags it with the logged-in user's ID
+- `create` — creates a new record tagged with the logged-in user's ID. Before writing to the database it resolves two optional free-text fields:
+  1. If `jobTitle` is provided instead of `jobId`, calls `jobRepository.findOrCreate(jobTitle)` to get or create the matching job
+  2. If `cityName` and `employeeCountryId` are both provided, calls `cityRepository.findOrCreate(cityName, countryId)` to get or create the city and attaches its ID to the record
+- `getByUser(userId)` — returns all salary records created by a given user, used to populate the profile page
 - `update` — finds the record, checks ownership, then updates it
 - `delete` — finds the record, checks ownership, then deletes it
 

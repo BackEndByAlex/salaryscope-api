@@ -23,6 +23,11 @@ type User {
   Whether this account has a Google OAuth connection.
   """
   googleConnected: Boolean!
+
+  """
+  Salary records created by this user.
+  """
+  salaryRecords: [SalaryRecord!]!
 }
 
 type AuthPayload {

@@ -39,6 +39,7 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 - `findAll` — paginated list of jobs, with an optional category filter
 - `findById` — single job by ID
+- `findOrCreate(title)` — finds a job by title using `findFirst`. If none exists, creates a new one with that title and no category. Used when a user submits a salary record with a job title rather than a job ID.
 - `findRecordsByJob` — paginated salary records for a given job (limit capped at 100)
 
 ---
@@ -56,6 +57,7 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 - `findAll` — paginated list of cities, with an optional country filter
 - `findById` — single city by ID
+- `findOrCreate(name, countryId)` — finds a city by name and country using `findFirst`. If none exists, creates a new one. Used when a user submits a salary record for a city that does not yet exist in the database.
 - `findRecords` — paginated salary records for a given city (limit capped at 100)
 
 ---
@@ -68,6 +70,7 @@ Each repository wraps one database table and exposes named methods. Services cal
 - `create` — creates a new salary record
 - `update` — updates an existing salary record by ID
 - `delete` — deletes a salary record by ID
+- `findByUser(userId)` — returns all salary records created by a given user, ordered by creation date descending. Used by the `User.salaryRecords` resolver to populate the profile page.
 
 ---
 

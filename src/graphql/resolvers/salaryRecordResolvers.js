@@ -88,12 +88,16 @@ function normalizeCreateInput({
   companyCountryId,
   companyId,
   salary,
+  cityName,
+  jobTitle,
   ...rest
 }) {
   return {
     ...rest,
+    cityName,
+    jobTitle,
     salary: String(salary),
-    jobId: parseId(jobId),
+    jobId: parseOptionalId(jobId),
     employeeCountryId: parseOptionalId(employeeCountryId),
     companyCountryId: parseOptionalId(companyCountryId),
     companyId: parseOptionalId(companyId),

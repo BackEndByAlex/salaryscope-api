@@ -49,6 +49,8 @@ export const authResolvers = {
   User: {
     githubConnected: (parent) => parent.githubId != null,
     googleConnected: (parent) => parent.googleId != null,
+    salaryRecords: (parent, _, { salaryRecordService }) =>
+      salaryRecordService.getByUser(parent.id),
   },
   Query: {
     me: (_, __, { user, userService }) => {
