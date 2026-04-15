@@ -128,6 +128,32 @@ export class SalaryRecordRepository {
   }
 }
 
+// Both datasets store the same concept with different string formats.
+// jobs_in_data uses full strings ("Entry-level", "Full-time"), while
+// eu_survey_2020 and h1b_visa use short codes ("EN", "FT").
+// Expand each value to match both so a single filter works across all datasets.
+const EXPERIENCE_LEVEL_ALIASES = {
+  EN: ["EN", "Entry-level"],
+  MI: ["MI", "Mid-level"],
+  SE: ["SE", "Senior"],
+  EX: ["EX", "Executive"],
+  "Entry-level": ["Entry-level", "EN"],
+  "Mid-level": ["Mid-level", "MI"],
+  Senior: ["Senior", "SE"],
+  Executive: ["Executive", "EX"],
+}
+
+const EMPLOYMENT_TYPE_ALIASES = {
+  FT: ["FT", "Full-time"],
+  PT: ["PT", "Part-time"],
+  CT: ["CT", "Contract"],
+  FL: ["FL", "Freelance"],
+  "Full-time": ["Full-time", "FT"],
+  "Part-time": ["Part-time", "PT"],
+  Contract: ["Contract", "CT"],
+  Freelance: ["Freelance", "FL"],
+}
+
 function buildSalaryRecordWhere({
   workYear,
   jobId,
@@ -150,8 +176,14 @@ function buildSalaryRecordWhere({
   if (countryId != null) where.employeeCountryId = countryId
   if (companyId != null) where.companyId = companyId
   if (cityId != null) where.cityId = cityId
-  if (experienceLevel != null) where.experienceLevel = experienceLevel
-  if (employmentType != null) where.employmentType = employmentType
+  if (experienceLevel != null) {
+    const aliases = EXPERIENCE_LEVEL_ALIASES[experienceLevel]
+    where.experienceLevel = aliases ? { in: aliases } : experienceLevel
+  }
+  if (employmentType != null) {
+    const aliases = EMPLOYMENT_TYPE_ALIASES[employmentType]
+    where.employmentType = aliases ? { in: aliases } : employmentType
+  }
   if (workSetting != null) where.workSetting = workSetting
   if (companySize != null) where.companySize = companySize
   if (source != null) where.source = source
