@@ -16,7 +16,7 @@ export class CityRepository {
 
   async findAll({ countryId, limit = 20, offset = 0 } = {}) {
     const where = countryId != null ? { countryId } : {}
-    const cappedLimit = Math.min(Math.max(limit, 1), 100)
+    const cappedLimit = Math.min(Math.max(limit, 1), 300)
     const safeOffset = Math.max(offset, 0)
 
     const [totalCount, cities] = await this.#prisma.$transaction([
