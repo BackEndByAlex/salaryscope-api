@@ -122,5 +122,11 @@ export const authResolvers = {
       res.clearCookie("token", { path: "/" })
       return true
     },
+    deleteAccount: async (_, __, { user, userService, res }) => {
+      assertAuthenticated(user)
+      await userService.deleteById(user.id)
+      res.clearCookie("token", { path: "/" })
+      return true
+    },
   },
 }

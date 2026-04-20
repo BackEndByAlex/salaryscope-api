@@ -16,8 +16,9 @@ Every service follows the same pattern:
 ## UserService.js
 
 - `getById` — returns a user by ID, or throws `NotFoundError` if not found
+- `deleteById` — finds the user by ID (throws `NotFoundError` if not found), then deletes them via the repository
 
-Used by the `me` query to return the currently logged-in user's profile.
+Used by the `me` query to return the currently logged-in user's profile, and by `deleteAccount` to permanently remove a user.
 
 ---
 

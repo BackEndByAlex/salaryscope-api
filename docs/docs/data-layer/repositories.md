@@ -14,6 +14,7 @@ Each repository wraps one database table and exposes named methods. Services cal
 - `findByEmail` — looks up a user by email (used during login)
 - `findById` — looks up a user by ID (password hash is never returned)
 - `create` — creates a new user (password hash is never returned)
+- `deleteById` — deletes a user by ID using `prisma.user.delete`
 
 ---
 

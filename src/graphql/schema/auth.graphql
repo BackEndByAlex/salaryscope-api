@@ -163,4 +163,9 @@ extend type Mutation {
   Log out the current user. Clears the HttpOnly auth cookie server-side. Returns true on success.
   """
   logout: Boolean!
+
+  """
+  Permanently deletes the current user's account and clears the session cookie. Salary records submitted by this user remain in the dataset but become anonymous (no longer associated with any account).
+  """
+  deleteAccount: Boolean!
 }

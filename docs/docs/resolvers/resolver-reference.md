@@ -85,3 +85,4 @@ Handles registration, login, OAuth, and session management. Lives in `src/auth/`
 - `User.githubConnected` — returns `true` if the user's account has a GitHub ID linked, `false` otherwise.
 - `User.googleConnected` — returns `true` if the user's account has a Google ID linked, `false` otherwise.
 - `User.salaryRecords` — returns all salary records submitted by this user, delegating to `salaryRecordService.getByUser(parent.id)`.
+- `deleteAccount` — permanently deletes the current user's account. Requires login. Calls `userService.deleteById(user.id)`, clears the auth cookie, and returns `true`. Salary records remain in the dataset with `createdBy` set to `null`.

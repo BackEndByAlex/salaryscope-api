@@ -60,4 +60,8 @@ export class UserRepository {
       omit: { passwordHash: true },
     })
   }
+
+  async deleteById(id) {
+    return this.#prisma.user.delete({ where: { id } })
+  }
 }

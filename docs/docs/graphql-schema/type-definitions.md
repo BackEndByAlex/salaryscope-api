@@ -26,6 +26,8 @@ Types and operations for authentication.
 - `githubLogin` — logs in (or registers) via GitHub OAuth 2.0 PKCE. Takes a `code` and `codeVerifier`, returns a token and the user
 - `googleLogin` — logs in (or registers) via Google OAuth 2.0 PKCE. Takes a `code` and `codeVerifier`, returns a token and the user
 - `me` — returns the currently logged-in user (requires a valid token)
+- `logout` — clears the session cookie server-side. Returns `true`.
+- `deleteAccount` — permanently deletes the current user's account, clears the session cookie, and returns `true`. Salary records remain in the dataset but become anonymous (`createdBy` set to `null`).
 
 ---
 

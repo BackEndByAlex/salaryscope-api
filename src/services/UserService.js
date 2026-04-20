@@ -14,4 +14,12 @@ export class UserService {
     }
     return user
   }
+
+  async deleteById(id) {
+    const user = await this.#repository.findById(id)
+    if (!user) {
+      throw new NotFoundError(`User with id ${id} was not found.`)
+    }
+    return this.#repository.deleteById(id)
+  }
 }
