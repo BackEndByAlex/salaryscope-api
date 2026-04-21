@@ -7,6 +7,32 @@ Everything that handles who a user is and whether they are allowed to do somethi
 
 ---
 
+## Auth flows at a glance
+
+Each authentication flow is documented as a sequence diagram.
+
+### Register
+
+![Register flow](/img/diagrams/flow/register.svg)
+
+### Login (email + password)
+
+![Login flow](/img/diagrams/flow/login.svg)
+
+### Google OAuth 2.0 (PKCE)
+
+![Google OAuth flow](/img/diagrams/flow/google-oauth.svg)
+
+### GitHub OAuth 2.0 (PKCE)
+
+![GitHub OAuth flow](/img/diagrams/flow/github-oauth.svg)
+
+### Delete account
+
+![Delete account flow](/img/diagrams/flow/delete-account.svg)
+
+---
+
 ## AuthService.js
 
 Handles registering and logging in users.
@@ -100,6 +126,7 @@ The GraphQL entry points for authentication.
 - `beginGithubLogin` — same as `beginGoogleLogin` but for GitHub; stores state in `oauth_github_state` cookie
 - `githubLogin` — same as `googleLogin` but for GitHub OAuth
 - `logout` — clears the `token` cookie server-side, returns `true`
+- `deleteAccount` — requires login; calls `UserService.deleteById`, clears the `token` cookie, and returns `true`. The user's salary records are kept in the dataset but anonymized (`createdBy` becomes `null`)
 - `me` — checks that the user is logged in, then returns their profile from `UserService`
 - `User.githubConnected` — returns `true` if the user has a GitHub ID linked to their account
 - `User.googleConnected` — returns `true` if the user has a Google ID linked to their account
@@ -167,4 +194,4 @@ The same pattern applies for GitHub (`beginGithubLogin` / `githubLogin`).
 
 ## GraphQL schema
 
-The types and operations (`User`, `AuthPayload`, `BeginOAuthPayload`, `register`, `login`, `beginGoogleLogin`, `googleLogin`, `beginGithubLogin`, `githubLogin`, `logout`, `me`) are defined in `src/graphql/schema/auth.graphql`.
+The types and operations (`User`, `AuthPayload`, `BeginOAuthPayload`, `register`, `login`, `beginGoogleLogin`, `googleLogin`, `beginGithubLogin`, `githubLogin`, `logout`, `deleteAccount`, `me`) are defined in `src/graphql/schema/auth.graphql`.

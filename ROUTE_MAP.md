@@ -215,7 +215,7 @@ Logout
 | **Cookie-based auth** | Login and register set an HttpOnly `token` cookie. Middleware reads from header or cookie. |
 | **Global rate limit** | 500 requests per IP per 15 minutes |
 | **Auth rate limit** | 10 requests per IP per 15 minutes on `login` and `register`. Detects auth operations by both `operationName` and query body to prevent bypass. |
-| **Query depth limit** | Rejects GraphQL queries deeper than 5 levels to prevent nested query abuse |
+| **Query depth limit** | Rejects GraphQL queries deeper than 7 levels to prevent nested query abuse |
 | **Query complexity limit** | Rejects queries that exceed a total complexity budget of 200 to prevent resource exhaustion |
 | **Batch blocker** | Rejects any request body that is a JSON array |
 | **Body size limit** | 100 KB max per request |
@@ -259,6 +259,7 @@ Logout
 | `createSalaryRecord(input)` | Adds a new salary record |
 | `updateSalaryRecord(id, input)` | Updates a salary record (owner only) |
 | `deleteSalaryRecord(id)` | Deletes a salary record (owner only) |
+| `deleteAccount` | Permanently deletes the current user's account. Clears the token cookie. Salary records remain in the dataset with `createdBy` set to `null` |
 
 ### Available filters on `salaryRecords`
 

@@ -78,8 +78,10 @@ Handles registration, login, OAuth, and session management. Lives in `src/auth/`
 
 - `register` — creates a new account. Input is validated before being passed to the auth service. On success, a signed JWT is set as an `httpOnly` cookie.
 - `login` — checks credentials and, if correct, sets the same kind of auth cookie.
-- `githubLogin` — completes a GitHub OAuth login. Accepts `code`, `codeVerifier`, and `state` (login-CSRF protection). Sets the auth cookie on success, returns the user object.
-- `googleLogin` — same as above but for Google OAuth.
+- `beginGoogleLogin` — step 1 of Google OAuth. Accepts a PKCE `codeChallenge`, generates a cryptographically random `state`, stores it in a signed HttpOnly `oauth_google_state` cookie (10-minute TTL), and returns the full Google authorization URL.
+- `googleLogin` — step 2 of Google OAuth. Verifies the `state` against the signed cookie with a constant-time comparison, clears the cookie (single-use), exchanges the code via `GoogleOAuthService`, and sets the auth cookie on success.
+- `beginGithubLogin` — step 1 of GitHub OAuth. Same pattern as `beginGoogleLogin`, but stores state in `oauth_github_state` and returns the GitHub authorization URL.
+- `githubLogin` — step 2 of GitHub OAuth. Verifies the state cookie and exchanges the code via `GitHubOAuthService`. Sets the auth cookie on success.
 - `logout` — clears the auth cookie. No auth check required — if there is no cookie there is nothing to do.
 - `me` — returns the currently logged-in user. Requires login.
 - `User.githubConnected` — returns `true` if the user's account has a GitHub ID linked, `false` otherwise.

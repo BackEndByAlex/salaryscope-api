@@ -103,6 +103,20 @@ on a cloud server.
 
 ---
 
+## System Overview
+
+### Context — who talks to the API
+
+![System Context](/img/diagrams/01-context.svg)
+
+### Containers — what runs where
+
+![Containers](/img/diagrams/02-containers.svg)
+
+> Deeper architecture diagrams (components, request lifecycle, ER model, and every auth flow) are embedded in their respective pages under [Architecture](../architecture/server.md), [Authentication](../auth/authentication.md), and [Database](../data-layer/database.md).
+
+---
+
 ## Implementation Type
 
 GraphQL
@@ -238,7 +252,7 @@ _List the technologies you chose and briefly explain why:_
 **helmet** - Secure HTTP headers with a targeted Content Security Policy that allows Apollo Studio while blocking everything else.
 **cookie-parser** - Parses the `Cookie` header so the JWT middleware can read the `token` cookie set on login/register.
 **express-rate-limit** - Limits request rate per IP. General limit of 500 requests and a stricter limit of 10 for auth operations (login/register), with query body detection to prevent bypass.
-**graphql-depth-limit** - Prevents deeply nested query abuse by rejecting queries deeper than 5 levels.
+**graphql-depth-limit** - Prevents deeply nested query abuse by rejecting queries deeper than 7 levels.
 **cors** - Restricts which oridins can call the API in a browser context.
 **docker + docker compose** - Deployment. Split into separate compose files: `docker-compose.db.yml` (database + migrations + seed) and `docker-compose.prod.yml` (API only). CI/CD only rebuilds the API.
 

@@ -198,7 +198,7 @@ Logout
 | **Cookie-based auth**  | Login and register set an HttpOnly `token` cookie. Middleware reads from header or cookie.                                                                 |
 | **Global rate limit**  | 500 requests per IP per 15 minutes                                                                                                                         |
 | **Auth rate limit**    | 10 requests per IP per 15 minutes on `login` and `register`. Detects auth operations by both `operationName` and query body to prevent bypass.             |
-| **Query depth limit**  | Rejects GraphQL queries deeper than 5 levels to prevent nested query abuse                                                                                 |
+| **Query depth limit**  | Rejects GraphQL queries deeper than 7 levels to prevent nested query abuse                                                                                 |
 | **Query complexity limit** | Rejects queries that exceed a total complexity budget of 200 to prevent resource exhaustion                                                               |
 | **Batch blocker**      | Rejects any request body that is a JSON array                                                                                                              |
 | **Body size limit**    | 100 KB max per request                                                                                                                                     |
@@ -219,8 +219,10 @@ Logout
 | ----------------------------------------------------- | ------------------------------------------------- |
 | `register(input)`                                     | Creates an account, sets HttpOnly token cookie    |
 | `login(input)`                                        | Checks credentials, sets HttpOnly token cookie    |
-| `googleLogin(input)`                                  | Log in or register via Google OAuth (PKCE). Sets token cookie |
-| `githubLogin(input)`                                  | Log in or register via GitHub OAuth (PKCE). Sets token cookie |
+| `beginGoogleLogin(input)`                             | Step 1 of Google OAuth — returns the authorization URL and sets a signed state cookie |
+| `googleLogin(input)`                                  | Step 2 of Google OAuth — verifies state, exchanges code, sets token cookie |
+| `beginGithubLogin(input)`                             | Step 1 of GitHub OAuth — returns the authorization URL and sets a signed state cookie |
+| `githubLogin(input)`                                  | Step 2 of GitHub OAuth — verifies state, exchanges code, sets token cookie |
 | `logout`                                              | Clears the token cookie server-side via GraphQL mutation |
 | `countries` / `country` / `countryByName`             | List or look up countries                         |
 | `jobCategories` / `jobCategory` / `jobCategoryByName` | List or look up job categories                    |
@@ -239,6 +241,7 @@ Logout
 | `createSalaryRecord(input)`     | Adds a new salary record                       |
 | `updateSalaryRecord(id, input)` | Updates a salary record (owner only)           |
 | `deleteSalaryRecord(id)`        | Deletes a salary record (owner only)           |
+| `deleteAccount`                 | Permanently deletes the current user's account. Clears the token cookie. Salary records remain in the dataset with `createdBy` set to `null` |
 
 ### Available filters on `salaryRecords`
 
@@ -301,7 +304,7 @@ Docker Compose is split into separate files so the database and API can be manag
 
 | File                        | What it runs                                                         |
 | --------------------------- | -------------------------------------------------------------------- |
-| `docker-compose.server.yml` | Postgres + Caddy + API + Watchtower -- production server only        |
+| `docker-compose.server.yml` | Postgres + Caddy + API + Docs -- production server only              |
 | `docker-compose.db.yml`     | Migrations + seed -- expects Postgres already running on the network |
 | `docker-compose.dev.yml`    | API only (development) -- with hot reload via `--watch`              |
 | `docker-compose.prod.yml`   | API + Caddy (production) -- rebuilt on every deploy                  |

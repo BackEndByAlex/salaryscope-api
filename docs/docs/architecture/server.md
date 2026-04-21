@@ -7,6 +7,14 @@ The entry point for the entire application. This file sets up Express, applies s
 
 ---
 
+## Request lifecycle
+
+![Request lifecycle](/img/diagrams/05-request-lifecycle.svg)
+
+> Every request passes through this pipeline top-to-bottom: Express middleware → JWT context builder → Apollo validation rules → resolver → service → repository → Prisma → Postgres.
+
+---
+
 ## What it does
 
 `server.js` creates an Express app with Apollo Server (via `@as-integrations/express5`) and exposes a single GraphQL endpoint. It loads environment variables from `.env`, builds the Apollo Server instance, creates all services, and wires everything together before starting the HTTP server.

@@ -7,6 +7,14 @@ This folder wires the GraphQL layer together. It holds the schema definitions, t
 
 ---
 
+## Component overview
+
+![Components inside the API container](/img/diagrams/03-components.svg)
+
+> Middleware → JWT context → Apollo → resolvers → services → repositories → Prisma. Validators, authGuard, errors and keys are cross-cutting helpers used across layers.
+
+---
+
 ## setup.js
 
 The composition root for the entire GraphQL layer. This is where all the pieces get connected.

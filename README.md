@@ -103,6 +103,30 @@ on a cloud server.
 
 ---
 
+## System Architecture
+
+The API is documented through a set of C4 and flow diagrams. Each one answers a different question about the system.
+
+### System Context — who talks to the API?
+
+![System Context](./diagram/01-context.svg)
+
+### Containers — what runs where?
+
+![Containers](./diagram/02-containers.svg)
+
+### Request Lifecycle — how a GraphQL request travels through the stack
+
+![Request Lifecycle](./diagram/05-request-lifecycle.svg)
+
+### Data Model — Entity Relationships
+
+![ER Diagram](./diagram/04-er.svg)
+
+> Full set of diagrams (including internal components and all auth flows) lives in [`/diagram`](./diagram/). See [`src/auth/README.md`](./src/auth/README.md) for the sequence diagrams of each auth flow.
+
+---
+
 ## Implementation Type
 
 GraphQL
@@ -238,7 +262,7 @@ _List the technologies you chose and briefly explain why:_
 **helmet** - Secure HTTP headers with a targeted Content Security Policy that allows Apollo Studio while blocking everything else.
 **cookie-parser** - Parses the `Cookie` header so the JWT middleware can read the `token` cookie set on login/register. Also signs OAuth state cookies (`oauth_google_state`, `oauth_github_state`) using `COOKIE_SECRET` to prevent CSRF forgery.
 **express-rate-limit** - Limits request rate per IP. General limit of 500 requests and a stricter limit of 10 for auth operations (login/register), with query body detection to prevent bypass.
-**graphql-depth-limit** - Prevents deeply nested query abuse by rejecting queries deeper than 5 levels.
+**graphql-depth-limit** - Prevents deeply nested query abuse by rejecting queries deeper than 7 levels.
 **cors** - Restricts which oridins can call the API in a browser context.
 **docker + docker compose** - Deployment. Split into separate compose files: `docker-compose.db.yml` (database + migrations + seed) and `docker-compose.prod.yml` (API only). CI/CD only rebuilds the API.
 
