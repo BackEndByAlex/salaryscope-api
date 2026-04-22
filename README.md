@@ -17,7 +17,13 @@
 cp .env.example .env
 ```
 
-Fill in the credentials in `.env` (database user, password, allowed origins).
+Fill in the credentials in `.env` (database user, password, allowed origins, and `COOKIE_SECRET`).
+
+To generate a secure value for `COOKIE_SECRET`:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
 Then generate the RSA key pair used for JWT authentication:
 
@@ -94,6 +100,30 @@ and cities. Users can browse and filter salary data without logging
 in. Registered users can also create, update, and delete their own salary records. The API
 includes JWT authentication, pagination, nested queries, and is deployed with full documentation
 on a cloud server.
+
+---
+
+## System Architecture
+
+The API is documented through a set of C4 and flow diagrams. Each one answers a different question about the system.
+
+### System Context — who talks to the API?
+
+![System Context](./diagram/01-context.svg)
+
+### Containers — what runs where?
+
+![Containers](./diagram/02-containers.svg)
+
+### Request Lifecycle — how a GraphQL request travels through the stack
+
+![Request Lifecycle](./diagram/05-request-lifecycle.svg)
+
+### Data Model — Entity Relationships
+
+![ER Diagram](./diagram/04-er.svg)
+
+> Full set of diagrams (including internal components and all auth flows) lives in [`/diagram`](./diagram/). See [`src/auth/README.md`](./src/auth/README.md) for the sequence diagrams of each auth flow.
 
 ---
 
@@ -230,8 +260,9 @@ _List the technologies you chose and briefly explain why:_
 **jsonwebtoken** - JWT signing and verification. RS256 for stateless authentication
 **bcryptjs** - Password hasing with configurable salt rounds.
 **helmet** - Secure HTTP headers with a targeted Content Security Policy that allows Apollo Studio while blocking everything else.
-**express-rate-limit** - Limits request rate per IP. General limit of 200 requests and a stricter limit of 10 for auth operations (login/register), with query body detection to prevent bypass.
-**graphql-depth-limit** - Prevents deeply nested query abuse by rejecting queries deeper than 5 levels.
+**cookie-parser** - Parses the `Cookie` header so the JWT middleware can read the `token` cookie set on login/register. Also signs OAuth state cookies (`oauth_google_state`, `oauth_github_state`) using `COOKIE_SECRET` to prevent CSRF forgery.
+**express-rate-limit** - Limits request rate per IP. General limit of 500 requests and a stricter limit of 10 for auth operations (login/register), with query body detection to prevent bypass.
+**graphql-depth-limit** - Prevents deeply nested query abuse by rejecting queries deeper than 7 levels.
 **cors** - Restricts which oridins can call the API in a browser context.
 **docker + docker compose** - Deployment. Split into separate compose files: `docker-compose.db.yml` (database + migrations + seed) and `docker-compose.prod.yml` (API only). CI/CD only rebuilds the API.
 
@@ -291,7 +322,8 @@ _Resources, attributions, or shoutouts._
 - https://www.postman.com/ and course lectures for API testing and Newman CI/CD integration
 - Security hardening was done through research into OWASP best practices, covering query depth
   limiting, rate limiter bypass prevention, JWT issuer/audience claims, Content Security Policy,
-  password length validation, user enumeration prevention, and nested pagination caps
+  password length validation, user enumeration prevention, nested pagination caps, input length
+  validation on query arguments, and cookie-based auth with HttpOnly secure flags
 - course lectures about API
 - gitlab exemples
 - moodle documentation

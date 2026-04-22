@@ -2,6 +2,7 @@ import { readFileSync } from "fs"
 import { join, dirname } from "path"
 import { fileURLToPath } from "url"
 import { ApolloServer } from "@apollo/server"
+import { GraphQLError } from "graphql"
 import depthLimit from "graphql-depth-limit"
 import {
   ApolloServerPluginLandingPageLocalDefault,
@@ -20,6 +21,8 @@ import { CityRepository } from "../repositories/CityRepository.js"
 import { SalaryRecordRepository } from "../repositories/SalaryRecordRepository.js"
 
 import { AuthService } from "../auth/AuthService.js"
+import { GitHubOAuthService } from "../auth/GitHubOAuthService.js"
+import { GoogleOAuthService } from "../auth/GoogleOAuthService.js"
 import { UserService } from "../services/UserService.js"
 import { CountryService } from "../services/CountryService.js"
 import { JobCategoryService } from "../services/JobCategoryService.js"
@@ -27,6 +30,8 @@ import { JobService } from "../services/JobService.js"
 import { CompanyService } from "../services/CompanyService.js"
 import { CityService } from "../services/CityService.js"
 import { SalaryRecordService } from "../services/SalaryRecordService.js"
+import { SearchService } from "../services/SearchService.js"
+import { SearchRepository } from "../repositories/SearchRepository.js"
 
 import { authResolvers } from "../auth/authResolvers.js"
 import { countryResolvers } from "./resolvers/countryResolvers.js"
@@ -37,6 +42,7 @@ import { cityResolvers } from "./resolvers/cityResolvers.js"
 import { salaryRecordResolvers } from "./resolvers/salaryRecordResolvers.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
+const MAX_QUERY_COMPLEXITY = 200
 
 function loadTypeDefs() {
   const schemaDir = join(__dirname, "schema")
@@ -60,20 +66,61 @@ function createServices() {
   const companyRepository = new CompanyRepository(prisma)
   const cityRepository = new CityRepository(prisma)
   const salaryRecordRepository = new SalaryRecordRepository(prisma)
+  const searchRepository = new SearchRepository()
 
   return {
     authService: new AuthService(userRepository, privateKey),
+    githubOAuthService: new GitHubOAuthService(userRepository, privateKey),
+    googleOAuthService: new GoogleOAuthService(userRepository, privateKey),
     userService: new UserService(userRepository),
     countryService: new CountryService(countryRepository),
     jobCategoryService: new JobCategoryService(jobCategoryRepository),
     jobService: new JobService(jobRepository),
     companyService: new CompanyService(companyRepository),
     cityService: new CityService(cityRepository),
-    salaryRecordService: new SalaryRecordService(salaryRecordRepository),
+    salaryRecordService: new SalaryRecordService(salaryRecordRepository, cityRepository, jobRepository),
+    searchService: new SearchService(searchRepository),
   }
 }
 
 export { createServices }
+
+function createQueryComplexityRule({
+  maximumComplexity,
+  defaultComplexity = 1,
+  onComplete,
+}) {
+  return function queryComplexityRule(context) {
+    let complexity = 0
+
+    return {
+      Field() {
+        const field = context.getFieldDef()
+        if (!field || field.name.startsWith("__")) return
+
+        const configuredComplexity =
+          typeof field.extensions?.complexity === "number"
+            ? field.extensions.complexity
+            : defaultComplexity
+
+        complexity += configuredComplexity
+      },
+      Document: {
+        leave() {
+          onComplete?.(complexity)
+
+          if (complexity > maximumComplexity) {
+            context.reportError(
+              new GraphQLError(
+                `Query complexity ${complexity} exceeds the maximum allowed complexity of ${maximumComplexity}.`,
+              ),
+            )
+          }
+        },
+      },
+    }
+  }
+}
 
 export function buildApolloServer() {
   return new ApolloServer({
@@ -87,7 +134,17 @@ export function buildApolloServer() {
       cityResolvers,
       salaryRecordResolvers,
     ],
-    validationRules: [depthLimit(5)],
+    validationRules: [
+      depthLimit(7),
+      createQueryComplexityRule({
+        maximumComplexity: MAX_QUERY_COMPLEXITY,
+        onComplete(complexity) {
+          if (process.env.NODE_ENV !== "production") {
+            console.log(`Query complexity: ${complexity}`)
+          }
+        },
+      }),
+    ],
     includeStacktraceInErrorResponses: process.env.NODE_ENV !== "production",
     introspection: true,
     plugins: [

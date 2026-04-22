@@ -4,6 +4,32 @@ Everything that handles who a user is and whether they are allowed to do somethi
 
 ---
 
+## Visual overview
+
+Each authentication flow is documented as a sequence diagram below. They sit alongside the code so you can match the steps one-to-one.
+
+### Register
+
+![Register flow](../../diagram/flow/register.svg)
+
+### Login (email + password)
+
+![Login flow](../../diagram/flow/login.svg)
+
+### Google OAuth 2.0 (PKCE)
+
+![Google OAuth flow](../../diagram/flow/google-oauth.svg)
+
+### GitHub OAuth 2.0 (PKCE)
+
+![GitHub OAuth flow](../../diagram/flow/github-oauth.svg)
+
+### Delete account
+
+![Delete account flow](../../diagram/flow/delete-account.svg)
+
+---
+
 ## AuthService.js
 
 Handles registering and logging in users.
@@ -49,13 +75,51 @@ Called at the top of any resolver that requires a logged-in user. If `user` is n
 
 ---
 
+## GitHubOAuthService.js
+
+Handles logging in (or registering) a user via GitHub OAuth 2.0 with PKCE.
+
+1. Validates that the `state` parameter is non-empty (login-CSRF protection — the client must verify state before calling this)
+2. Sends the authorization code and PKCE `code_verifier` to GitHub's token endpoint to exchange for an access token
+3. Uses the access token to fetch the user's GitHub profile (id, login, email)
+4. Looks up an existing user by their GitHub ID
+5. If no match is found, checks whether an account with the same email already exists and links the GitHub ID to it; otherwise creates a new user
+6. Issues an RS256 JWT (same format as password login) and returns it with the user object
+
+OAuth users created through this flow have no password — the `passwordHash` field is null for their account.
+
+---
+
+## GoogleOAuthService.js
+
+Handles logging in (or registering) a user via Google OAuth 2.0 with PKCE. Follows the same pattern as `GitHubOAuthService.js`.
+
+1. Validates that the `state` parameter is non-empty (login-CSRF protection)
+2. Sends the authorization code and PKCE `code_verifier` to Google's token endpoint (`https://oauth2.googleapis.com/token`)
+3. Uses the returned access token to fetch the user's Google profile from `https://www.googleapis.com/oauth2/v3/userinfo`
+4. Looks up an existing user by their Google ID
+5. If no match is found, checks whether an account with the same email already exists and links the Google ID to it; otherwise creates a new user
+6. Issues an RS256 JWT and returns it with the user object
+
+---
+
 ## authResolvers.js
 
 The GraphQL entry points for authentication.
 
-- `register` — validates input, then calls `AuthService.register`
-- `login` — validates input, then calls `AuthService.login`
+- `register` — validates input, calls `AuthService.register`, sets a signed JWT as an HttpOnly cookie, returns the user object
+- `login` — validates input, calls `AuthService.login`, sets the auth cookie, returns the user object
+- `beginGoogleLogin` — step 1 of Google OAuth; accepts a PKCE `codeChallenge`, generates a random `state`, stores it in a signed HttpOnly `oauth_google_state` cookie (10-min TTL), returns the full Google authorization URL
+- `googleLogin` — step 2 of Google OAuth; verifies the state cookie with `crypto.timingSafeEqual`, clears it, exchanges the code via `GoogleOAuthService`, sets the auth cookie
+- `beginGithubLogin` — step 1 of GitHub OAuth; same pattern as `beginGoogleLogin`, uses `oauth_github_state`
+- `githubLogin` — step 2 of GitHub OAuth; verifies state, exchanges via `GitHubOAuthService`, sets the auth cookie
+- `logout` — clears the auth cookie server-side, returns `true`
+- `deleteAccount` — requires login; calls `UserService.deleteById`, clears the auth cookie, returns `true`. Salary records remain in the dataset with `createdBy` set to `null`
 - `me` — checks that the user is logged in, then returns their profile from `UserService`
+- `User.githubConnected` — returns `true` if the user has a GitHub ID linked to their account
+- `User.googleConnected` — returns `true` if the user has a Google ID linked to their account
+
+The JWT is never returned in the response body — all auth mutations deliver it exclusively via cookie.
 
 Input validation happens before the service layer is touched.
 
@@ -75,4 +139,4 @@ Incoming request
 
 ## GraphQL schema
 
-The types and operations (`User`, `AuthPayload`, `register`, `login`, `me`) are defined in `src/graphql/schema/auth.graphql`.
+The types and operations (`User`, `AuthPayload`, `BeginOAuthPayload`, `register`, `login`, `beginGoogleLogin`, `googleLogin`, `beginGithubLogin`, `githubLogin`, `logout`, `deleteAccount`, `me`) are defined in `src/graphql/schema/auth.graphql`.

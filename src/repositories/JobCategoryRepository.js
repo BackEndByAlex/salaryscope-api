@@ -8,12 +8,15 @@ export class JobCategoryRepository {
   }
 
   async findAll({ limit = 20, offset = 0 } = {}) {
+    const cappedLimit = Math.min(Math.max(limit, 1), 100)
+    const safeOffset = Math.max(offset, 0)
+
     const [totalCount, jobCategories] = await this.#prisma.$transaction([
       this.#prisma.jobCategory.count(),
       this.#prisma.jobCategory.findMany({
         include: JOB_CATEGORY_INCLUDE,
-        take: limit,
-        skip: offset,
+        take: cappedLimit,
+        skip: safeOffset,
         orderBy: { id: "asc" },
       }),
     ])
@@ -21,7 +24,7 @@ export class JobCategoryRepository {
     return {
       jobCategories,
       totalCount,
-      hasNextPage: offset + jobCategories.length < totalCount,
+      hasNextPage: safeOffset + jobCategories.length < totalCount,
     }
   }
 

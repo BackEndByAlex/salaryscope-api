@@ -7,6 +7,14 @@ The entry point for the entire application. This file sets up Express, applies s
 
 ---
 
+## Request lifecycle
+
+![Request lifecycle](/img/diagrams/05-request-lifecycle.svg)
+
+> Every request passes through this pipeline top-to-bottom: Express middleware → JWT context builder → Apollo validation rules → resolver → service → repository → Prisma → Postgres.
+
+---
+
 ## What it does
 
 `server.js` creates an Express app with Apollo Server (via `@as-integrations/express5`) and exposes a single GraphQL endpoint. It loads environment variables from `.env`, builds the Apollo Server instance, creates all services, and wires everything together before starting the HTTP server.
@@ -18,12 +26,13 @@ The entry point for the entire application. This file sets up Express, applies s
 Middleware is applied in this order. Each request passes through every layer before reaching Apollo Server:
 
 1. **Helmet** — sets security headers (Content-Security-Policy configured to allow Apollo Sandbox)
-2. **CORS** — validates the request origin against `ALLOWED_ORIGINS` from the environment
-3. **JSON body parser** — parses incoming JSON with a 100kb size limit
-4. **General rate limiter** — 200 requests per 15-minute window per IP
-5. **Batch request blocker** — rejects any request where the body is an array (no batched queries allowed)
-6. **Auth rate limiter** — stricter limit (10 requests per 15-minute window) applied only to `Login` and `Register` operations
-7. **Apollo Server middleware** — handles the actual GraphQL request, builds the context (JWT auth + services), and returns the response
+2. **CORS** — validates the request origin against `ALLOWED_ORIGINS` from the environment; `credentials: true` allows cookies to be sent cross-origin
+3. **Cookie parser** — parses the `Cookie` header so the JWT middleware can read the `token` cookie; initialized with `COOKIE_SECRET` to enable signed cookies for OAuth state verification
+4. **JSON body parser** — parses incoming JSON with a 100kb size limit
+5. **General rate limiter** — 500 requests per 15-minute window per IP
+6. **Batch request blocker** — rejects any request where the body is an array (no batched queries allowed)
+8. **Auth rate limiter** — stricter limit (10 requests per 15-minute window) applied only to `Login` and `Register` operations
+9. **Apollo Server middleware** — handles the actual GraphQL request, builds the context (JWT auth + services), and returns the response
 
 ---
 

@@ -2,14 +2,16 @@ import "dotenv/config"
 import express from "express"
 import cors from "cors"
 import helmet from "helmet"
+import cookieParser from "cookie-parser"
 import rateLimit from "express-rate-limit"
 import { expressMiddleware } from "@as-integrations/express5"
 import { buildContext } from "./auth/jwtMiddleware.js"
 import { buildApolloServer, createServices } from "./graphql/setup.js"
+import chatRouter from "./routes/chat.js"
 
 const PORT = process.env.PORT
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
-const GENERAL_RATE_LIMIT_MAX = 200
+const GENERAL_RATE_LIMIT_MAX = 500
 const AUTH_RATE_LIMIT_MAX = 10
 const AUTH_OPERATIONS = ["Login", "Register"]
 
@@ -35,8 +37,8 @@ function applyAuthRateLimit(authRateLimit) {
     const op = req.body?.operationName
     const query = req.body?.query ?? ""
 
-    const isAuthOperation = AUTH_OPERATIONS.includes(op)
-      || /\b(login|register)\b/i.test(query)
+    const isAuthOperation =
+      AUTH_OPERATIONS.includes(op) || /\b(login|register)\b/i.test(query)
 
     if (isAuthOperation) return authRateLimit(req, res, next)
     next()
@@ -52,31 +54,61 @@ try {
 
   app.set("trust proxy", 1)
 
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'", "https://embeddable-sandbox.cdn.apollographql.com"],
-        frameSrc: ["'self'", "https://sandbox.embed.apollographql.com"],
-        connectSrc: ["'self'", "https://*.apollographql.com"],
-        imgSrc: ["'self'", "data:", "https://apollo-server-landing-page.cdn.apollographql.com"],
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: [
+            "'self'",
+            "'unsafe-inline'",
+            "https://embeddable-sandbox.cdn.apollographql.com",
+          ],
+          frameSrc: ["'self'", "https://sandbox.embed.apollographql.com"],
+          connectSrc: ["'self'", "https://*.apollographql.com"],
+          imgSrc: [
+            "'self'",
+            "data:",
+            "https://apollo-server-landing-page.cdn.apollographql.com",
+          ],
+        },
       },
-    },
-  }))
-  app.use(cors({ origin: corsOriginValidator }))
+    }),
+  )
+  app.use(cors({ origin: corsOriginValidator, credentials: true }))
+  app.use(cookieParser(process.env.COOKIE_SECRET))
   app.use(express.json({ limit: "100kb" }))
-  app.use(rateLimit({ windowMs: RATE_LIMIT_WINDOW_MS, max: GENERAL_RATE_LIMIT_MAX, standardHeaders: true, legacyHeaders: false }))
+  app.use(
+    rateLimit({
+      windowMs: RATE_LIMIT_WINDOW_MS,
+      max: GENERAL_RATE_LIMIT_MAX,
+      standardHeaders: true,
+      legacyHeaders: false,
+    }),
+  )
+
+  app.use("/api/chat", chatRouter)
 
   app.use("/graphql", blockBatchedRequests)
-  app.use("/graphql", applyAuthRateLimit(
-    rateLimit({ windowMs: RATE_LIMIT_WINDOW_MS, max: AUTH_RATE_LIMIT_MAX, standardHeaders: true, legacyHeaders: false })
-  ))
+  app.use(
+    "/graphql",
+    applyAuthRateLimit(
+      rateLimit({
+        windowMs: RATE_LIMIT_WINDOW_MS,
+        max: AUTH_RATE_LIMIT_MAX,
+        standardHeaders: true,
+        legacyHeaders: false,
+      }),
+    ),
+  )
 
   app.use(
     "/graphql",
     expressMiddleware(apolloServer, {
-      context: async ({ req }) => ({
+      context: async ({ req, res }) => ({
         ...buildContext({ req }),
+        req,
+        res,
         ...services,
       }),
     }),

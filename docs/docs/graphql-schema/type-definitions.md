@@ -19,11 +19,15 @@ The base file. Defines the root `Query` and `Mutation` types with a placeholder 
 
 Types and operations for authentication.
 
-- `User` — id, email, and creation date
+- `User` — id, email, creation date, two boolean flags (`githubConnected` and `googleConnected`), and `salaryRecords` — the list of salary records that user has submitted
 - `AuthPayload` — what gets returned after login or register: a token and the user
 - `register` — creates a new account, returns a token valid for 24 hours
 - `login` — logs in with email and password, returns a token valid for 24 hours
+- `githubLogin` — logs in (or registers) via GitHub OAuth 2.0 PKCE. Takes a `code` and `codeVerifier`, returns a token and the user
+- `googleLogin` — logs in (or registers) via Google OAuth 2.0 PKCE. Takes a `code` and `codeVerifier`, returns a token and the user
 - `me` — returns the currently logged-in user (requires a valid token)
+- `logout` — clears the session cookie server-side. Returns `true`.
+- `deleteAccount` — permanently deletes the current user's account, clears the session cookie, and returns `true`. Salary records remain in the dataset but become anonymous (`createdBy` set to `null`).
 
 ---
 
@@ -94,10 +98,12 @@ Types and operations for salary records, the main resource of the API.
 - `SalaryRecord` — all salary fields plus relations to job, company, countries, and city. Some fields are only present for certain data sources (noted inline in the schema).
 - `SalaryRecordPage` — paginated result wrapper
 - `SalaryRecordFilters` — all available filters: job, category, country, company, city, source, work year, experience level, employment type, work setting, company size
-- `CreateSalaryRecordInput` — fields required and optional when creating a new record
+- `FilterOptions` — lists the distinct values that actually exist in the data for a given region (experience levels, work settings, employment types, company sizes, and work years). Used to populate filter dropdowns dynamically.
+- `CreateSalaryRecordInput` — fields for creating a new record. `salary` and `source` are required. Either `jobId` or `jobTitle` must be provided — if `jobTitle` is given the API finds or creates the matching job. `cityName` can be provided alongside `employeeCountryId` to find or create a city automatically.
 - `UpdateSalaryRecordInput` — same fields but all optional. Source cannot be changed after creation.
 - `salaryRecords` — paginated list with filters
 - `salaryRecord` — single record by ID
+- `filterOptions` — returns a `FilterOptions` object, optionally scoped to a country or city. No login required.
 - `createSalaryRecord` — requires login
 - `updateSalaryRecord` — requires login, only the owner can update
 - `deleteSalaryRecord` — requires login, only the owner can delete

@@ -8,6 +8,8 @@ export class CompanyRepository {
   }
 
   async findAll({ countryId, limit = 20, offset = 0 } = {}) {
+    const cappedLimit = Math.min(Math.max(limit, 1), 100)
+    const safeOffset = Math.max(offset, 0)
     const where = countryId != null ? { countryId } : {}
 
     const [totalCount, companies] = await this.#prisma.$transaction([
@@ -15,8 +17,8 @@ export class CompanyRepository {
       this.#prisma.company.findMany({
         where,
         include: { country: true },
-        take: limit,
-        skip: offset,
+        take: cappedLimit,
+        skip: safeOffset,
         orderBy: { id: "asc" },
       }),
     ])
@@ -24,7 +26,7 @@ export class CompanyRepository {
     return {
       companies,
       totalCount,
-      hasNextPage: offset + companies.length < totalCount,
+      hasNextPage: safeOffset + companies.length < totalCount,
     }
   }
 

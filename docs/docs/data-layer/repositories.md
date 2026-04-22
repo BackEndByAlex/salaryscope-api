@@ -14,6 +14,7 @@ Each repository wraps one database table and exposes named methods. Services cal
 - `findByEmail` — looks up a user by email (used during login)
 - `findById` — looks up a user by ID (password hash is never returned)
 - `create` — creates a new user (password hash is never returned)
+- `deleteById` — deletes a user by ID using `prisma.user.delete`
 
 ---
 
@@ -39,6 +40,7 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 - `findAll` — paginated list of jobs, with an optional category filter
 - `findById` — single job by ID
+- `findOrCreate(title)` — finds a job by title using `findFirst`. If none exists, creates a new one with that title and no category. Used when a user submits a salary record with a job title rather than a job ID.
 - `findRecordsByJob` — paginated salary records for a given job (limit capped at 100)
 
 ---
@@ -56,6 +58,7 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 - `findAll` — paginated list of cities, with an optional country filter
 - `findById` — single city by ID
+- `findOrCreate(name, countryId)` — finds a city by name and country using `findFirst`. If none exists, creates a new one. Used when a user submits a salary record for a city that does not yet exist in the database.
 - `findRecords` — paginated salary records for a given city (limit capped at 100)
 
 ---
@@ -64,9 +67,11 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 - `findAll` — paginated list of salary records with up to eleven optional filters (job, category, country, company, city, experience level, employment type, work setting, company size, source, work year)
 - `findById` — single salary record by ID
+- `getFilterOptions(countryId, cityId)` — runs five queries in parallel and returns the distinct values that actually exist in the data for experience levels, work settings, employment types, company sizes, and work years. Both arguments are optional — if a `countryId` is provided the results are scoped to records where the employee country matches, if a `cityId` is provided they are scoped to that city. Null values are excluded from all five lists.
 - `create` — creates a new salary record
 - `update` — updates an existing salary record by ID
 - `delete` — deletes a salary record by ID
+- `findByUser(userId)` — returns all salary records created by a given user, ordered by creation date descending. Used by the `User.salaryRecords` resolver to populate the profile page.
 
 ---
 

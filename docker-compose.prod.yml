@@ -23,18 +23,48 @@ services:
     image: gitlab.lnu.se:5050/1dv027/student/aa227wr/exercises/assignment-api-design:latest
     restart: always
     labels:
-        - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.enable=true"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NODE_ENV: production
       PORT: 4000
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
       PRIVATE_KEY_PATH: /run/secrets/private_key
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      ELASTICSEARCH_URL: ${ELASTICSEARCH_URL}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
     secrets:
       - source: private_key
         mode: 0444
     volumes:
       - ./keys/public.pem:/app/keys/public.pem:ro
+    networks:
+      - app-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.1
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "curl -sf $ELASTICSEARCH_URL/_cluster/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
     networks:
       - app-network
 
@@ -45,6 +75,7 @@ secrets:
 volumes:
   caddy_data:
   caddy_config:
+  es_data:
 
 networks:
   app-network:

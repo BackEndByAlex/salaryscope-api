@@ -8,6 +8,8 @@ export class JobRepository {
   }
   // Retrieves a paginated list of jobs, optionally filtered by category ID, along with the total count and pagination info.
   async findAll({ categoryId, limit = 20, offset = 0 } = {}) {
+    const cappedLimit = Math.min(Math.max(limit, 1), 100)
+    const safeOffset = Math.max(offset, 0)
     const where = categoryId != null ? { categoryId } : {}
 
     const [totalCount, jobs] = await this.#prisma.$transaction([
@@ -15,13 +17,29 @@ export class JobRepository {
       this.#prisma.job.findMany({
         where,
         include: { category: true },
-        take: limit,
-        skip: offset,
+        take: cappedLimit,
+        skip: safeOffset,
         orderBy: { id: "asc" },
       }),
     ])
 
-    return { jobs, totalCount, hasNextPage: offset + jobs.length < totalCount }
+    return {
+      jobs,
+      totalCount,
+      hasNextPage: safeOffset + jobs.length < totalCount,
+    }
+  }
+
+  async findOrCreate(title) {
+    const existing = await this.#prisma.job.findFirst({
+      where: { title },
+      include: { category: true },
+    })
+    if (existing) return existing
+    return this.#prisma.job.create({
+      data: { title },
+      include: { category: true },
+    })
   }
 
   async findById(id) {

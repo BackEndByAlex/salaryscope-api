@@ -15,12 +15,50 @@ services:
       NODE_ENV: development
       PORT: 4000
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
+      GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
+      GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
+      COOKIE_SECRET: ${COOKIE_SECRET}
+      ELASTICSEARCH_URL: ${ELASTICSEARCH_URL}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
     volumes:
       - ./keys:/app/keys:ro
       - ./src:/app/src
     command: node --watch src/server.js
     networks:
       - app-network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.1
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "127.0.0.1:9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sf http://localhost:9200/_cluster/health || exit 1",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+    networks:
+      - app-network
+
+volumes:
+  es_data:
 
 networks:
   app-network:

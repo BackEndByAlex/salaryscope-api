@@ -7,6 +7,14 @@ This folder wires the GraphQL layer together. It holds the schema definitions, t
 
 ---
 
+## Component overview
+
+![Components inside the API container](/img/diagrams/03-components.svg)
+
+> Middleware → JWT context → Apollo → resolvers → services → repositories → Prisma. Validators, authGuard, errors and keys are cross-cutting helpers used across layers.
+
+---
+
 ## setup.js
 
 The composition root for the entire GraphQL layer. This is where all the pieces get connected.
@@ -21,8 +29,11 @@ Builds and returns the Apollo Server instance. It:
 
 1. Loads all `.graphql` schema files from `schema/`
 2. Registers all resolver files
-3. Applies a query depth limit of 5 levels to prevent deeply nested query abuse
-4. Configures the embedded sandbox (Apollo Studio in production, local sandbox in development)
+3. Applies a query depth limit of 7 levels to prevent deeply nested query abuse
+4. Applies a query complexity limit of 200 — each field counts toward the total, and queries that exceed the budget are rejected before execution
+5. Configures the embedded sandbox (Apollo Studio in production, local sandbox in development)
+
+Complexity is calculated by a local validation rule in `setup.js`. By default each field contributes a cost of `1`, fields with a numeric `extensions.complexity` override use that value instead, and introspection fields are ignored. In non-production environments the total complexity of every query is logged to the console.
 
 ---
 

@@ -236,9 +236,19 @@ input CreateSalaryRecordInput {
   employmentStatus: String
 
   """
-  The job this record belongs to. Required.
+  The job this record belongs to. Use jobId or jobTitle — not both.
   """
-  jobId: ID!
+  jobId: ID
+
+  """
+  Job title text. Used when jobId is not provided — the API will find or create the matching Job record.
+  """
+  jobTitle: String
+
+  """
+  City name text. Combined with employeeCountryId to find or create the City record.
+  """
+  cityName: String
 
   """
   Country where the employee is located (optional).
@@ -331,6 +341,33 @@ input UpdateSalaryRecordInput {
   companyId: ID
 }
 
+type FilterOptions {
+  """
+  Distinct experience levels present in the matched records.
+  """
+  experienceLevels: [String!]!
+
+  """
+  Distinct work settings present in the matched records.
+  """
+  workSettings: [String!]!
+
+  """
+  Distinct employment types present in the matched records.
+  """
+  employmentTypes: [String!]!
+
+  """
+  Distinct company sizes present in the matched records.
+  """
+  companySizes: [String!]!
+
+  """
+  Distinct work years present in the matched records, sorted descending.
+  """
+  workYears: [Int!]!
+}
+
 extend type Query {
   """
   Returns a paginated list of salary records.
@@ -341,6 +378,42 @@ extend type Query {
   Returns a single salary record by its numeric ID.
   """
   salaryRecord(id: ID!): SalaryRecord!
+
+  """
+  Returns the distinct filter values available for a given country or city.
+  Pass neither to get global distinct values.
+  """
+  filterOptions(countryId: ID, cityId: ID): FilterOptions!
+
+  """
+  Full-text search across salary records using Elasticsearch.
+  Returns records matching the query with fuzzy matching and highlights.
+  """
+  searchRecords(query: String!, limit: Int, offset: Int): SearchResultPage!
+}
+
+type SearchResult {
+  id: ID!
+  jobTitle: String
+  jobCategory: String
+  salary: Float
+  salaryInUsd: Float
+  country: String
+  countryId: ID
+  city: String
+  cityId: ID
+  companyName: String
+  experienceLevel: String
+  workSetting: String
+  workYear: Int
+  source: String
+  score: Float
+}
+
+type SearchResultPage {
+  records: [SearchResult!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
 }
 
 extend type Mutation {

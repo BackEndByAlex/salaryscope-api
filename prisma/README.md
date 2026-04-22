@@ -4,6 +4,14 @@ This folder owns everything related to the database, its structure, its history 
 
 ---
 
+## Data model
+
+![Entity Relationship diagram](../diagram/04-er.svg)
+
+> Generated from `schema.prisma`. Mirrors the production schema exactly — PK, FK, UK and nullability included. A `SalaryRecord` has two named relations to `Country` (employee country and company country), and its `createdBy` is nullable so records survive user deletion as anonymized rows.
+
+---
+
 ## schema.prisma
 
 This is the blueprint of the database. It defines every table, every column, and how the tables are connected to each other.

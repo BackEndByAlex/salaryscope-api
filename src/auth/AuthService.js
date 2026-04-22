@@ -16,7 +16,9 @@ export class AuthService {
   async register({ email, password }) {
     const existingUser = await this.#userRepository.findByEmail(email)
     if (existingUser) {
-      throw new BadUserInputError("Registration failed. Please try a different email or log in.")
+      throw new BadUserInputError(
+        "Registration failed. Please try a different email or log in.",
+      )
     }
 
     const hashedPassword = await bcrypt.hash(password, this.#saltRounds)

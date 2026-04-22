@@ -32,3 +32,8 @@ Input validation that runs before any service or database call. If the input is 
 **`validateFilters`**
 - `limit` must be between 1 and 100 if provided
 - `offset` must not be negative if provided
+- `experienceLevel` values are checked against an allowlist: `EN`, `MI`, `SE`, `EX`
+- `employmentType` values are checked against an allowlist: `FT`, `PT`, `CT`, `FL`
+- `workSetting` values are checked against an allowlist: `Remote`, `Hybrid`, `In-Person`
+- `companySize` values are checked against an allowlist: `S`, `M`, `L`
+- `source` values are checked against an allowlist of known data sources
