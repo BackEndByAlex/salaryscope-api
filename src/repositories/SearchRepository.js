@@ -4,16 +4,37 @@ export const INDEX = "salary_records"
 
 export class SearchRepository {
   async search(query, { limit = 10, offset = 0 } = {}) {
+    // Capitalise each word so "sweden" matches the keyword field value "Sweden"
+    const normalised = query
+      .split(" ")
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+      .join(" ")
+
     const response = await esClient.search({
       index: INDEX,
       from: offset,
       size: limit,
       query: {
-        multi_match: {
-          query,
-          fields: ["jobTitle^3", "jobCategory^2", "companyName", "city", "country"],
-          fuzziness: "AUTO",
-          operator: "or",
+        bool: {
+          should: [
+            // Full-text search on analysed text fields
+            {
+              multi_match: {
+                query,
+                fields: ["jobTitle^3", "jobCategory^2", "companyName"],
+                fuzziness: "AUTO",
+                operator: "or",
+              },
+            },
+            // Exact match on keyword fields (country, city) using capitalised query
+            { term: { country: normalised } },
+            { term: { city: normalised } },
+            // Also try individual words for multi-word queries like "United States"
+            ...query.split(" ").filter((w) => w.length > 2).map((w) => ({
+              term: { country: w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() },
+            })),
+          ],
+          minimum_should_match: 1,
         },
       },
       highlight: {

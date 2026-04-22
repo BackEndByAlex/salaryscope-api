@@ -7,6 +7,7 @@ import rateLimit from "express-rate-limit"
 import { expressMiddleware } from "@as-integrations/express5"
 import { buildContext } from "./auth/jwtMiddleware.js"
 import { buildApolloServer, createServices } from "./graphql/setup.js"
+import chatRouter from "./routes/chat.js"
 
 const PORT = process.env.PORT
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
@@ -86,6 +87,8 @@ try {
     }),
   )
 
+
+  app.use("/api/chat", chatRouter)
 
   app.use("/graphql", blockBatchedRequests)
   app.use(

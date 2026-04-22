@@ -38,6 +38,7 @@ services:
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
       COOKIE_SECRET: ${COOKIE_SECRET}
       ELASTICSEARCH_URL: http://elasticsearch:9200
+      GROQ_API_KEY: ${GROQ_API_KEY}
     depends_on:
       elasticsearch:
         condition: service_healthy
