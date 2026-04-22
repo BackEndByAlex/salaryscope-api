@@ -87,7 +87,6 @@ try {
     }),
   )
 
-
   app.use("/api/chat", chatRouter)
 
   app.use("/graphql", blockBatchedRequests)

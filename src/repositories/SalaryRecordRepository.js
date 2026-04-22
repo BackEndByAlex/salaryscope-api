@@ -198,4 +198,3 @@ function buildSalaryRecordWhere({
 
   return where
 }
-   

@@ -23,7 +23,7 @@ services:
     image: gitlab.lnu.se:5050/1dv027/student/aa227wr/exercises/assignment-api-design:latest
     restart: always
     labels:
-        - "com.centurylinklabs.watchtower.enable=true"
+      - "com.centurylinklabs.watchtower.enable=true"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NODE_ENV: production
@@ -37,7 +37,7 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
       COOKIE_SECRET: ${COOKIE_SECRET}
-      ELASTICSEARCH_URL: http://elasticsearch:9200
+      ELASTICSEARCH_URL: ${ELASTICSEARCH_URL}
       GROQ_API_KEY: ${GROQ_API_KEY}
     depends_on:
       elasticsearch:
@@ -60,7 +60,8 @@ services:
     volumes:
       - es_data:/usr/share/elasticsearch/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -sf $ELASTICSEARCH_URL/_cluster/health || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5
