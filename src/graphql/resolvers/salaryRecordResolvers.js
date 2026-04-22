@@ -21,6 +21,9 @@ export const salaryRecordResolvers = {
         cityId: parseOptionalId(cityId),
       })
     },
+    searchRecords: async (_, { query, limit = 10, offset = 0 }, { searchService }) => {
+      return searchService.search(query, { limit, offset })
+    },
   },
   Mutation: {
     createSalaryRecord: async (_, { input }, { user, salaryRecordService }) => {

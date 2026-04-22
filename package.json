@@ -19,11 +19,13 @@
     "db:reset": "prisma migrate reset --force",
     "generate": "prisma generate",
     "generate:keys": "node scripts/generate-keys.js",
+    "es:sync": "node scripts/syncElasticsearch.js",
     "api:test:prod": "npx newman run postman/salary-api.postman_collection.json -e postman/production.postman_environment.json --insecure"
   },
   "dependencies": {
     "@apollo/server": "^5.5.0",
     "@as-integrations/express5": "^1.1.2",
+    "@elastic/elasticsearch": "^9.3.4",
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
     "bcryptjs": "^3.0.3",

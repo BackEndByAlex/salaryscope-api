@@ -30,6 +30,8 @@ import { JobService } from "../services/JobService.js"
 import { CompanyService } from "../services/CompanyService.js"
 import { CityService } from "../services/CityService.js"
 import { SalaryRecordService } from "../services/SalaryRecordService.js"
+import { SearchService } from "../services/SearchService.js"
+import { SearchRepository } from "../repositories/SearchRepository.js"
 
 import { authResolvers } from "../auth/authResolvers.js"
 import { countryResolvers } from "./resolvers/countryResolvers.js"
@@ -64,6 +66,7 @@ function createServices() {
   const companyRepository = new CompanyRepository(prisma)
   const cityRepository = new CityRepository(prisma)
   const salaryRecordRepository = new SalaryRecordRepository(prisma)
+  const searchRepository = new SearchRepository()
 
   return {
     authService: new AuthService(userRepository, privateKey),
@@ -76,6 +79,7 @@ function createServices() {
     companyService: new CompanyService(companyRepository),
     cityService: new CityService(cityRepository),
     salaryRecordService: new SalaryRecordService(salaryRecordRepository, cityRepository, jobRepository),
+    searchService: new SearchService(searchRepository),
   }
 }
 

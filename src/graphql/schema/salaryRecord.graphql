@@ -384,6 +384,36 @@ extend type Query {
   Pass neither to get global distinct values.
   """
   filterOptions(countryId: ID, cityId: ID): FilterOptions!
+
+  """
+  Full-text search across salary records using Elasticsearch.
+  Returns records matching the query with fuzzy matching and highlights.
+  """
+  searchRecords(query: String!, limit: Int, offset: Int): SearchResultPage!
+}
+
+type SearchResult {
+  id: ID!
+  jobTitle: String
+  jobCategory: String
+  salary: Float
+  salaryInUsd: Float
+  country: String
+  countryId: ID
+  city: String
+  cityId: ID
+  companyName: String
+  experienceLevel: String
+  workSetting: String
+  workYear: Int
+  source: String
+  score: Float
+}
+
+type SearchResultPage {
+  records: [SearchResult!]!
+  totalCount: Int!
+  hasNextPage: Boolean!
 }
 
 extend type Mutation {
