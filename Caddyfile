@@ -1,20 +1,33 @@
-cu0080.camp.lnu.se {
-	tls {
-		ca https://ca.camp.lnu.se:9000/acme/acme/directory
-		ca_root /etc/ssl/certs/LNU_FTK_Campus_Root_CA_2025.pem
-	}
+ cu0080.camp.lnu.se {
+      tls {
+          ca https://ca.camp.lnu.se:9000/acme/acme/directory
+          ca_root /etc/ssl/certs/LNU_FTK_Campus_Root_CA_2025.pem
+      }
 
-	redir /docs /docs/ 308
+      encode gzip
 
-	handle_path /docs/* {
-		reverse_proxy docs:8080
-	}
+      redir /api-docs /api-docs/ 308
+      handle_path /api-docs/* {
+          reverse_proxy api-docs:8080
+      }
 
-	handle {
-		reverse_proxy api:4000
-	}
+      redir /wt-docs /wt-docs/ 308
+      handle_path /wt-docs/* {
+          reverse_proxy wt-docs:8080
+      }
 
-	log {
-		output file /data/logs/access.log
-	}
-}
+      handle /graphql* {
+          reverse_proxy api:4000
+      }
+      handle /api/* {
+          reverse_proxy api:4000
+      }
+
+      handle {
+          reverse_proxy frontend:3001
+      }
+
+      log {
+          output file /data/logs/access.log
+      }
+  }

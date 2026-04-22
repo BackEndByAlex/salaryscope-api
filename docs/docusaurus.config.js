@@ -11,7 +11,7 @@ const config = {
   },
 
   url: "https://cu0080.camp.lnu.se",
-  baseUrl: "/docs/",
+  baseUrl: "/api-docs/",
 
   onBrokenLinks: "throw",
 
@@ -69,6 +69,10 @@ const config = {
               {
                 label: "GraphQL Playground",
                 href: "https://cu0080.camp.lnu.se/graphql",
+              },
+              {
+                label: "API Docs",
+                href: "https://cu0080.camp.lnu.se/api-docs/",
               },
             ],
           },

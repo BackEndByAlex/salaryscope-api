@@ -1,10 +1,46 @@
-# Production API + Caddy reverse proxy.
-# Requires the database to be running: docker compose -f docker-compose.db.yml up -d
-#
-# Deploy:
-#   docker compose -f docker-compose.prod.yml up --build -d
-
 services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - app-network
+
+  elasticsearch:
+    image: elasticsearch:9.0.2
+    container_name: elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -sf http://localhost:9200/_cluster/health | grep -q 'yellow\\|green'",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - app-network
+
   caddy:
     image: caddy:2-alpine
     restart: always
@@ -16,68 +52,60 @@ services:
       - caddy_data:/data
       - caddy_config:/config
       - /etc/ssl/certs/LNU_FTK_Campus_Root_CA_2025.pem:/etc/ssl/certs/LNU_FTK_Campus_Root_CA_2025.pem:ro
+    depends_on:
+      - api
+      - api-docs
     networks:
       - app-network
 
   api:
     image: gitlab.lnu.se:5050/1dv027/student/aa227wr/exercises/assignment-api-design:latest
     restart: always
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NODE_ENV: production
       PORT: 4000
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
       PRIVATE_KEY_PATH: /run/secrets/private_key
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      COOKIE_SECRET: ${COOKIE_SECRET}
       GITHUB_CLIENT_ID: ${GITHUB_CLIENT_ID}
       GITHUB_CLIENT_SECRET: ${GITHUB_CLIENT_SECRET}
       GITHUB_REDIRECT_URI: ${GITHUB_REDIRECT_URI}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
       GOOGLE_REDIRECT_URI: ${GOOGLE_REDIRECT_URI}
-      COOKIE_SECRET: ${COOKIE_SECRET}
-      ELASTICSEARCH_URL: ${ELASTICSEARCH_URL}
-      GROQ_API_KEY: ${GROQ_API_KEY}
-    depends_on:
-      elasticsearch:
-        condition: service_healthy
     secrets:
       - source: private_key
-        mode: 0444
+        mode: 0400
     volumes:
-      - ./keys/public.pem:/app/keys/public.pem:ro
+      - /home/ubuntu/keys/public.pem:/app/keys/public.pem:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     networks:
       - app-network
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:9.0.1
-    restart: always
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-    volumes:
-      - es_data:/usr/share/elasticsearch/data
-    healthcheck:
-      test:
-        ["CMD-SHELL", "curl -sf $ELASTICSEARCH_URL/_cluster/health || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 5
+  api-docs:
+    image: gitlab.lnu.se:5050/1dv027/student/aa227wr/exercises/assignment-api-design/docs:latest
+    container_name: salaryscope-api-docs
+    restart: unless-stopped
     networks:
       - app-network
 
 secrets:
   private_key:
-    file: ./keys/private.pem
+    file: /home/ubuntu/keys/private.pem
 
 volumes:
+  postgres_data:
+  elasticsearch_data:
   caddy_data:
   caddy_config:
-  es_data:
 
 networks:
   app-network:
-    external: true
     name: salaryscope-network
