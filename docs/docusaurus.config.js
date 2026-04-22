@@ -6,10 +6,6 @@ const config = {
   tagline: 'GraphQL API Documentation',
   favicon: 'img/favicon.ico',
 
-  future: {
-    v4: true,
-  },
-
   url: 'https://cu0080.camp.lnu.se',
   baseUrl: '/docs/',
 
