@@ -15,7 +15,9 @@ router.post("/", async (req, res) => {
     (m) => m && typeof m.role === "string" && typeof m.content === "string",
   )
   if (!valid) {
-    return res.status(400).json({ error: "Each message must have role and content strings." })
+    return res
+      .status(400)
+      .json({ error: "Each message must have role and content strings." })
   }
 
   try {

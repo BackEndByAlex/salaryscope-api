@@ -31,8 +31,8 @@ Middleware is applied in this order. Each request passes through every layer bef
 4. **JSON body parser** — parses incoming JSON with a 100kb size limit
 5. **General rate limiter** — 500 requests per 15-minute window per IP
 6. **Batch request blocker** — rejects any request where the body is an array (no batched queries allowed)
-8. **Auth rate limiter** — stricter limit (10 requests per 15-minute window) applied only to `Login` and `Register` operations
-9. **Apollo Server middleware** — handles the actual GraphQL request, builds the context (JWT auth + services), and returns the response
+7. **Auth rate limiter** — stricter limit (10 requests per 15-minute window) applied only to `Login` and `Register` operations
+8. **Apollo Server middleware** — handles the actual GraphQL request, builds the context (JWT auth + services), and returns the response
 
 ---
 

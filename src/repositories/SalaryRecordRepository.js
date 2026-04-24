@@ -59,45 +59,46 @@ export class SalaryRecordRepository {
     if (countryId != null) where.employeeCountryId = countryId
     if (cityId != null) where.cityId = cityId
 
-    const [expRows, settingRows, typeRows, sizeRows, yearRows] = await Promise.all([
-      this.#prisma.salaryRecord.findMany({
-        where: { ...where, experienceLevel: { not: null } },
-        distinct: ["experienceLevel"],
-        select: { experienceLevel: true },
-        orderBy: { experienceLevel: "asc" },
-      }),
-      this.#prisma.salaryRecord.findMany({
-        where: { ...where, workSetting: { not: null } },
-        distinct: ["workSetting"],
-        select: { workSetting: true },
-        orderBy: { workSetting: "asc" },
-      }),
-      this.#prisma.salaryRecord.findMany({
-        where: { ...where, employmentType: { not: null } },
-        distinct: ["employmentType"],
-        select: { employmentType: true },
-        orderBy: { employmentType: "asc" },
-      }),
-      this.#prisma.salaryRecord.findMany({
-        where: { ...where, companySize: { not: null } },
-        distinct: ["companySize"],
-        select: { companySize: true },
-        orderBy: { companySize: "asc" },
-      }),
-      this.#prisma.salaryRecord.findMany({
-        where: { ...where, workYear: { not: null } },
-        distinct: ["workYear"],
-        select: { workYear: true },
-        orderBy: { workYear: "desc" },
-      }),
-    ])
+    const [expRows, settingRows, typeRows, sizeRows, yearRows] =
+      await Promise.all([
+        this.#prisma.salaryRecord.findMany({
+          where: { ...where, experienceLevel: { not: null } },
+          distinct: ["experienceLevel"],
+          select: { experienceLevel: true },
+          orderBy: { experienceLevel: "asc" },
+        }),
+        this.#prisma.salaryRecord.findMany({
+          where: { ...where, workSetting: { not: null } },
+          distinct: ["workSetting"],
+          select: { workSetting: true },
+          orderBy: { workSetting: "asc" },
+        }),
+        this.#prisma.salaryRecord.findMany({
+          where: { ...where, employmentType: { not: null } },
+          distinct: ["employmentType"],
+          select: { employmentType: true },
+          orderBy: { employmentType: "asc" },
+        }),
+        this.#prisma.salaryRecord.findMany({
+          where: { ...where, companySize: { not: null } },
+          distinct: ["companySize"],
+          select: { companySize: true },
+          orderBy: { companySize: "asc" },
+        }),
+        this.#prisma.salaryRecord.findMany({
+          where: { ...where, workYear: { not: null } },
+          distinct: ["workYear"],
+          select: { workYear: true },
+          orderBy: { workYear: "desc" },
+        }),
+      ])
 
     return {
       experienceLevels: expRows.map((r) => r.experienceLevel),
-      workSettings:     settingRows.map((r) => r.workSetting),
-      employmentTypes:  typeRows.map((r) => r.employmentType),
-      companySizes:     sizeRows.map((r) => r.companySize),
-      workYears:        yearRows.map((r) => r.workYear),
+      workSettings: settingRows.map((r) => r.workSetting),
+      employmentTypes: typeRows.map((r) => r.employmentType),
+      companySizes: sizeRows.map((r) => r.companySize),
+      workYears: yearRows.map((r) => r.workYear),
     }
   }
 

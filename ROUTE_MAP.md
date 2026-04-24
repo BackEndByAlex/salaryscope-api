@@ -34,6 +34,7 @@ For deeper documentation on each layer, follow the links to the folder README fi
 A **read-and-write API** for tech industry salary data. It combines six CSV datasets (~137,000 rows) into one database and exposes them over a single GraphQL endpoint.
 
 **What you can do:**
+
 - Browse and filter salary records, jobs, countries, cities, companies, and job categories — no login required
 - Create, update, and delete salary records — requires login
 - Register an account and log in
@@ -208,24 +209,24 @@ Logout
 
 ## 6. Security Hardening
 
-| Protection | What it does |
-|---|---|
-| **Helmet + CSP** | Sets HTTP security headers (XSS, clickjacking, HTTPS enforcement). Content Security Policy allows Apollo Studio while blocking all other external scripts. |
-| **CORS** | Only allows origins listed in `ALLOWED_ORIGINS`. Postman/curl always allowed. |
-| **Cookie-based auth** | Login and register set an HttpOnly `token` cookie. Middleware reads from header or cookie. |
-| **Global rate limit** | 500 requests per IP per 15 minutes |
-| **Auth rate limit** | 10 requests per IP per 15 minutes on `login` and `register`. Detects auth operations by both `operationName` and query body to prevent bypass. |
-| **Query depth limit** | Rejects GraphQL queries deeper than 7 levels to prevent nested query abuse |
-| **Query complexity limit** | Rejects queries that exceed a total complexity budget of 200 to prevent resource exhaustion |
-| **Batch blocker** | Rejects any request body that is a JSON array |
-| **Body size limit** | 100 KB max per request |
-| **Password length** | Minimum 8, maximum 128 characters. Prevents bcrypt truncation issues and large-payload abuse. |
-| **Input length caps** | `countryByName`, `companyByName`, `jobCategoryByName` reject name arguments over 255 characters |
-| **Pagination caps** | All paginated queries (including nested fields) are capped at 100 records per page |
-| **JWT scoping** | Tokens include `issuer` and `audience` claims, scoping them to this API only |
-| **OAuth CSRF protection** | `beginGoogleLogin` / `beginGithubLogin` generate a random state, store it in a signed HttpOnly cookie (`oauth_google_state` / `oauth_github_state`, 10-min TTL). The callback mutations verify the returned state against the cookie using `crypto.timingSafeEqual` and clear the cookie immediately — making it single-use |
-| **Introspection** | Enabled in all environments (for Postman and Apollo Sandbox) |
-| **Error sanitization** | In production, unexpected errors are replaced with "Internal server error" |
+| Protection                 | What it does                                                                                                                                                                                                                                                                                                                |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Helmet + CSP**           | Sets HTTP security headers (XSS, clickjacking, HTTPS enforcement). Content Security Policy allows Apollo Studio while blocking all other external scripts.                                                                                                                                                                  |
+| **CORS**                   | Only allows origins listed in `ALLOWED_ORIGINS`. Postman/curl always allowed.                                                                                                                                                                                                                                               |
+| **Cookie-based auth**      | Login and register set an HttpOnly `token` cookie. Middleware reads from header or cookie.                                                                                                                                                                                                                                  |
+| **Global rate limit**      | 500 requests per IP per 15 minutes                                                                                                                                                                                                                                                                                          |
+| **Auth rate limit**        | 10 requests per IP per 15 minutes on `login` and `register`. Detects auth operations by both `operationName` and query body to prevent bypass.                                                                                                                                                                              |
+| **Query depth limit**      | Rejects GraphQL queries deeper than 7 levels to prevent nested query abuse                                                                                                                                                                                                                                                  |
+| **Query complexity limit** | Rejects queries that exceed a total complexity budget of 200 to prevent resource exhaustion                                                                                                                                                                                                                                 |
+| **Batch blocker**          | Rejects any request body that is a JSON array                                                                                                                                                                                                                                                                               |
+| **Body size limit**        | 100 KB max per request                                                                                                                                                                                                                                                                                                      |
+| **Password length**        | Minimum 8, maximum 128 characters. Prevents bcrypt truncation issues and large-payload abuse.                                                                                                                                                                                                                               |
+| **Input length caps**      | `countryByName`, `companyByName`, `jobCategoryByName` reject name arguments over 255 characters                                                                                                                                                                                                                             |
+| **Pagination caps**        | All paginated queries (including nested fields) are capped at 100 records per page                                                                                                                                                                                                                                          |
+| **JWT scoping**            | Tokens include `issuer` and `audience` claims, scoping them to this API only                                                                                                                                                                                                                                                |
+| **OAuth CSRF protection**  | `beginGoogleLogin` / `beginGithubLogin` generate a random state, store it in a signed HttpOnly cookie (`oauth_google_state` / `oauth_github_state`, 10-min TTL). The callback mutations verify the returned state against the cookie using `crypto.timingSafeEqual` and clear the cookie immediately — making it single-use |
+| **Introspection**          | Enabled in all environments (for Postman and Apollo Sandbox)                                                                                                                                                                                                                                                                |
+| **Error sanitization**     | In production, unexpected errors are replaced with "Internal server error"                                                                                                                                                                                                                                                  |
 
 ---
 
@@ -233,33 +234,33 @@ Logout
 
 ### Public (no login required)
 
-| Operation | What it does |
-|---|---|
-| `register(input)` | Creates an account, sets HttpOnly token cookie |
-| `login(input)` | Checks credentials, sets HttpOnly token cookie |
-| `beginGoogleLogin(input)` | Step 1 of Google OAuth — generates server-side state, sets signed cookie, returns the Google auth URL to redirect to |
-| `googleLogin(input)` | Step 2 of Google OAuth — verifies state cookie, exchanges code, sets token cookie |
-| `beginGithubLogin(input)` | Step 1 of GitHub OAuth — same as above for GitHub |
-| `githubLogin(input)` | Step 2 of GitHub OAuth — verifies state cookie, exchanges code, sets token cookie |
-| `logout` | Clears the token cookie server-side via GraphQL mutation |
-| `countries` / `country` / `countryByName` | List or look up countries |
-| `jobCategories` / `jobCategory` / `jobCategoryByName` | List or look up job categories |
-| `jobs` / `job` | List or look up jobs (filterable by category) |
-| `companies` / `company` / `companyByName` | List or look up companies (filterable by country) |
-| `cities` / `city` | List or look up cities (filterable by country) |
-| `filterOptions(countryId, cityId)` | Returns distinct filter values available globally or for a specific region |
-| `salaryRecords(filters)` | Paginated salary records with up to 11 filters |
-| `salaryRecord(id)` | Single salary record by ID |
+| Operation                                             | What it does                                                                                                         |
+| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `register(input)`                                     | Creates an account, sets HttpOnly token cookie                                                                       |
+| `login(input)`                                        | Checks credentials, sets HttpOnly token cookie                                                                       |
+| `beginGoogleLogin(input)`                             | Step 1 of Google OAuth — generates server-side state, sets signed cookie, returns the Google auth URL to redirect to |
+| `googleLogin(input)`                                  | Step 2 of Google OAuth — verifies state cookie, exchanges code, sets token cookie                                    |
+| `beginGithubLogin(input)`                             | Step 1 of GitHub OAuth — same as above for GitHub                                                                    |
+| `githubLogin(input)`                                  | Step 2 of GitHub OAuth — verifies state cookie, exchanges code, sets token cookie                                    |
+| `logout`                                              | Clears the token cookie server-side via GraphQL mutation                                                             |
+| `countries` / `country` / `countryByName`             | List or look up countries                                                                                            |
+| `jobCategories` / `jobCategory` / `jobCategoryByName` | List or look up job categories                                                                                       |
+| `jobs` / `job`                                        | List or look up jobs (filterable by category)                                                                        |
+| `companies` / `company` / `companyByName`             | List or look up companies (filterable by country)                                                                    |
+| `cities` / `city`                                     | List or look up cities (filterable by country)                                                                       |
+| `filterOptions(countryId, cityId)`                    | Returns distinct filter values available globally or for a specific region                                           |
+| `salaryRecords(filters)`                              | Paginated salary records with up to 11 filters                                                                       |
+| `salaryRecord(id)`                                    | Single salary record by ID                                                                                           |
 
 ### Protected (login required)
 
-| Operation | What it does |
-|---|---|
-| `me` | Returns the currently logged-in user's profile |
-| `createSalaryRecord(input)` | Adds a new salary record |
-| `updateSalaryRecord(id, input)` | Updates a salary record (owner only) |
-| `deleteSalaryRecord(id)` | Deletes a salary record (owner only) |
-| `deleteAccount` | Permanently deletes the current user's account. Clears the token cookie. Salary records remain in the dataset with `createdBy` set to `null` |
+| Operation                       | What it does                                                                                                                                 |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `me`                            | Returns the currently logged-in user's profile                                                                                               |
+| `createSalaryRecord(input)`     | Adds a new salary record                                                                                                                     |
+| `updateSalaryRecord(id, input)` | Updates a salary record (owner only)                                                                                                         |
+| `deleteSalaryRecord(id)`        | Deletes a salary record (owner only)                                                                                                         |
+| `deleteAccount`                 | Permanently deletes the current user's account. Clears the token cookie. Salary records remain in the dataset with `createdBy` set to `null` |
 
 ### Available filters on `salaryRecords`
 
@@ -273,10 +274,10 @@ Logout
 
 Every record created through the API is stamped with the user's ID in `createdBy`.
 
-| `createdBy` | Who can modify |
-|---|---|
-| `null` | Nobody — public dataset records, seeded from CSV |
-| A user ID | Only that user |
+| `createdBy` | Who can modify                                   |
+| ----------- | ------------------------------------------------ |
+| `null`      | Nobody — public dataset records, seeded from CSV |
+| A user ID   | Only that user                                   |
 
 Attempting to modify a seeded record returns `403 FORBIDDEN`.
 
@@ -304,13 +305,13 @@ Use `limit` (default 20, max 100) and `offset` to move through pages.
 
 ## 10. Error Handling
 
-| Error | HTTP | Code | When |
-|---|---|---|---|
-| `UnauthenticatedError` | 401 | `UNAUTHENTICATED` | No valid token on a protected operation |
-| `ForbiddenError` | 403 | `FORBIDDEN` | Modifying a record you don't own |
-| `NotFoundError` | 404 | `NOT_FOUND` | Record doesn't exist |
-| `BadUserInputError` | 400 | `BAD_USER_INPUT` | Invalid input, bad ID, duplicate email |
-| Unexpected | 500 | `INTERNAL_SERVER_ERROR` | Anything else — details hidden in production |
+| Error                  | HTTP | Code                    | When                                         |
+| ---------------------- | ---- | ----------------------- | -------------------------------------------- |
+| `UnauthenticatedError` | 401  | `UNAUTHENTICATED`       | No valid token on a protected operation      |
+| `ForbiddenError`       | 403  | `FORBIDDEN`             | Modifying a record you don't own             |
+| `NotFoundError`        | 404  | `NOT_FOUND`             | Record doesn't exist                         |
+| `BadUserInputError`    | 400  | `BAD_USER_INPUT`        | Invalid input, bad ID, duplicate email       |
+| Unexpected             | 500  | `INTERNAL_SERVER_ERROR` | Anything else — details hidden in production |
 
 → See [src/utils/README.md](src/utils/README.md) for the error classes.
 
@@ -320,11 +321,11 @@ Use `limit` (default 20, max 100) and `offset` to move through pages.
 
 Docker Compose is split into separate files so the database and API can be managed independently.
 
-| File | What it runs |
-|---|---|
-| `docker-compose.db.yml` | PostgreSQL + migrations + seed — started once, never touched by CI/CD |
-| `docker-compose.prod.yml` | API only (production) — rebuilt on every deploy |
-| `docker-compose.dev.yml` | API only (development) — with hot reload via `--watch` |
+| File                      | What it runs                                                          |
+| ------------------------- | --------------------------------------------------------------------- |
+| `docker-compose.db.yml`   | PostgreSQL + migrations + seed — started once, never touched by CI/CD |
+| `docker-compose.prod.yml` | API only (production) — rebuilt on every deploy                       |
+| `docker-compose.dev.yml`  | API only (development) — with hot reload via `--watch`                |
 
 All three share the same Docker network (`salaryscope-network`), so the API can reach the database across compose files.
 
@@ -339,14 +340,14 @@ docker compose -f docker-compose.dev.yml up --build # start API (dev mode)
 
 ### Day-to-day commands
 
-| Command | What it does |
-|---|---|
-| `docker compose -f docker-compose.dev.yml up --build` | Start API in dev mode (hot reload) |
-| `docker compose -f docker-compose.prod.yml up --build -d` | Deploy API in production mode |
-| `docker compose -f docker-compose.db.yml up -d` | Start database (if stopped) |
-| `docker compose -f docker-compose.db.yml up -d --scale seed=0` | Start database without re-seeding |
-| `docker compose -f docker-compose.db.yml run --rm seed` | Re-seed the database manually |
-| `npm run db:studio` | Open database browser at `http://localhost:5555` |
-| `npm run generate:keys` | Re-generate RSA keys (invalidates all existing tokens) |
+| Command                                                        | What it does                                           |
+| -------------------------------------------------------------- | ------------------------------------------------------ |
+| `docker compose -f docker-compose.dev.yml up --build`          | Start API in dev mode (hot reload)                     |
+| `docker compose -f docker-compose.prod.yml up --build -d`      | Deploy API in production mode                          |
+| `docker compose -f docker-compose.db.yml up -d`                | Start database (if stopped)                            |
+| `docker compose -f docker-compose.db.yml up -d --scale seed=0` | Start database without re-seeding                      |
+| `docker compose -f docker-compose.db.yml run --rm seed`        | Re-seed the database manually                          |
+| `npm run db:studio`                                            | Open database browser at `http://localhost:5555`       |
+| `npm run generate:keys`                                        | Re-generate RSA keys (invalidates all existing tokens) |
 
 After starting, open `http://localhost:PORT/graphql` to access the Apollo Sandbox.

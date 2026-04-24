@@ -23,7 +23,9 @@ function verifyOAuthState(req, res, cookieName, inputState) {
   res.clearCookie(cookieName) // single-use regardless of outcome
 
   if (!expected) {
-    throw new BadUserInputError("OAuth session expired or missing. Please start the login flow again.")
+    throw new BadUserInputError(
+      "OAuth session expired or missing. Please start the login flow again.",
+    )
   }
 
   const a = Buffer.from(expected)

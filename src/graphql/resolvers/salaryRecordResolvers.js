@@ -15,13 +15,21 @@ export const salaryRecordResolvers = {
     salaryRecord: async (_, { id }, { salaryRecordService }) => {
       return salaryRecordService.getById(id)
     },
-    filterOptions: async (_, { countryId, cityId }, { salaryRecordService }) => {
+    filterOptions: async (
+      _,
+      { countryId, cityId },
+      { salaryRecordService },
+    ) => {
       return salaryRecordService.getFilterOptions({
         countryId: parseOptionalId(countryId),
         cityId: parseOptionalId(cityId),
       })
     },
-    searchRecords: async (_, { query, limit = 10, offset = 0 }, { searchService }) => {
+    searchRecords: async (
+      _,
+      { query, limit = 10, offset = 0 },
+      { searchService },
+    ) => {
       return searchService.search(query, { limit, offset })
     },
   },

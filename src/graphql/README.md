@@ -23,6 +23,7 @@ Creates all repositories and services and returns them as a single object. Calle
 
 **`buildApolloServer()`**
 Builds and returns the Apollo Server instance. It:
+
 1. Loads all `.graphql` schema files from `schema/`
 2. Registers all resolver files
 3. Applies a query depth limit of 7 levels to prevent deeply nested query abuse

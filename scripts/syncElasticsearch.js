@@ -6,7 +6,10 @@
 
 import "dotenv/config"
 import prisma from "../src/config/prismaClient.js"
-import { SearchRepository, INDEX } from "../src/repositories/SearchRepository.js"
+import {
+  SearchRepository,
+  INDEX,
+} from "../src/repositories/SearchRepository.js"
 import esClient from "../src/config/elasticsearchClient.js"
 const searchRepo = new SearchRepository()
 const BATCH_SIZE = 500
@@ -53,5 +56,8 @@ async function main() {
 }
 
 main()
-  .catch((err) => { console.error(err); process.exit(1) })
+  .catch((err) => {
+    console.error(err)
+    process.exit(1)
+  })
   .finally(() => prisma.$disconnect())

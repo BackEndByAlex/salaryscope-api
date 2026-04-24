@@ -17,23 +17,36 @@ Rules:
 
 export class ChatService {
   async streamResponse(messages, res) {
-    const lastUserMessage = [...messages].reverse().find((m) => m.role === "user")
+    const lastUserMessage = [...messages]
+      .reverse()
+      .find((m) => m.role === "user")
     const query = lastUserMessage?.content ?? ""
 
     // Search with a higher limit to get a broader sample
     const { records } = await searchRepo.search(query, { limit: 15 })
 
-    const context = records.length > 0
-      ? `Top ${records.length} matching records (sample — not the full dataset):\n` +
-        records.map((r, i) => [
-          `${i + 1}.`,
-          r.jobTitle,
-          r.country && `in ${r.city ? `${r.city}, ` : ""}${r.country}`,
-          r.salaryInUsd ? `$${Math.round(r.salaryInUsd).toLocaleString()} USD` : r.salary ? `${Math.round(Number(r.salary)).toLocaleString()}` : null,
-          r.experienceLevel && `(${r.experienceLevel})`,
-          r.workYear && `${r.workYear}`,
-        ].filter(Boolean).join(" — ")).join("\n")
-      : "The search returned no matching records for this query. Suggest the user try different keywords."
+    const context =
+      records.length > 0
+        ? `Top ${records.length} matching records (sample — not the full dataset):\n` +
+          records
+            .map((r, i) =>
+              [
+                `${i + 1}.`,
+                r.jobTitle,
+                r.country && `in ${r.city ? `${r.city}, ` : ""}${r.country}`,
+                r.salaryInUsd
+                  ? `$${Math.round(r.salaryInUsd).toLocaleString()} USD`
+                  : r.salary
+                    ? `${Math.round(Number(r.salary)).toLocaleString()}`
+                    : null,
+                r.experienceLevel && `(${r.experienceLevel})`,
+                r.workYear && `${r.workYear}`,
+              ]
+                .filter(Boolean)
+                .join(" — "),
+            )
+            .join("\n")
+        : "The search returned no matching records for this query. Suggest the user try different keywords."
 
     const systemMessage = {
       role: "system",

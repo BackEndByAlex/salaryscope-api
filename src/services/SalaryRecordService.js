@@ -1,5 +1,9 @@
 import { parseId } from "../utils/parseId.js"
-import { NotFoundError, ForbiddenError, BadUserInputError } from "../utils/errors.js"
+import {
+  NotFoundError,
+  ForbiddenError,
+  BadUserInputError,
+} from "../utils/errors.js"
 
 export class SalaryRecordService {
   #repository
@@ -45,7 +49,10 @@ export class SalaryRecordService {
     }
 
     if (cityName && rest.employeeCountryId) {
-      const city = await this.#cityRepository.findOrCreate(cityName, rest.employeeCountryId)
+      const city = await this.#cityRepository.findOrCreate(
+        cityName,
+        rest.employeeCountryId,
+      )
       rest.cityId = city.id
     }
 
