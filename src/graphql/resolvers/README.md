@@ -4,17 +4,9 @@ Resolvers are the bridge between the GraphQL schema and the service layer. When 
 
 Each file covers one domain. Resolvers are kept thin on purpose, they guard access, validate input, parse IDs, and hand off to a service. No business logic lives here.
 
----
+Auth resolvers live in `src/auth/authResolvers.js`
 
-## authResolvers.js
-
-- `register` — validates input, then calls `AuthService.register`
-- `login` — validates input, then calls `AuthService.login`
-- `githubLogin` — takes a GitHub authorization code and PKCE code verifier, calls `GitHubOAuthService`, and returns a token and user
-- `googleLogin` — takes a Google authorization code and PKCE code verifier, calls `GoogleOAuthService`, and returns a token and user
-- `me` — checks that the user is logged in, then returns their profile
-- `User.githubConnected` — returns `true` if the user has a GitHub ID linked to their account
-- `User.googleConnected` — returns `true` if the user has a Google ID linked to their account
+→ See [src/auth/README.md](../auth/README.md) for the full auth resolver documentation.
 
 ---
 
@@ -71,6 +63,7 @@ Each file covers one domain. Resolvers are kept thin on purpose, they guard acce
 
 - `salaryRecords` — returns a paginated list of salary records, with optional filters (job, category, country, company, city, experience level, etc.)
 - `salaryRecord` — returns a single salary record by ID
+- `searchRecords` — full-text search across salary records using Elasticsearch. Accepts a `query` string with optional `limit` and `offset`. Returns a `SearchResultPage` with records ranked by relevance score. Delegates to `SearchService.search`.
 - `filterOptions` — returns the distinct filter values that exist in the data, optionally scoped to a country or city. No login required.
 - `createSalaryRecord` — creates a new salary record. Requires login.
 - `updateSalaryRecord` — updates a salary record. Requires login. Only the owner can update.

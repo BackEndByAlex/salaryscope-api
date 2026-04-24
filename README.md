@@ -171,7 +171,7 @@ _Describe your JWT authentication solution. Why did you choose this approach? Wh
 
 The API uses JWT with RS256.
 
-User registers or logs in, the server signs a token with a private RSA key. Every request inclues the token in the **Authorization: Bearer <token>** header. Then the server verifies it, using the public key.
+User registers or logs in, the server signs a token with a private RSA key and sets it as an HttpOnly cookie on the response. The browser sends this cookie automatically on every subsequent request. Non-browser clients (e.g. Postman) can also pass the token in the **Authorization: Bearer \<token\>** header — the middleware checks both, cookie first.
 
 Passowrds are hashed with bcryt at 12 salt rounds before storage, then the token expires after 24 hours. Each token also includes `issuer` and `audience` claims, scoping it to this API only. This prevents tokens from being accepted by other services that might share the same RSA keys.
 

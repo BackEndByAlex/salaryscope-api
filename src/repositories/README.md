@@ -74,6 +74,20 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 ---
 
+## SearchRepository.js
+
+Talks to Elasticsearch instead of PostgreSQL. Used by both `SearchService` (for the `searchRecords` GraphQL query) and `ChatService` (to fetch context records for the AI chat).
+
+- `search` — runs a `bool` query with two strategies combined: fuzzy `multi_match` across `jobTitle`, `jobCategory`, and `companyName` (text fields), plus exact `term` matches on `country` and `city` (keyword fields). Country/city queries are title-cased before matching since the index stores values like "Sweden", not "sweden". Returns records with relevance score, highlights, and pagination metadata.
+- `indexRecord` — indexes a single record document. Called after `createSalaryRecord` to keep the search index in sync.
+- `bulkIndex` — bulk-indexes a batch of records using the Elasticsearch bulk API. Used during the initial data seed.
+- `deleteRecord` — removes a document from the index by ID. Called after `deleteSalaryRecord`. Errors are swallowed silently — a missing document is not a failure.
+- `ensureIndex` — creates the `salary_records` index with explicit field mappings if it does not already exist. Called at server startup.
+
+The index uses `text` with standard analyser for `jobTitle` and `companyName` (supports fuzzy matching), and `keyword` for all enum-like fields (`country`, `city`, `experienceLevel`, etc.) to support exact filtering.
+
+---
+
 ## salaryRecordInclude.js
 
 A shared Prisma `include` configuration used by every salary record query. Tells Prisma to always fetch the related job (with its category), employee country, company country, company, and city (with its country) alongside each record, so resolvers never have to request them separately.

@@ -92,12 +92,15 @@ Types and operations for salary records, the main resource of the API.
 
 - `SalaryRecord` — all salary fields plus relations to job, company, and countries. Some fields are only present for certain data sources (noted inline in the schema).
 - `SalaryRecordPage` — paginated result wrapper
+- `SearchResult` — a single search hit returned by Elasticsearch, includes the record fields plus a relevance `score` and a `highlight` map showing which fields matched
+- `SearchResultPage` — paginated wrapper for search results (records + totalCount + hasNextPage)
 - `SalaryRecordFilters` — all available filters: job, category, country, company, city, source, work year, experience level, employment type, work setting, company size
 - `FilterOptions` — lists the distinct values that actually exist in the data for a given region (experience levels, work settings, employment types, company sizes, and work years). Used to populate filter dropdowns dynamically.
 - `CreateSalaryRecordInput` — fields required and optional when creating a new record
 - `UpdateSalaryRecordInput` — same fields but all optional. Source cannot be changed after creation.
 - `salaryRecords` — paginated list with filters
 - `salaryRecord` — single record by ID
+- `searchRecords(query, limit, offset)` — full-text search via Elasticsearch. Returns a `SearchResultPage` ranked by relevance. No login required.
 - `filterOptions` — returns a `FilterOptions` object, optionally scoped to a country or city. No login required.
 - `createSalaryRecord` — requires login
 - `updateSalaryRecord` — requires login, only the owner can update

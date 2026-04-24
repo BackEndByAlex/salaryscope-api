@@ -35,6 +35,7 @@ Each authentication flow is documented as a sequence diagram below. They sit alo
 Handles registering and logging in users.
 
 **Register:**
+
 1. Checks that the email is not already taken (returns a vague error message to prevent user enumeration)
 2. Hashes the password (never stores it in plain text)
 3. Creates the user in the database
@@ -42,6 +43,7 @@ Handles registering and logging in users.
 5. Returns a signed token and the safe user object
 
 **Login:**
+
 1. Looks up the user by email
 2. Compares the provided password against the stored hash
 3. If it matches, strips sensitive fields with `#toPublicUser` and returns a signed token and the user
@@ -57,11 +59,13 @@ Tokens are signed with the private RSA key from `config/keys.js`, use the RS256 
 
 Runs on every incoming request before anything else.
 
-1. Reads the `Authorization` header
-2. If it starts with `Bearer `, extracts the token
+1. Checks the `Authorization` header first — if it starts with `Bearer `, extracts the token from there
+2. If no Bearer header is present, falls back to reading the `token` cookie from the `Cookie` header
 3. Verifies the token using the public RSA key (checks algorithm, issuer, and audience)
 4. If valid, attaches `{ id, email }` to the request context so resolvers know who is making the request
 5. If missing or invalid, sets `user: null` and continues without throwing
+
+The two-path token extraction means the API works for both browser clients (which send the HttpOnly cookie automatically after login) and non-browser clients like Postman (which send `Authorization: Bearer <token>` manually).
 
 Resolvers decide what to do with an unauthenticated request. This middleware never blocks a request on its own.
 

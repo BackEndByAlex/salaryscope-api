@@ -39,7 +39,9 @@ A **read-and-write API** for tech industry salary data. It combines six CSV data
 - Create, update, and delete salary records — requires login
 - Register an account and log in
 
-**Built with:** Node.js + Express, Apollo Server, Prisma, PostgreSQL, JWT (RS256)
+**Built with:** Node.js + Express, Apollo Server, Prisma, PostgreSQL, Elasticsearch, Groq SDK, JWT (RS256)
+
+> This API has two entry points: the GraphQL endpoint at `/graphql` (all queries and mutations) and a REST endpoint at `/api/chat` (AI chat streaming). The chat endpoint is separate because it uses Server-Sent Events for real-time token streaming, which GraphQL subscriptions are not set up for.
 
 ---
 
@@ -234,23 +236,32 @@ Logout
 
 ### Public (no login required)
 
-| Operation                                             | What it does                                                                                                         |
-| ----------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| `register(input)`                                     | Creates an account, sets HttpOnly token cookie                                                                       |
-| `login(input)`                                        | Checks credentials, sets HttpOnly token cookie                                                                       |
-| `beginGoogleLogin(input)`                             | Step 1 of Google OAuth — generates server-side state, sets signed cookie, returns the Google auth URL to redirect to |
-| `googleLogin(input)`                                  | Step 2 of Google OAuth — verifies state cookie, exchanges code, sets token cookie                                    |
-| `beginGithubLogin(input)`                             | Step 1 of GitHub OAuth — same as above for GitHub                                                                    |
-| `githubLogin(input)`                                  | Step 2 of GitHub OAuth — verifies state cookie, exchanges code, sets token cookie                                    |
-| `logout`                                              | Clears the token cookie server-side via GraphQL mutation                                                             |
-| `countries` / `country` / `countryByName`             | List or look up countries                                                                                            |
-| `jobCategories` / `jobCategory` / `jobCategoryByName` | List or look up job categories                                                                                       |
-| `jobs` / `job`                                        | List or look up jobs (filterable by category)                                                                        |
-| `companies` / `company` / `companyByName`             | List or look up companies (filterable by country)                                                                    |
-| `cities` / `city`                                     | List or look up cities (filterable by country)                                                                       |
-| `filterOptions(countryId, cityId)`                    | Returns distinct filter values available globally or for a specific region                                           |
-| `salaryRecords(filters)`                              | Paginated salary records with up to 11 filters                                                                       |
-| `salaryRecord(id)`                                    | Single salary record by ID                                                                                           |
+| Operation                                             | What it does                                                                                                                               |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `register(input)`                                     | Creates an account, sets HttpOnly token cookie                                                                                             |
+| `login(input)`                                        | Checks credentials, sets HttpOnly token cookie                                                                                             |
+| `beginGoogleLogin(input)`                             | Step 1 of Google OAuth — generates server-side state, sets signed cookie, returns the Google auth URL to redirect to                       |
+| `googleLogin(input)`                                  | Step 2 of Google OAuth — verifies state cookie, exchanges code, sets token cookie                                                          |
+| `beginGithubLogin(input)`                             | Step 1 of GitHub OAuth — same as above for GitHub                                                                                          |
+| `githubLogin(input)`                                  | Step 2 of GitHub OAuth — verifies state cookie, exchanges code, sets token cookie                                                          |
+| `logout`                                              | Clears the token cookie server-side via GraphQL mutation                                                                                   |
+| `countries` / `country` / `countryByName`             | List or look up countries                                                                                                                  |
+| `jobCategories` / `jobCategory` / `jobCategoryByName` | List or look up job categories                                                                                                             |
+| `jobs` / `job`                                        | List or look up jobs (filterable by category)                                                                                              |
+| `companies` / `company` / `companyByName`             | List or look up companies (filterable by country)                                                                                          |
+| `cities` / `city`                                     | List or look up cities (filterable by country)                                                                                             |
+| `filterOptions(countryId, cityId)`                    | Returns distinct filter values available globally or for a specific region                                                                 |
+| `salaryRecords(filters)`                              | Paginated salary records with up to 11 filters                                                                                             |
+| `salaryRecord(id)`                                    | Single salary record by ID                                                                                                                 |
+| `searchRecords(query, limit, offset)`                 | Full-text Elasticsearch search across job titles, categories, companies, countries, and cities. Returns results ranked by relevance score. |
+
+### REST — AI Chat (no login required)
+
+| Endpoint         | What it does                                                                                                                                                                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /api/chat` | Accepts `{ messages: [{role, content}] }`. Searches Elasticsearch for the most relevant records based on the last user message, builds a grounded system prompt, and streams the Groq LLM response back as Server-Sent Events (`data: {"token": "..."}`, ending with `data: [DONE]`). |
+
+---
 
 ### Protected (login required)
 
