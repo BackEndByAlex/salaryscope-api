@@ -161,7 +161,7 @@ _Describe your JWT authentication solution. Why did you choose this approach? Wh
 
 The API uses JWT with RS256.
 
-User registers or logs in, the server signs a token with a private RSA key. Every request inclues the token in the **Authorization: Bearer &lt;token&gt;** header. Then the server verifies it, using the public key.
+User registers or logs in, the server signs a token with a private RSA key and sets it as an **HttpOnly cookie**. The browser sends the cookie automatically on every subsequent request. Non-browser clients (Postman, curl) can also pass the token as an **Authorization: Bearer &lt;token&gt;** header — the middleware checks the Bearer header first, then falls back to the cookie.
 
 Passowrds are hashed with bcryt at 12 salt rounds before storage, then the token expires after 24 hours. Each token also includes `issuer` and `audience` claims, scoping it to this API only. This prevents tokens from being accepted by other services that might share the same RSA keys.
 
@@ -247,6 +247,8 @@ _List the technologies you chose and briefly explain why:_
 **GraphQL** - Assingment requirment, Single endpoint, client driven queries.
 **Prisma 7** - Type safe ORM, built in migrations and clean query API for postgreSQL
 **PostgresSQL** - Relational database, suited for my structured salary data with relations between jobs, companies and countries.
+**Elasticsearch 9** - Full-text search index. Powers `searchRecords` (GraphQL) and the AI chat context retrieval. Fuzzy multi-match on text fields, term filters on keyword fields.
+**Groq SDK** - Streams AI responses from the Groq LLM (`llama-3.1-8b-instant`). Used by the `/api/chat` SSE endpoint, grounded in Elasticsearch search results.
 **jsonwebtoken** - JWT signing and verification. RS256 for stateless authentication
 **bcryptjs** - Password hasing with configurable salt rounds.
 **helmet** - Secure HTTP headers with a targeted Content Security Policy that allows Apollo Studio while blocking everything else.

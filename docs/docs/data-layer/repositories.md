@@ -75,6 +75,18 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 ---
 
+## SearchRepository.js
+
+The only layer that talks to Elasticsearch directly. All index operations go through here.
+
+- `search(query, limit, offset)` — runs a bool query with a fuzzy `multi_match` on text fields (job title, job category, company name) and `term` matches on keyword fields (country, city). Returns raw Elasticsearch hits.
+- `indexRecord(record)` — indexes a single document by its database ID.
+- `bulkIndex(records)` — bulk-indexes an array of records. Used during the initial Elasticsearch setup to populate the index from the existing database.
+- `deleteRecord(id)` — deletes a document from the index by ID.
+- `ensureIndex()` — checks whether the salary records index exists and creates it with the correct field mappings if it does not. Called once at server startup.
+
+---
+
 ## salaryRecordInclude.js
 
 A shared Prisma `include` configuration used by every salary record query. Tells Prisma to always fetch the related job (with its category), employee country, company country, company, and city (with its country) alongside each record, so resolvers never have to request them separately.

@@ -83,3 +83,23 @@ Ownership rules:
 - Records from the public dataset (`createdBy` is null) cannot be modified by anyone
 - Records created by a user can only be modified by that same user
 - Any violation throws a `ForbiddenError`
+
+---
+
+## SearchService.js
+
+Bridges the Elasticsearch index and the API. All full-text search and indexing goes through here.
+
+- `search(query, limit, offset)` — runs a full-text search against the Elasticsearch index and returns a `{ records, totalCount, hasNextPage }` page object. Used by the `searchRecords` resolver.
+- `indexRecord(record)` — indexes a single salary record after it is created via `createSalaryRecord`.
+- `deleteRecord(id)` — removes a document from the index when a salary record is deleted.
+
+---
+
+## ChatService.js
+
+Streams AI responses from the Groq LLM, grounded in salary data from Elasticsearch.
+
+- `streamResponse(messages, res)` — takes the full conversation history and an Express response object. Searches Elasticsearch for the 15 most relevant records using the last user message as the query. Prepends them as system context, then opens an SSE stream to the Groq API (`llama-3.1-8b-instant` model). Writes each token to `res` as a `data:` event. Sends `[DONE]` when the stream ends. Sends `[ERROR]` if Groq returns an error.
+
+Used by `POST /api/chat` — the REST endpoint that serves the frontend chat feature.

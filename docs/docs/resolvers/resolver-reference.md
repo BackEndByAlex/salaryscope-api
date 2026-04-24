@@ -62,6 +62,7 @@ Each file covers one domain. Resolvers are kept thin on purpose, they guard acce
 
 - `salaryRecords` — returns a paginated list of salary records, with optional filters (job, category, country, company, city, experience level, etc.)
 - `salaryRecord` — returns a single salary record by ID
+- `searchRecords(query, limit, offset)` — full-text search across all salary records via Elasticsearch. No login required. Returns a `SearchResultPage` with records, totalCount, and hasNextPage.
 - `filterOptions` — returns the distinct filter values that actually exist in the data (experience levels, work settings, employment types, company sizes, work years). Accepts optional `countryId` and `cityId` to scope the results to a region. No login required.
 - `createSalaryRecord` — creates a new salary record. Requires login. Accepts either `jobId` or `jobTitle` (the service handles findOrCreate for jobs). Accepts `cityName` alongside `employeeCountryId` to find or create a city.
 - `updateSalaryRecord` — updates a salary record. Requires login. Only the owner can update.

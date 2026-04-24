@@ -18,24 +18,27 @@ A **read-and-write API** for tech industry salary data. It combines six CSV data
 **What you can do:**
 
 - Browse and filter salary records, jobs, countries, cities, companies, and job categories -- no login required
+- Full-text search across salary records via Elasticsearch -- no login required
 - Create, update, and delete salary records -- requires login
 - Register an account and log in
+- Chat with an AI assistant that answers questions grounded in salary data -- no login required
 
-**Built with:** Node.js + Express, Apollo Server, Prisma, PostgreSQL, JWT (RS256)
+**Built with:** Node.js + Express, Apollo Server, Prisma, PostgreSQL, Elasticsearch, Groq SDK, JWT (RS256)
 
 ---
 
-## 2. The Big Picture - One Endpoint
+## 2. The Big Picture - Two Entry Points
 
-Unlike REST, this API has a single URL:
+The API has two entry points:
 
 ```
-POST http://localhost:PORT/graphql
+POST http://localhost:PORT/graphql     ← GraphQL (all queries and mutations)
+POST http://localhost:PORT/api/chat    ← AI chat (REST, Server-Sent Events)
 ```
 
-Every request, whether fetching a list, looking up a record, or creating one, goes to this address. The GraphQL query in the body tells the server what you want.
+Every GraphQL request goes to `/graphql`. The query in the body tells the server what you want. A browser-based sandbox is available at `GET http://localhost:PORT/graphql`.
 
-A browser-based sandbox is also available at `GET http://localhost:PORT/graphql`.
+The chat endpoint at `/api/chat` accepts a JSON body with a `messages` array and streams a response back as Server-Sent Events. No GraphQL — it is a plain REST route.
 
 ---
 
@@ -232,6 +235,7 @@ Logout
 | `filterOptions(countryId, cityId)`                    | Returns distinct filter values available globally or for a specific region            |
 | `salaryRecords(filters)`                              | Paginated salary records with up to 11 filters                                        |
 | `salaryRecord(id)`                                    | Single salary record by ID                                                            |
+| `searchRecords(query, limit, offset)`                 | Full-text Elasticsearch search across all salary records. Returns a `SearchResultPage` |
 
 ### Protected (login required)
 
@@ -242,6 +246,12 @@ Logout
 | `updateSalaryRecord(id, input)` | Updates a salary record (owner only)                                                                                                         |
 | `deleteSalaryRecord(id)`        | Deletes a salary record (owner only)                                                                                                         |
 | `deleteAccount`                 | Permanently deletes the current user's account. Clears the token cookie. Salary records remain in the dataset with `createdBy` set to `null` |
+
+### REST — AI Chat (no login required)
+
+| Method | Path        | What it does                                                                                                           |
+| ------ | ----------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `POST` | `/api/chat` | Accepts `{ messages: [{ role, content }] }`. Searches Elasticsearch for relevant records, sends them as context to the Groq LLM, and streams the reply back as Server-Sent Events. Each event is a `data: <token>` line. The stream ends with `data: [DONE]` or `data: [ERROR]`. |
 
 ### Available filters on `salaryRecords`
 
