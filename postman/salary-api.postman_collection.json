@@ -6,7 +6,6 @@
   "variable": [
     { "key": "email", "value": "" },
     { "key": "password", "value": "" },
-    { "key": "token", "value": "" },
     { "key": "userId", "value": "" },
     { "key": "countryId", "value": "" },
     { "key": "countryName", "value": "" },
@@ -36,12 +35,11 @@
                 "exec": [
                   "const json = pm.response.json();",
                   "",
-                  "pm.test('Returns token and user', function () {",
-                  "  pm.expect(json.data.register.token).to.be.a('string');",
+                  "pm.test('Returns user on register', function () {",
                   "  pm.expect(json.data.register.user.email).to.eql(pm.collectionVariables.get('email'));",
+                  "  pm.expect(json.data.register.user.id).to.be.a('string');",
                   "});",
                   "",
-                  "pm.collectionVariables.set('token', json.data.register.token);",
                   "pm.collectionVariables.set('userId', json.data.register.user.id);"
                 ]
               }
@@ -54,7 +52,7 @@
             "body": {
               "mode": "graphql",
               "graphql": {
-                "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    token\n    user { id email }\n  }\n}",
+                "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    user { id email }\n  }\n}",
                 "variables": "{ \"input\": { \"email\": \"{{email}}\", \"password\": \"{{password}}\" } }"
               }
             }
@@ -69,12 +67,10 @@
                 "exec": [
                   "const json = pm.response.json();",
                   "",
-                  "pm.test('Returns token and user', function () {",
-                  "  pm.expect(json.data.login.token).to.be.a('string');",
+                  "pm.test('Returns user on login', function () {",
                   "  pm.expect(json.data.login.user.email).to.eql(pm.collectionVariables.get('email'));",
-                  "});",
-                  "",
-                  "pm.collectionVariables.set('token', json.data.login.token);"
+                  "  pm.expect(json.data.login.user.id).to.be.a('string');",
+                  "});"
                 ]
               }
             }
@@ -86,7 +82,7 @@
             "body": {
               "mode": "graphql",
               "graphql": {
-                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user { id email }\n  }\n}",
+                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    user { id email }\n  }\n}",
                 "variables": "{ \"input\": { \"email\": \"{{email}}\", \"password\": \"{{password}}\" } }"
               }
             }
@@ -116,7 +112,7 @@
             "body": {
               "mode": "graphql",
               "graphql": {
-                "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    token\n    user { id email }\n  }\n}",
+                "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    user { id email }\n  }\n}",
                 "variables": "{ \"input\": { \"email\": \"{{email}}\", \"password\": \"{{password}}\" } }"
               }
             }
@@ -146,7 +142,7 @@
             "body": {
               "mode": "graphql",
               "graphql": {
-                "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    token\n    user { id email }\n  }\n}",
+                "query": "mutation Register($input: RegisterInput!) {\n  register(input: $input) {\n    user { id email }\n  }\n}",
                 "variables": "{ \"input\": { \"email\": \"short@example.com\", \"password\": \"123\" } }"
               }
             }
@@ -176,7 +172,7 @@
             "body": {
               "mode": "graphql",
               "graphql": {
-                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    token\n    user { id email }\n  }\n}",
+                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    user { id email }\n  }\n}",
                 "variables": "{ \"input\": { \"email\": \"{{email}}\", \"password\": \"wrongpassword123\" } }"
               }
             }
@@ -201,15 +197,40 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
             "body": {
               "mode": "graphql",
               "graphql": {
                 "query": "query Me {\n  me {\n    id\n    email\n    createdAt\n  }\n}",
+                "variables": ""
+              }
+            }
+          }
+        },
+        {
+          "name": "Logout - clear session",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Logout clears session', function () {",
+                  "  pm.expect(json.data.logout).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  logout\n}",
                 "variables": ""
               }
             }
@@ -536,6 +557,34 @@
       "name": "03 - CRUD Sequence",
       "item": [
         {
+          "name": "Login - re-authenticate for CRUD",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Re-login successful', function () {",
+                  "  pm.expect(json.data.login.user.id).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    user { id email }\n  }\n}",
+                "variables": "{ \"input\": { \"email\": \"{{email}}\", \"password\": \"{{password}}\" } }"
+              }
+            }
+          }
+        },
+        {
           "name": "Create record",
           "event": [
             {
@@ -547,7 +596,7 @@
                   "pm.test('Returns created record', function () {",
                   "  pm.expect(json.data.createSalaryRecord.id).to.be.a('string');",
                   "  pm.expect(json.data.createSalaryRecord.salary).to.eql(75000);",
-                  "  pm.expect(json.data.createSalaryRecord.source).to.eql('newman_test');",
+                  "  pm.expect(json.data.createSalaryRecord.source).to.eql('user_submitted');",
                   "});",
                   "",
                   "pm.collectionVariables.set('recordId', json.data.createSalaryRecord.id);"
@@ -557,16 +606,41 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
             "body": {
               "mode": "graphql",
               "graphql": {
                 "query": "mutation CreateSalaryRecord($input: CreateSalaryRecordInput!) {\n  createSalaryRecord(input: $input) {\n    id\n    salary\n    source\n    job { title }\n  }\n}",
-                "variables": "{ \"input\": { \"salary\": 75000, \"source\": \"newman_test\", \"jobId\": \"{{jobId}}\" } }"
+                "variables": "{ \"input\": { \"salary\": 75000, \"source\": \"user_submitted\", \"jobId\": \"{{jobId}}\" } }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Logout - for no-auth test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Logout clears session', function () {",
+                  "  pm.expect(json.data.logout).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  logout\n}",
+                "variables": ""
               }
             }
           }
@@ -596,7 +670,7 @@
               "mode": "graphql",
               "graphql": {
                 "query": "mutation CreateSalaryRecord($input: CreateSalaryRecordInput!) {\n  createSalaryRecord(input: $input) {\n    id\n  }\n}",
-                "variables": "{ \"input\": { \"salary\": 50000, \"source\": \"test\", \"jobId\": \"{{jobId}}\" } }"
+                "variables": "{ \"input\": { \"salary\": 50000, \"source\": \"user_submitted\", \"jobId\": \"{{jobId}}\" } }"
               }
             }
           }
@@ -619,16 +693,41 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
             "body": {
               "mode": "graphql",
               "graphql": {
                 "query": "mutation CreateSalaryRecord($input: CreateSalaryRecordInput!) {\n  createSalaryRecord(input: $input) {\n    id\n  }\n}",
                 "variables": "{ \"input\": { \"salary\": 50000 } }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Login - re-authenticate after no-auth test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Re-login successful', function () {",
+                  "  pm.expect(json.data.login.user.id).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    user { id email }\n  }\n}",
+                "variables": "{ \"input\": { \"email\": \"{{email}}\", \"password\": \"{{password}}\" } }"
               }
             }
           }
@@ -681,16 +780,41 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
             "body": {
               "mode": "graphql",
               "graphql": {
                 "query": "mutation UpdateSalaryRecord($id: ID!, $input: UpdateSalaryRecordInput!) {\n  updateSalaryRecord(id: $id, input: $input) {\n    id\n    salary\n  }\n}",
                 "variables": "{ \"id\": \"{{recordId}}\", \"input\": { \"salary\": 90000 } }"
+              }
+            }
+          }
+        },
+        {
+          "name": "Logout - for no-auth test",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Logout clears session', function () {",
+                  "  pm.expect(json.data.logout).to.eql(true);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation {\n  logout\n}",
+                "variables": ""
               }
             }
           }
@@ -726,6 +850,34 @@
           }
         },
         {
+          "name": "Login - re-authenticate for delete",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "pm.test('Re-login successful', function () {",
+                  "  pm.expect(json.data.login.user.id).to.be.a('string');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
+            "body": {
+              "mode": "graphql",
+              "graphql": {
+                "query": "mutation Login($input: LoginInput!) {\n  login(input: $input) {\n    user { id email }\n  }\n}",
+                "variables": "{ \"input\": { \"email\": \"{{email}}\", \"password\": \"{{password}}\" } }"
+              }
+            }
+          }
+        },
+        {
           "name": "Delete record",
           "event": [
             {
@@ -743,10 +895,7 @@
           ],
           "request": {
             "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": { "raw": "{{baseUrl}}", "host": ["{{baseUrl}}"] },
             "body": {
               "mode": "graphql",
