@@ -77,13 +77,15 @@ Each repository wraps one database table and exposes named methods. Services cal
 
 ## SearchRepository.js
 
-The only layer that talks to Elasticsearch directly. All index operations go through here.
+Talks to Elasticsearch instead of PostgreSQL. Used by both `SearchService` (for the `searchRecords` GraphQL query) and `ChatService` (to fetch context records for the AI chat).
 
-- `search(query, limit, offset)` — runs a bool query with a fuzzy `multi_match` on text fields (job title, job category, company name) and `term` matches on keyword fields (country, city). Returns raw Elasticsearch hits.
-- `indexRecord(record)` — indexes a single document by its database ID.
-- `bulkIndex(records)` — bulk-indexes an array of records. Used during the initial Elasticsearch setup to populate the index from the existing database.
-- `deleteRecord(id)` — deletes a document from the index by ID.
-- `ensureIndex()` — checks whether the salary records index exists and creates it with the correct field mappings if it does not. Called once at server startup.
+- `search` — runs a `bool` query with two strategies combined: fuzzy `multi_match` across `jobTitle`, `jobCategory`, and `companyName` (text fields), plus exact `term` matches on `country` and `city` (keyword fields). Country/city values are title-cased before matching since the index stores values like "Sweden", not "sweden". Returns records with relevance score, highlights, and pagination metadata.
+- `indexRecord` — indexes a single record document. Called after `createSalaryRecord` to keep the search index in sync.
+- `bulkIndex` — bulk-indexes a batch of records using the Elasticsearch bulk API. Used during the initial data seed.
+- `deleteRecord` — removes a document from the index by ID. Called after `deleteSalaryRecord`. Errors are swallowed silently — a missing document is not a failure.
+- `ensureIndex` — creates the `salary_records` index with explicit field mappings if it does not already exist. Called at server startup.
+
+The index uses `text` with the standard analyser for `jobTitle` and `companyName` (supports fuzzy matching), and `keyword` for all enum-like fields (`country`, `city`, `experienceLevel`, etc.) to support exact filtering.
 
 ---
 

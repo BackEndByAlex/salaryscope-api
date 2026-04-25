@@ -7,13 +7,17 @@ Resolvers are the bridge between the GraphQL schema and the service layer. When 
 
 Each file covers one domain. Resolvers are kept thin on purpose, they guard access, validate input, parse IDs, and hand off to a service. No business logic lives here.
 
+Auth resolvers live in `src/auth/authResolvers.js`
+
+→ See [Authentication](../auth/authentication.md) for the full auth resolver documentation.
+
 ---
 
 ## companyResolvers.js
 
 - `companies` — returns a paginated list of companies, with an optional country filter
 - `company` — returns a single company by ID
-- `companyByName` — returns a company by name (name argument validated: max 255 characters)
+- `companyByName` — returns a company by name
 - `Company.rating` — converts the rating from a Prisma Decimal to a regular number before sending it to the client
 - `Company.records` — returns paginated salary records that belong to that company
 
@@ -62,7 +66,7 @@ Each file covers one domain. Resolvers are kept thin on purpose, they guard acce
 
 - `salaryRecords` — returns a paginated list of salary records, with optional filters (job, category, country, company, city, experience level, etc.)
 - `salaryRecord` — returns a single salary record by ID
-- `searchRecords(query, limit, offset)` — full-text search across all salary records via Elasticsearch. No login required. Returns a `SearchResultPage` with records, totalCount, and hasNextPage.
+- `searchRecords(query, limit, offset)` — full-text search across salary records using Elasticsearch. Returns a `SearchResultPage` with records ranked by relevance score. Delegates to `SearchService.search`. No login required.
 - `filterOptions` — returns the distinct filter values that actually exist in the data (experience levels, work settings, employment types, company sizes, work years). Accepts optional `countryId` and `cityId` to scope the results to a region. No login required.
 - `createSalaryRecord` — creates a new salary record. Requires login. Accepts either `jobId` or `jobTitle` (the service handles findOrCreate for jobs). Accepts `cityName` alongside `employeeCountryId` to find or create a city.
 - `updateSalaryRecord` — updates a salary record. Requires login. Only the owner can update.
@@ -73,19 +77,3 @@ GraphQL IDs come in as strings, this file also converts all ID fields to integer
 
 ---
 
-## authResolvers.js
-
-Handles registration, login, OAuth, and session management. Lives in `src/auth/` rather than `src/graphql/resolvers/` because it sits closer to the auth infrastructure.
-
-- `register` — creates a new account. Input is validated before being passed to the auth service. On success, a signed JWT is set as an `httpOnly` cookie.
-- `login` — checks credentials and, if correct, sets the same kind of auth cookie.
-- `beginGoogleLogin` — step 1 of Google OAuth. Accepts a PKCE `codeChallenge`, generates a cryptographically random `state`, stores it in a signed HttpOnly `oauth_google_state` cookie (10-minute TTL), and returns the full Google authorization URL.
-- `googleLogin` — step 2 of Google OAuth. Verifies the `state` against the signed cookie with a constant-time comparison, clears the cookie (single-use), exchanges the code via `GoogleOAuthService`, and sets the auth cookie on success.
-- `beginGithubLogin` — step 1 of GitHub OAuth. Same pattern as `beginGoogleLogin`, but stores state in `oauth_github_state` and returns the GitHub authorization URL.
-- `githubLogin` — step 2 of GitHub OAuth. Verifies the state cookie and exchanges the code via `GitHubOAuthService`. Sets the auth cookie on success.
-- `logout` — clears the auth cookie. No auth check required — if there is no cookie there is nothing to do.
-- `me` — returns the currently logged-in user. Requires login.
-- `User.githubConnected` — returns `true` if the user's account has a GitHub ID linked, `false` otherwise.
-- `User.googleConnected` — returns `true` if the user's account has a Google ID linked, `false` otherwise.
-- `User.salaryRecords` — returns all salary records submitted by this user, delegating to `salaryRecordService.getByUser(parent.id)`.
-- `deleteAccount` — permanently deletes the current user's account. Requires login. Calls `userService.deleteById(user.id)`, clears the auth cookie, and returns `true`. Salary records remain in the dataset with `createdBy` set to `null`.

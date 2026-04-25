@@ -88,18 +88,18 @@ Ownership rules:
 
 ## SearchService.js
 
-Bridges the Elasticsearch index and the API. All full-text search and indexing goes through here.
-
-- `search(query, limit, offset)` — runs a full-text search against the Elasticsearch index and returns a `{ records, totalCount, hasNextPage }` page object. Used by the `searchRecords` resolver.
-- `indexRecord(record)` — indexes a single salary record after it is created via `createSalaryRecord`.
-- `deleteRecord(id)` — removes a document from the index when a salary record is deleted.
+- `search` — accepts a query string and optional `limit`/`offset`. Returns early with an empty result if the query is blank. Otherwise delegates to `SearchRepository.search`, which runs a fuzzy multi-field Elasticsearch query across job titles, categories, companies, countries, and cities.
+- `indexRecord` — indexes a single salary record in Elasticsearch after it is created. Keeps the search index in sync with the database.
+- `deleteRecord` — removes a record from the Elasticsearch index when it is deleted from the database.
 
 ---
 
 ## ChatService.js
 
-Streams AI responses from the Groq LLM, grounded in salary data from Elasticsearch.
+Powers the AI chat assistant. Uses the Groq SDK to stream responses from `llama-3.1-8b-instant`.
 
-- `streamResponse(messages, res)` — takes the full conversation history and an Express response object. Searches Elasticsearch for the 15 most relevant records using the last user message as the query. Prepends them as system context, then opens an SSE stream to the Groq API (`llama-3.1-8b-instant` model). Writes each token to `res` as a `data:` event. Sends `[DONE]` when the stream ends. Sends `[ERROR]` if Groq returns an error.
+- `streamResponse` — takes the full message history and an Express response object. Extracts the last user message, runs `SearchRepository.search` with `limit: 15` to fetch the most relevant salary records as context, builds a system prompt that includes the record sample, then opens a streaming SSE connection to the Groq API. Each token chunk is forwarded to the client as a `data: {"token": "..."}` event. Ends with `data: [DONE]`.
+
+The chat has no direct database access — it grounds its answers in the Elasticsearch search results returned for the user's query.
 
 Used by `POST /api/chat` — the REST endpoint that serves the frontend chat feature.

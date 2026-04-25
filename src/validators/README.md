@@ -23,9 +23,11 @@ Input validation that runs before any service or database call. If the input is 
 
 **`validateCreateInput`**
 
-- `salary`, `jobId`, and `source` are required
+- `salary` and `source` are required
+- Either `jobId` or `jobTitle` must be provided — both together or neither is rejected
 - `salary` must be a positive number
 - `source` must not exceed 200 characters
+- Valid source values: `jobs_in_data`, `salary_extra`, `software_pro`, `h1b_visa`, `user_submitted`
 
 **`validateUpdateInput`**
 
@@ -42,3 +44,15 @@ Input validation that runs before any service or database call. If the input is 
 - `workSetting` values are checked against an allowlist: `Remote`, `Hybrid`, `In-Person`
 - `companySize` values are checked against an allowlist: `S`, `M`, `L`
 - `source` values are checked against an allowlist of known data sources
+
+---
+
+## queryValidator.js
+
+Shared validation for query arguments that are not covered by domain-specific validators.
+
+**`validateNameArg`**
+
+- `name` must not exceed 255 characters
+- Applied to `countryByName`, `companyByName`, and `jobCategoryByName` queries
+- Prevents arbitrarily long strings from being forwarded to the database in `WHERE name = ?` clauses

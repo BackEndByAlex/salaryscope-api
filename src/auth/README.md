@@ -4,9 +4,9 @@ Everything that handles who a user is and whether they are allowed to do somethi
 
 ---
 
-## Visual overview
+## Auth flows at a glance
 
-Each authentication flow is documented as a sequence diagram below. They sit alongside the code so you can match the steps one-to-one.
+Each authentication flow is documented as a sequence diagram.
 
 ### Register
 
@@ -59,15 +59,22 @@ Tokens are signed with the private RSA key from `config/keys.js`, use the RS256 
 
 Runs on every incoming request before anything else.
 
-1. Checks the `Authorization` header first — if it starts with `Bearer `, extracts the token from there
-2. If no Bearer header is present, falls back to reading the `token` cookie from the `Cookie` header
-3. Verifies the token using the public RSA key (checks algorithm, issuer, and audience)
-4. If valid, attaches `{ id, email }` to the request context so resolvers know who is making the request
-5. If missing or invalid, sets `user: null` and continues without throwing
+Token extraction checks two places in order:
 
-The two-path token extraction means the API works for both browser clients (which send the HttpOnly cookie automatically after login) and non-browser clients like Postman (which send `Authorization: Bearer <token>` manually).
+1. `Authorization: Bearer <token>` header
+2. `token` cookie (set automatically on login/register)
+
+After extracting the token, it verifies it using the public RSA key (checks algorithm, issuer, and audience). If valid, attaches `{ id, email }` to the request context so resolvers know who is making the request. If missing or invalid, sets `user: null` and continues without throwing.
 
 Resolvers decide what to do with an unauthenticated request. This middleware never blocks a request on its own.
+
+---
+
+## Logout and token revocation
+
+Logout is handled by the `logout` GraphQL mutation. It clears the `token` cookie server-side via `res.clearCookie()`.
+
+**Known tradeoff:** JWTs are stateless — there is no server-side revocation. A token copied before logout remains valid until it expires (24 hours). This is an accepted limitation of the stateless JWT model. A production system requiring immediate revocation would add a server-side blocklist (e.g. a Redis set keyed by `jti`) that the middleware checks on every request.
 
 ---
 
@@ -81,14 +88,13 @@ Called at the top of any resolver that requires a logged-in user. If `user` is n
 
 ## GitHubOAuthService.js
 
-Handles logging in (or registering) a user via GitHub OAuth 2.0 with PKCE.
+Handles the code exchange step of logging in (or registering) a user via GitHub OAuth 2.0 with PKCE. The CSRF state check happens in `authResolvers.js` before this service is called; this service only deals with the provider exchange.
 
-1. Validates that the `state` parameter is non-empty (login-CSRF protection — the client must verify state before calling this)
-2. Sends the authorization code and PKCE `code_verifier` to GitHub's token endpoint to exchange for an access token
-3. Uses the access token to fetch the user's GitHub profile (id, login, email)
-4. Looks up an existing user by their GitHub ID
-5. If no match is found, checks whether an account with the same email already exists and links the GitHub ID to it; otherwise creates a new user
-6. Issues an RS256 JWT (same format as password login) and returns it with the user object
+1. Sends the authorization code and PKCE `code_verifier` to GitHub's token endpoint to exchange for an access token
+2. Uses the access token to fetch the user's GitHub profile (id, login, email)
+3. Looks up an existing user by their GitHub ID
+4. If no match is found, checks whether an account with the same email already exists and links the GitHub ID to it; otherwise creates a new user
+5. Issues an RS256 JWT (same format as password login) and returns it with the user object
 
 OAuth users created through this flow have no password — the `passwordHash` field is null for their account.
 
@@ -96,14 +102,13 @@ OAuth users created through this flow have no password — the `passwordHash` fi
 
 ## GoogleOAuthService.js
 
-Handles logging in (or registering) a user via Google OAuth 2.0 with PKCE. Follows the same pattern as `GitHubOAuthService.js`.
+Handles the code exchange step of logging in (or registering) a user via Google OAuth 2.0 with PKCE. Follows the same pattern as `GitHubOAuthService.js`.
 
-1. Validates that the `state` parameter is non-empty (login-CSRF protection)
-2. Sends the authorization code and PKCE `code_verifier` to Google's token endpoint (`https://oauth2.googleapis.com/token`)
-3. Uses the returned access token to fetch the user's Google profile from `https://www.googleapis.com/oauth2/v3/userinfo`
-4. Looks up an existing user by their Google ID
-5. If no match is found, checks whether an account with the same email already exists and links the Google ID to it; otherwise creates a new user
-6. Issues an RS256 JWT and returns it with the user object
+1. Sends the authorization code and PKCE `code_verifier` to Google's token endpoint (`https://oauth2.googleapis.com/token`)
+2. Uses the returned access token to fetch the user's profile from `https://www.googleapis.com/oauth2/v3/userinfo`
+3. Looks up an existing user by their Google ID
+4. If no match is found, checks whether an account with the same email already exists and links the Google ID to it; otherwise creates a new user
+5. Issues an RS256 JWT and returns it with the user object
 
 ---
 
@@ -111,19 +116,21 @@ Handles logging in (or registering) a user via Google OAuth 2.0 with PKCE. Follo
 
 The GraphQL entry points for authentication.
 
-- `register` — validates input, calls `AuthService.register`, sets a signed JWT as an HttpOnly cookie, returns the user object
+- `register` — validates input, calls `AuthService.register`, sets a signed JWT as an HttpOnly `token` cookie, returns the user object
 - `login` — validates input, calls `AuthService.login`, sets the auth cookie, returns the user object
-- `beginGoogleLogin` — step 1 of Google OAuth; accepts a PKCE `codeChallenge`, generates a random `state`, stores it in a signed HttpOnly `oauth_google_state` cookie (10-min TTL), returns the full Google authorization URL
-- `googleLogin` — step 2 of Google OAuth; verifies the state cookie with `crypto.timingSafeEqual`, clears it, exchanges the code via `GoogleOAuthService`, sets the auth cookie
-- `beginGithubLogin` — step 1 of GitHub OAuth; same pattern as `beginGoogleLogin`, uses `oauth_github_state`
-- `githubLogin` — step 2 of GitHub OAuth; verifies state, exchanges via `GitHubOAuthService`, sets the auth cookie
-- `logout` — clears the auth cookie server-side, returns `true`
-- `deleteAccount` — requires login; calls `UserService.deleteById`, clears the auth cookie, returns `true`. Salary records remain in the dataset with `createdBy` set to `null`
+- `beginGoogleLogin` — takes a PKCE `codeChallenge`, generates a cryptographically random `state`, stores it in a signed HttpOnly `oauth_google_state` cookie (10-minute TTL), and returns the full Google authorization URL to redirect the user to
+- `googleLogin` — verifies the `state` in the request against the signed cookie (constant-time comparison), clears the cookie, then calls `GoogleOAuthService` with only `code` and `codeVerifier`; sets the auth cookie on success
+- `beginGithubLogin` — same as `beginGoogleLogin` but for GitHub; stores state in `oauth_github_state` cookie
+- `githubLogin` — same as `googleLogin` but for GitHub OAuth
+- `logout` — clears the `token` cookie server-side, returns `true`
+- `deleteAccount` — requires login; calls `UserService.deleteById`, clears the `token` cookie, and returns `true`. The user's salary records are kept in the dataset but anonymized (`createdBy` becomes `null`)
 - `me` — checks that the user is logged in, then returns their profile from `UserService`
 - `User.githubConnected` — returns `true` if the user has a GitHub ID linked to their account
 - `User.googleConnected` — returns `true` if the user has a Google ID linked to their account
 
-The JWT is never returned in the response body — all auth mutations deliver it exclusively via cookie.
+The JWT is never returned in the response body — all auth mutations deliver it exclusively via the HttpOnly cookie.
+
+CSRF state verification (`verifyOAuthState`) runs at the resolver boundary where `req` and `res` are available. It reads the signed cookie, clears it immediately (making it single-use), then compares the expected and provided values with `crypto.timingSafeEqual` (length-checked first to avoid the function throwing). If the cookie is missing or the values don't match, a `BAD_USER_INPUT` error is thrown before any OAuth service code runs.
 
 Input validation happens before the service layer is touched.
 
@@ -133,11 +140,52 @@ Input validation happens before the service layer is touched.
 
 ```
 Incoming request
-  └── jwtMiddleware — reads token, sets context.user (or null)
+  └── jwtMiddleware — reads token (header or cookie), sets context.user (or null)
         └── Resolver
               ├── mutations (create/update/delete) — assertAuthenticated(user) → blocks if not logged in
               └── queries (read) — no guard, public access
+
+mutation logout
+  └── clears token cookie on the client via res.clearCookie()
+      (token remains valid server-side until expiry — known tradeoff)
 ```
+
+---
+
+## User model — database fields
+
+The `User` model in the Prisma schema has been updated to support OAuth accounts:
+
+- `passwordHash` is now nullable — users who sign up through GitHub or Google have no password
+- `githubId` — optional, unique — stores the GitHub user ID when a GitHub account is linked
+- `googleId` — optional, unique — stores the Google user ID when a Google account is linked
+
+---
+
+## OAuth flow
+
+```
+Client                          Backend
+  |                                |
+  |-- beginGoogleLogin({           |
+  |     codeChallenge })  -------> | generates random state
+  |                                | sets signed oauth_google_state cookie (10 min)
+  |                                | returns full Google auth URL
+  | <-- { authUrl }                |
+  |                                |
+  | -- redirect user to authUrl -> Google
+  | <-- Google callback with code + state
+  |                                |
+  |-- googleLogin({                |
+  |     code, codeVerifier, }) --> | reads oauth_google_state cookie
+  |     state                      | clears cookie (single-use)
+  |                                | timingSafeEqual(cookie, input.state)
+  |                                | calls GoogleOAuthService(code, codeVerifier)
+  |                                | sets token cookie
+  | <-- { user }                   |
+```
+
+The same pattern applies for GitHub (`beginGithubLogin` / `githubLogin`).
 
 ---
 
