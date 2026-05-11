@@ -1,0 +1,37 @@
+# Paste this block into /etc/caddy/Caddyfile on the VPS.
+# After editing: sudo systemctl reload caddy
+
+backendbyalex.nu {
+    encode gzip
+
+    # API docs (Docusaurus)
+    redir /api-docs /api-docs/ 308
+    handle_path /api-docs/* {
+        reverse_proxy localhost:8080
+    }
+
+    # WT docs (Docusaurus)
+    redir /wt-docs /wt-docs/ 308
+    handle_path /wt-docs/* {
+        reverse_proxy localhost:8081
+    }
+
+    # GraphQL API
+    handle /graphql* {
+        reverse_proxy localhost:4000
+    }
+
+    # REST auth/oauth routes
+    handle /api/* {
+        reverse_proxy localhost:4000
+    }
+
+    # WT frontend (catch-all)
+    handle {
+        reverse_proxy localhost:3001
+    }
+
+    log {
+        output file /var/log/caddy/backendbyalex.log
+    }
+}
