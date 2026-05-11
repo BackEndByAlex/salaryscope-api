@@ -4,6 +4,13 @@
 backendbyalex.nu {
     encode gzip
 
+    header {
+        X-Frame-Options "DENY"
+        X-Content-Type-Options "nosniff"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+
     # API docs (Docusaurus)
     redir /api-docs /api-docs/ 308
     handle_path /api-docs/* {
