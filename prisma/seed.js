@@ -387,10 +387,10 @@ async function main() {
   ]
   const bRows = loadAndParseCsv("Salary_Dataset_with_Extra_Features.csv")
   const cRows = loadAndParseCsv("Software_Professional_Salaries.csv")
-  const dRows = loadAndParseCsv("h1b_tech_2024.csv")
+  const dRows = []
   const eRows = loadAndParseCsv("2020.csv")
   console.log(
-    `Loaded: ${aRows.length} (A) + ${bRows.length} (B) + ${cRows.length} (C) + ${dRows.length} (D/H-1B) + ${eRows.length} (E/EU-2020) rows.`,
+    `Loaded: ${aRows.length} (A) + ${bRows.length} (B) + ${cRows.length} (C) + ${eRows.length} (E/EU-2020) rows.`,
   )
 
   const countryMap = await seedCountries(aRows, bRows, cRows, dRows, eRows)
@@ -432,13 +432,6 @@ async function main() {
     return record
   })
 
-  const dRecords = dRows.map((row) => {
-    const record = mapH1bRecord(row, countryMap, jobMap, companyMap, cityMap)
-    if (!record)
-      console.warn(`Skipping invalid H-1B row: ${JSON.stringify(row)}`)
-    return record
-  })
-
   const eRecords = eRows.map((row) => {
     const record = mapEuSurveyRecord(row, countryMap, jobMap, cityMap)
     if (!record)
@@ -450,7 +443,6 @@ async function main() {
     ...aRecords,
     ...bRecords,
     ...cRecords,
-    ...dRecords,
     ...eRecords,
   ])
   console.log(`Seeding complete. Total rows inserted: ${totalInserted}.`)
