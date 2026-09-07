@@ -17,6 +17,14 @@ export class SearchRepository {
       query: {
         bool: {
           should: [
+            // Exact/near-exact phrase match, boosted well above the loose word-level
+            // matches below so a real "Data Engineer" title doesn't get buried under
+            // every other "...Engineer" title matching on a single common word.
+            {
+              match_phrase: {
+                jobTitle: { query, boost: 10, slop: 1 },
+              },
+            },
             // Full-text search on analysed text fields
             {
               multi_match: {

@@ -68,6 +68,8 @@ export class ChatService {
                     ? `${Math.round(Number(r.salary)).toLocaleString()}`
                     : null,
                 r.experienceLevel && `(${r.experienceLevel})`,
+                r.workSetting && `${r.workSetting}`,
+                r.employmentType && `${r.employmentType}`,
                 r.workYear && `${r.workYear}`,
               ]
                 .filter(Boolean)
