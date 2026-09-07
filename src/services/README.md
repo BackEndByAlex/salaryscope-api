@@ -71,7 +71,7 @@ Used by the `me` query to return the currently logged-in user's profile.
 
 ## ChatService.js
 
-Powers the AI chat assistant. Uses the Groq SDK to stream responses from `llama-3.1-8b-instant`.
+Powers the AI chat assistant. Uses the Groq SDK to stream responses from `openai/gpt-oss-20b`.
 
 - `streamResponse` — takes the full message history and an Express response object. Extracts the last user message, runs a `SearchRepository.search` with `limit: 15` to fetch the most relevant salary records as context, builds a system prompt that includes the record sample, then opens a streaming SSE connection to the Groq API. Each token chunk is forwarded to the client as a `data: {"token": "..."}` event. Ends with `data: [DONE]`.
 

@@ -60,7 +60,7 @@ export class ChatService {
     res.flushHeaders()
 
     const stream = await groq.chat.completions.create({
-      model: "llama-3.1-8b-instant",
+      model: "openai/gpt-oss-20b",
       messages: [systemMessage, ...messages],
       stream: true,
       max_tokens: 300,
