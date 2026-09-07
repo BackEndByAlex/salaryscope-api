@@ -4,6 +4,32 @@ import { SearchRepository } from "../repositories/SearchRepository.js"
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
 const searchRepo = new SearchRepository()
 
+// Fuzziness only fixes typos, not abbreviations ("ml" won't fuzzy-match "machine learning")
+const JOB_TITLE_ABBREVIATIONS = {
+  ml: "machine learning",
+  ai: "artificial intelligence",
+  swe: "software engineer",
+  qa: "quality assurance",
+  ux: "user experience",
+  ui: "user interface",
+  hr: "human resources",
+  sre: "site reliability engineer",
+  pm: "product manager",
+  ds: "data science",
+}
+
+function expandAbbreviations(query) {
+  return query
+    .split(" ")
+    .map((word) => {
+      const key = word.toLowerCase().replace(/[^a-z]/g, "")
+      return JOB_TITLE_ABBREVIATIONS[key]
+        ? `${word} ${JOB_TITLE_ABBREVIATIONS[key]}`
+        : word
+    })
+    .join(" ")
+}
+
 const SYSTEM_PROMPT = `You are SalaryScope Assistant, a helpful data analyst for a global salary intelligence platform with 137,000+ salary records worldwide.
 
 IMPORTANT: You are given a SAMPLE of the most relevant records for the user's query — not the complete dataset. These are the top matches from a search engine. Do not say "I have no records for X" — instead say "I don't see records for X in the current results" and suggest the user try a more specific search.
@@ -23,7 +49,9 @@ export class ChatService {
     const query = lastUserMessage?.content ?? ""
 
     // Search with a higher limit to get a broader sample
-    const { records } = await searchRepo.search(query, { limit: 15 })
+    const { records } = await searchRepo.search(expandAbbreviations(query), {
+      limit: 15,
+    })
 
     const context =
       records.length > 0
