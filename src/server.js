@@ -11,7 +11,7 @@ import chatRouter from "./routes/chat.js"
 
 const PORT = process.env.PORT
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
-const GENERAL_RATE_LIMIT_MAX = 500
+const GENERAL_RATE_LIMIT_MAX = 2000
 const AUTH_RATE_LIMIT_MAX = 10
 const AUTH_OPERATIONS = ["Login", "Register"]
 

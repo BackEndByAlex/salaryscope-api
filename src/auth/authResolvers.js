@@ -41,7 +41,7 @@ function setAuthCookie(res, token) {
   res.cookie("token", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "lax",
     maxAge: TOKEN_MAX_AGE_MS,
     path: "/",
   })
@@ -56,7 +56,7 @@ export const authResolvers = {
   },
   Query: {
     me: (_, __, { user, userService }) => {
-      assertAuthenticated(user)
+      if (!user) return null
       return userService.getById(user.id)
     },
   },
